@@ -34,4 +34,5 @@ jobs:
           node qa/assistant-smoke.mjs
           node qa/social-management-smoke.mjs
           node qa/pwa-smoke.mjs
+          node qa/push-smoke.mjs
           node qa/adaptive-smoke.mjs
