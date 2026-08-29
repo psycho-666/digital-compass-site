@@ -29,4 +29,6 @@ jobs:
       - name: Run production smoke tests
         env:
           SITE_URL: https://psycho-666.github.io/digital-compass-site/
-        run: node qa/smoke.mjs
+        run: |
+          node qa/smoke.mjs
+          node qa/assistant-smoke.mjs
