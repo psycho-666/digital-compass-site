@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="./admin.css">
 <link rel="stylesheet" href="./admin-extra.css">
 <link rel="stylesheet" href="./social.css">
+<link rel="stylesheet" href="./assistant-ui.css">
 </head>
 <body>
 <div id="socialApp" class="appView hidden">
@@ -37,41 +38,16 @@
       </div>
       <div id="metrics" class="metrics"></div>
       <div class="scopeNotice"><b>Public vs Authorized</b><span>قبل التعاقد: بيانات عامة فقط من مكتبات الإعلانات والحسابات العامة. بعد ربط حساب العميل المصرّح به: نضيف بيانات Ads Manager الفعلية مثل Spend / CTR / CPC / CPA / Frequency / ROAS.</span></div>
-
-      <div class="section manualSection">
-        <div class="sectionHead"><h3>إضافة حساب يدوي للإدارة أو الـAudit</h3><span>MANUAL</span></div>
-        <form id="manualSocialForm" class="manualSocialForm">
-          <label class="wide">رابط الحساب<input id="manualUrl" type="url" placeholder="https://instagram.com/..." required></label>
-          <label>اسم النشاط<input id="manualName" type="text" placeholder="اختياري"></label>
-          <label>المنصة<select id="manualPlatform"><option value="">تلقائي</option><option>INSTAGRAM</option><option>FACEBOOK</option><option>TIKTOK</option><option>LINKEDIN</option><option>YOUTUBE</option><option>X</option><option>OTHER</option></select></label>
-          <label>الوضع<select id="manualMode"><option value="AUDIT_AND_MANAGE">Audit + إدارة</option><option value="AUDIT_ONLY">Audit فقط</option><option value="MANAGE_ONLY">إدارة فقط</option></select></label>
-          <label>المدينة<input id="manualCity" type="text" placeholder="مثال: بغداد"></label>
-          <label>القطاع<input id="manualSector" type="text" placeholder="مثال: restaurant"></label>
-          <label>الهاتف<input id="manualPhone" type="text"></label>
-          <label>WhatsApp<input id="manualWhatsapp" type="text"></label>
-          <label>البريد<input id="manualEmail" type="email"></label>
-          <button class="saveSocial wide" type="submit">إضافة الحساب إلى النظام</button>
-        </form>
-      </div>
-
-      <div class="section">
-        <div class="sectionHead"><h3>آخر المعلنين المكتشفين</h3><span id="discoveryCount">0</span></div>
-        <div class="tableWrap"><table class="table"><thead><tr><th>المعلن / الصفحة</th><th>المنصة</th><th>المدينة</th><th>القطاع</th><th>إعلان نشط</th><th>الحالة</th></tr></thead><tbody id="discoveryRows"></tbody></table></div>
-      </div>
-
-      <div class="section">
-        <div class="sectionHead"><h3>Social Management Pipeline</h3><span id="rowCount">0</span></div>
-        <div class="tableWrap"><table class="table"><thead><tr><th>الشركة</th><th>المنصة</th><th>Audit</th><th>Social Health</th><th>Management Need</th><th>الإعلانات</th><th>الخطوة التالية</th></tr></thead><tbody id="socialRows"></tbody></table></div>
-      </div>
-      <div class="section settingsSection">
-        <div class="sectionHead"><h3>إعدادات Social Iraq</h3><span>LIVE</span></div>
-        <div id="settingsBox"></div>
-      </div>
+      <div class="section manualSection"><div class="sectionHead"><h3>إضافة حساب يدوي للإدارة أو الـAudit</h3><span>MANUAL</span></div><form id="manualSocialForm" class="manualSocialForm"><label class="wide">رابط الحساب<input id="manualUrl" type="url" placeholder="https://instagram.com/..." required></label><label>اسم النشاط<input id="manualName" type="text" placeholder="اختياري"></label><label>المنصة<select id="manualPlatform"><option value="">تلقائي</option><option>INSTAGRAM</option><option>FACEBOOK</option><option>TIKTOK</option><option>LINKEDIN</option><option>YOUTUBE</option><option>X</option><option>OTHER</option></select></label><label>الوضع<select id="manualMode"><option value="AUDIT_AND_MANAGE">Audit + إدارة</option><option value="AUDIT_ONLY">Audit فقط</option><option value="MANAGE_ONLY">إدارة فقط</option></select></label><label>المدينة<input id="manualCity" type="text" placeholder="مثال: بغداد"></label><label>القطاع<input id="manualSector" type="text" placeholder="مثال: restaurant"></label><label>الهاتف<input id="manualPhone" type="text"></label><label>WhatsApp<input id="manualWhatsapp" type="text"></label><label>البريد<input id="manualEmail" type="email"></label><button class="saveSocial wide" type="submit">إضافة الحساب إلى النظام</button></form></div>
+      <div class="section"><div class="sectionHead"><h3>آخر المعلنين المكتشفين</h3><span id="discoveryCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>المعلن / الصفحة</th><th>المنصة</th><th>المدينة</th><th>القطاع</th><th>إعلان نشط</th><th>الحالة</th></tr></thead><tbody id="discoveryRows"></tbody></table></div></div>
+      <div class="section"><div class="sectionHead"><h3>Social Management Pipeline</h3><span id="rowCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>الشركة</th><th>المنصة</th><th>Audit</th><th>Social Health</th><th>Management Need</th><th>الإعلانات</th><th>الخطوة التالية</th></tr></thead><tbody id="socialRows"></tbody></table></div></div>
+      <div class="section settingsSection"><div class="sectionHead"><h3>إعدادات Social Iraq</h3><span>LIVE</span></div><div id="settingsBox"></div></div>
     </section>
   </main>
 </div>
 <div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer>×</button><div id="drawerContent"></div></div></div>
 <div id="toast" class="toast"></div>
 <script type="module" src="./social.js"></script>
+<script type="module" src="./assistant-ui.js"></script>
 </body>
 </html>
