@@ -10,7 +10,7 @@ const browser=await chromium.launch({headless:true});
 try{
  for(const [label,viewport] of [['desktop',{width:1440,height:1000}],['mobile',{width:390,height:844}]]){
   const context=await browser.newContext({viewport});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
-  await page.goto(`${BASE}admin/`,{waitUntil:'networkidle',timeout:30000});await page.waitForSelector('#dcAssistantFab',{timeout:10000});
+  await page.goto(`${BASE}admin/`,{waitUntil:'networkidle',timeout:30000});await page.waitForSelector('#dcAssistantFab',{state:'attached',timeout:10000});
   ok(!(await page.locator('#dcAssistantFab').isVisible()),`assistant/${label}: assistant visible before authentication`);ok(await page.locator('#dcAssistantPanel').count()===1,`assistant/${label}: assistant panel not injected`);ok(await page.locator('#dcNotifyPanel').count()===1,`assistant/${label}: notification panel not injected`);ok(!(await page.locator('#dcAssistantPanel').isVisible()),`assistant/${label}: panel open before authentication`);ok(!(await page.locator('#dcNotifyPanel').isVisible()),`assistant/${label}: notification panel open before authentication`);ok(errors.length===0,`assistant/${label}: runtime errors ${errors.join(' || ')}`);await context.close();console.log(`PASS assistant auth-gated UI ${label}`)
  }
 }finally{await browser.close()}
