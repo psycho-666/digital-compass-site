@@ -101,6 +101,26 @@ async function auditAdmin(browser,viewport,label){
   console.log(`PASS admin ${label}`);
 }
 
+async function auditSocialAuthGate(browser,viewport,label){
+  for(const path of ['admin/social.html','admin/social.css','admin/social.js']){
+    const r=await fetch(`${BASE}${path}`);
+    ok(r.ok,`social/${label}: missing asset ${path}: ${r.status}`);
+  }
+  const context=await browser.newContext({viewport});
+  const page=await context.newPage();
+  const errors=[];
+  page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
+  await page.goto(`${BASE}admin/social.html`,{waitUntil:'domcontentloaded',timeout:30000});
+  await page.waitForTimeout(1500);
+  ok(page.url().startsWith(`${BASE}admin/`),`social/${label}: unexpected redirect target ${page.url()}`);
+  ok(!page.url().includes('social.html'),`social/${label}: unauthenticated social dashboard did not redirect to auth gate`);
+  await page.waitForSelector('#loginForm',{timeout:10000});
+  await noHorizontalOverflow(page,`social-auth/${label}`);
+  ok(errors.length===0,`social/${label}: runtime errors: ${errors.join(' || ')}`);
+  await context.close();
+  console.log(`PASS social auth gate ${label}`);
+}
+
 const browser=await chromium.launch({headless:true});
 try{
   for(const tc of cases){
@@ -129,6 +149,8 @@ try{
 
   await auditAdmin(browser,{width:1440,height:1000},'desktop');
   await auditAdmin(browser,{width:390,height:844},'mobile');
+  await auditSocialAuthGate(browser,{width:1440,height:1000},'desktop');
+  await auditSocialAuthGate(browser,{width:390,height:844},'mobile');
 
   const unauthorized=await fetch(`${PROJECT_URL}/functions/v1/admin-api?action=summary`,{headers:{apikey:PUBLISHABLE_KEY}});
   ok([401,403].includes(unauthorized.status),`admin API accepted unauthenticated request: ${unauthorized.status}`);
