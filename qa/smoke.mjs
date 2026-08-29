@@ -1,6 +1,8 @@
 import { chromium } from 'playwright';
 
 const BASE=process.env.SITE_URL||'https://psycho-666.github.io/digital-compass-site/';
+const PROJECT_URL='https://xnoalyxxrjyovivdeojo.supabase.co';
+const PUBLISHABLE_KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
 const cases=[
   {name:'clinic',slug:'p-03cc2c446542b3d6',arTitle:'عيادة المجر',enTitle:'Al-Majar Dental',arLocation:'ميسان',enLocation:'Maysan',wa:'964'},
   {name:'school',slug:'p-05dc26fcdd4abdb4',arTitle:'ثانوية الرحمن',enTitle:'Al-Rahman Private',arLocation:'النجف',enLocation:'Najaf',wa:'964'},
@@ -77,6 +79,28 @@ async function auditPrototype(browser,tc,viewport,label){
   console.log(`PASS ${tc.name} ${label}`);
 }
 
+async function auditAdmin(browser,viewport,label){
+  const context=await browser.newContext({viewport});
+  const page=await context.newPage();
+  const errors=[];
+  page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
+  page.on('console',m=>{if(m.type()==='error') errors.push(`console: ${m.text()}`)});
+  await page.goto(`${BASE}admin/`,{waitUntil:'networkidle',timeout:30000});
+  await page.waitForSelector('#loginForm',{timeout:15000});
+  ok(await page.locator('#authView').isVisible(),`admin/${label}: auth gate not visible`);
+  ok(!(await page.locator('#appView').isVisible()),`admin/${label}: private dashboard visible without auth`);
+  ok((await page.title()).includes('Control Center'),`admin/${label}: title missing`);
+  await noHorizontalOverflow(page,`admin/${label}`);
+  const logo=page.locator('.authArt img').first();
+  ok(await logo.count(),`admin/${label}: Digital Compass logo missing`);
+  ok(await logo.evaluate(i=>i.complete&&i.naturalWidth>0),`admin/${label}: Digital Compass logo failed to load`);
+  await page.locator('.language button[data-lang="en"]').first().click();
+  ok(await page.locator('html').getAttribute('dir')==='ltr',`admin/${label}: EN did not switch to LTR`);
+  ok(errors.length===0,`admin/${label}: runtime errors: ${errors.join(' || ')}`);
+  await context.close();
+  console.log(`PASS admin ${label}`);
+}
+
 const browser=await chromium.launch({headless:true});
 try{
   for(const tc of cases){
@@ -102,6 +126,17 @@ try{
     await context.close();
     console.log(`PASS Digital Compass ${label}`);
   }
+
+  await auditAdmin(browser,{width:1440,height:1000},'desktop');
+  await auditAdmin(browser,{width:390,height:844},'mobile');
+
+  const unauthorized=await fetch(`${PROJECT_URL}/functions/v1/admin-api?action=summary`,{headers:{apikey:PUBLISHABLE_KEY}});
+  ok([401,403].includes(unauthorized.status),`admin API accepted unauthenticated request: ${unauthorized.status}`);
+  console.log('PASS admin API auth gate');
+
+  const badBootstrap=await fetch(`${PROJECT_URL}/functions/v1/admin-bootstrap`,{method:'POST',headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({setup_code:'definitely-wrong',email:'qa-invalid@example.invalid',password:'NotARealPassword123!'})});
+  ok(badBootstrap.status===403,`admin bootstrap accepted invalid setup code: ${badBootstrap.status}`);
+  console.log('PASS admin bootstrap gate');
 } finally {
   await browser.close();
 }
