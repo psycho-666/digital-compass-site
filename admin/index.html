@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./admin.css">
+<link rel="stylesheet" href="./admin-extra.css">
 </head>
 <body>
 <div id="authView" class="authView">
@@ -44,6 +45,7 @@
       <button class="navItem" data-view="prototypes"><b>03</b><span>النماذج</span></button>
       <button class="navItem" data-view="outreach"><b>04</b><span>التواصل</span></button>
       <button class="navItem" data-view="automation"><b>05</b><span>الأتمتة</span></button>
+      <button class="navItem" data-view="settings"><b>06</b><span>الإعدادات</span></button>
     </nav>
     <div class="sidebarFoot"><div class="liveDot"><i></i><span>System online</span></div><button id="logoutBtn">تسجيل الخروج</button></div>
   </aside>
@@ -52,6 +54,7 @@
     <section id="content" class="content"></section>
   </main>
 </div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer>×</button><div id="drawerContent"></div></div></div>
 <div id="toast" class="toast"></div>
 <script type="module" src="./admin.js"></script>
 </body>
