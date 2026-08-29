@@ -32,3 +32,4 @@ jobs:
         run: |
           node qa/smoke.mjs
           node qa/assistant-smoke.mjs
+          node qa/social-management-smoke.mjs
