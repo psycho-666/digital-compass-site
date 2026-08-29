@@ -1,0 +1,15 @@
+/* Production interaction states */
+.s5Tab{cursor:pointer;transition:transform .28s ease,box-shadow .28s ease,filter .28s ease;outline:none}
+.s5Tab:hover,.s5Tab:focus-visible{transform:translateY(-4px);box-shadow:0 16px 38px rgba(24,58,99,.12)}
+.s5Tab.active{box-shadow:inset 0 0 0 3px rgba(185,145,59,.55),0 18px 44px rgba(24,58,99,.14)}
+.s5TabDetail{display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center;margin-top:18px;padding:24px 28px;border:1px solid rgba(23,35,56,.14);background:#fff;min-height:128px}
+.s5TabDetail h3{font-family:'Noto Kufi Arabic',sans-serif;font-size:clamp(18px,2vw,27px);line-height:1.65;margin:5px 0 8px}
+.s5TabDetail p{margin:0;color:#667287;line-height:1.9}
+.s5TabKicker{font:700 11px 'Manrope',sans-serif;letter-spacing:.13em;color:#b9913b}
+.s5Contents a{cursor:pointer;transition:color .2s ease,padding-inline-start .2s ease}
+.s5Contents a.active,.s5Contents a:hover,.s5Contents a:focus-visible{color:#183a63;padding-inline-start:7px;outline:none}
+.v5ClickableService{cursor:pointer;outline:none}
+.v5ClickableService:focus-visible{box-shadow:inset 0 0 0 3px currentColor}
+.c5Treatment.v5ClickableService:focus-visible{background:#fff}
+.a5Service.v5ClickableService:focus-visible{border-color:#2f80ed}
+@media(max-width:700px){.s5TabDetail{grid-template-columns:1fr}.s5TabDetail .actions{justify-content:flex-start}}
