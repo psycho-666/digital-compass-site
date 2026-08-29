@@ -1,0 +1,32 @@
+name: Digital Compass Production QA
+
+on:
+  workflow_run:
+    workflows: ["Deploy Digital Compass Pages"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout deployed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run production smoke tests
+        env:
+          SITE_URL: https://psycho-666.github.io/digital-compass-site/
+        run: node qa/smoke.mjs
