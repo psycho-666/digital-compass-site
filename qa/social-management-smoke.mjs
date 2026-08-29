@@ -1,0 +1,10 @@
+import {chromium} from 'playwright';
+const BASE=process.env.SITE_URL||'https://psycho-666.github.io/digital-compass-site/';
+const PROJECT_URL='https://xnoalyxxrjyovivdeojo.supabase.co';
+const KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
+function ok(v,m){if(!v)throw new Error(m)}
+async function noOverflow(page,label){const x=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);ok(x[0]<=x[1]+2,`${label}: horizontal overflow ${x[0]}>${x[1]}`)}
+for(const asset of ['admin/social-management.html','admin/social-management.css','admin/social-management.js']){const r=await fetch(`${BASE}${asset}`);ok(r.ok,`missing ${asset}: ${r.status}`);if(asset.endsWith('.html')){const h=await r.text();for(const token of ['workspaceSelect','Inbox & Comments','FAQ & Memory','Content & Design','Ads & Targeting','Activity'])ok(h.includes(token),`managed social html missing ${token}`)}}
+const browser=await chromium.launch({headless:true});
+try{for(const [label,viewport] of [['desktop',{width:1440,height:1000}],['mobile',{width:390,height:844}]]){const c=await browser.newContext({viewport});const p=await c.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(`${BASE}admin/social-management.html`,{waitUntil:'domcontentloaded',timeout:30000});await p.waitForTimeout(1600);ok(!p.url().includes('social-management.html'),`${label}: private managed social page did not redirect without auth`);await p.waitForSelector('#loginForm',{timeout:10000});await noOverflow(p,`managed-social/${label}`);ok(errors.length===0,`${label}: runtime errors ${errors.join(' | ')}`);await c.close();console.log(`PASS managed social auth gate ${label}`)}}finally{await browser.close()}
+const unauth=await fetch(`${PROJECT_URL}/functions/v1/social-management-api?action=workspaces`,{headers:{apikey:KEY}});ok([401,403].includes(unauth.status),`social-management-api accepted unauth request: ${unauth.status}`);console.log('PASS managed social API auth gate');
