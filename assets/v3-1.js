@@ -1,5 +1,5 @@
 const API='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/prototype-data';
-const DC_LOGO='assets/digital-compass-logo-white.png';
+const DC_LOGO='assets/digital-compass-logo.svg';
 let CURRENT=null,LANG='ar';
 const app=document.getElementById('app');
 function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
