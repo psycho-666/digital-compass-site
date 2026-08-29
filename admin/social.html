@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#251834">
+<title>Digital Compass — Iraq Social Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./admin.css">
+<link rel="stylesheet" href="./admin-extra.css">
+<link rel="stylesheet" href="./social.css">
+</head>
+<body>
+<div id="socialApp" class="appView hidden">
+  <aside class="sidebar">
+    <div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>CONTROL CENTER</span></div>
+    <nav>
+      <a class="navItem" href="./"><b>01</b><span>نظرة عامة</span></a>
+      <a class="navItem" href="./"><b>02</b><span>الفرص والعملاء</span></a>
+      <a class="navItem active" href="./social.html"><b>03</b><span>السوشيال — العراق</span></a>
+      <a class="navItem" href="./"><b>04</b><span>النماذج</span></a>
+      <a class="navItem" href="./"><b>05</b><span>التواصل</span></a>
+      <a class="navItem" href="./"><b>06</b><span>الأتمتة</span></a>
+      <a class="navItem" href="./"><b>07</b><span>الإعدادات</span></a>
+    </nav>
+    <div class="sidebarFoot"><div class="liveDot"><i></i><span>Social engine online</span></div><button id="logoutBtn">تسجيل الخروج</button></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><span class="eyebrow">DIGITAL COMPASS / IRAQ SOCIAL OPS</span><h1>إدارة السوشيال — العراق</h1></div><div class="topActions"><button id="refreshBtn" class="iconBtn" title="Refresh">↻</button></div></header>
+    <section class="content">
+      <div class="socialHero">
+        <div><span class="eyebrow">SOCIAL GROWTH & MANAGEMENT ENGINE</span><h2>من اكتشاف الصفحة إلى إدارة كاملة من الألف إلى الياء.</h2><p>نرصد الحضور العام، ندقق المحتوى والتحويل والهوية والتفاعل، نراقب الإعلانات العامة، ثم نحدد من يحتاج إدارة فعلية. بعد تفويض العميل تنتقل نفس المنظومة إلى المحتوى والنشر والرسائل والإعلانات والتقارير.</p></div>
+        <div class="socialActions"><button class="runFull" data-command="SOCIAL_QUEUE">تجهيز Audit اليوم</button><button class="stageBtn" data-command="SOCIAL_QUALIFY">تأهيل فرص الإدارة</button></div>
+      </div>
+      <div id="metrics" class="metrics"></div>
+      <div class="scopeNotice"><b>Public vs Authorized</b><span>قبل التعاقد: بيانات عامة فقط. بعد ربط حساب العميل المصرّح به: نضيف بيانات Ads Manager الفعلية مثل Spend / CTR / CPC / CPA / Frequency / ROAS.</span></div>
+      <div class="section">
+        <div class="sectionHead"><h3>Social Management Pipeline</h3><span id="rowCount">0</span></div>
+        <div class="tableWrap"><table class="table"><thead><tr><th>الشركة</th><th>المنصة</th><th>Audit</th><th>Social Health</th><th>Management Need</th><th>الإعلانات</th><th>الخطوة التالية</th></tr></thead><tbody id="socialRows"></tbody></table></div>
+      </div>
+      <div class="section settingsSection">
+        <div class="sectionHead"><h3>إعدادات Social Iraq</h3><span>LIVE</span></div>
+        <div id="settingsBox"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer>×</button><div id="drawerContent"></div></div></div>
+<div id="toast" class="toast"></div>
+<script type="module" src="./social.js"></script>
+</body>
+</html>
