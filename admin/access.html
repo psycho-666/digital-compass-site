@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#251834">
+<title>Digital Compass — دخول المالك</title>
+<link rel="icon" href="../assets/digital-compass-logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{font-family:'IBM Plex Sans Arabic',sans-serif;color:#fff;background:#130d1d}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 10%,#43326655,transparent 35%),linear-gradient(145deg,#130d1d,#251834)}.card{width:min(500px,100%);background:#21162f;border:1px solid #ffffff18;border-radius:24px;padding:30px;box-shadow:0 30px 80px #0008}.brand{display:flex;align-items:center;gap:14px;margin-bottom:24px}.brand img{width:54px;height:54px}.brand span{font-family:Alexandria,sans-serif;font-weight:700;letter-spacing:.08em}h1{font-family:Alexandria,sans-serif;font-size:28px;margin:0 0 10px}p{color:#d8cfe3;line-height:1.8}label{display:block;margin:18px 0 8px;color:#eee}input{width:100%;border:1px solid #ffffff20;background:#160f21;color:#fff;border-radius:12px;padding:14px;font:inherit;outline:none}input:focus{border-color:#8c72bd}button{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px 18px;font:600 15px Alexandria,sans-serif;cursor:pointer;background:#fff;color:#251834}button:disabled{opacity:.55;cursor:not-allowed}.msg{min-height:28px;margin-top:15px;color:#d9caef}.ok{color:#a7efbd}.bad{color:#ffb8b8}.small{font-size:13px;color:#bbaecb}
+</style>
+</head>
+<body>
+<main class="card">
+<div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS</span></div>
+<h1>دخول المالك</h1>
+<p>أدخل بريد المالك المعتمد. سيصلك رابط دخول آمن لمرة واحدة، بدون كلمة مرور.</p>
+<label for="email">البريد الإلكتروني</label>
+<input id="email" type="email" autocomplete="email" placeholder="name@example.com">
+<button id="send" type="button">إرسال رابط الدخول</button>
+<p class="small">افتح رابط البريد في نفس المتصفح الذي تريد استخدام Control Center عليه.</p>
+<div id="message" class="msg"></div>
+</main>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const supabase=createClient('https://xnoalyxxrjyovivdeojo.supabase.co','sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const message=document.querySelector('#message');
+const setMessage=(text,cls='')=>{message.textContent=text;message.className='msg '+cls};
+async function goIfSignedIn(){const {data}=await supabase.auth.getSession();if(data.session){setMessage('تم تسجيل الدخول. جاري فتح Control Center…','ok');setTimeout(()=>location.replace('./'),500);return true}return false}
+if(!(await goIfSignedIn())){
+ document.querySelector('#send').onclick=async()=>{
+  const email=document.querySelector('#email').value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(email)){setMessage('أدخل بريدًا صحيحًا.','bad');return}
+  const button=document.querySelector('#send');button.disabled=true;setMessage('جاري إرسال رابط الدخول…');
+  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:`${location.origin}${location.pathname}`}});
+  if(error)setMessage('تعذر إرسال الرابط. تأكد من البريد وحاول مرة أخرى.','bad');else setMessage('تم إرسال رابط الدخول. افتح بريدك واضغط الرابط في نفس المتصفح.','ok');
+  button.disabled=false;
+ };
+}
+supabase.auth.onAuthStateChange((_event,session)=>{if(session)goIfSignedIn()});
+</script>
+</body>
+</html>
