@@ -11,37 +11,76 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{font-family:'IBM Plex Sans Arabic',sans-serif;color:#fff;background:#130d1d}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 10%,#43326655,transparent 35%),linear-gradient(145deg,#130d1d,#251834)}.card{width:min(500px,100%);background:#21162f;border:1px solid #ffffff18;border-radius:24px;padding:30px;box-shadow:0 30px 80px #0008}.brand{display:flex;align-items:center;gap:14px;margin-bottom:24px}.brand img{width:54px;height:54px}.brand span{font-family:Alexandria,sans-serif;font-weight:700;letter-spacing:.08em}h1{font-family:Alexandria,sans-serif;font-size:28px;margin:0 0 10px}p{color:#d8cfe3;line-height:1.8}label{display:block;margin:18px 0 8px;color:#eee}input{width:100%;border:1px solid #ffffff20;background:#160f21;color:#fff;border-radius:12px;padding:14px;font:inherit;outline:none}input:focus{border-color:#8c72bd}button{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px 18px;font:600 15px Alexandria,sans-serif;cursor:pointer;background:#fff;color:#251834}button:disabled{opacity:.55;cursor:not-allowed}.msg{min-height:28px;margin-top:15px;color:#d9caef}.ok{color:#a7efbd}.bad{color:#ffb8b8}.small{font-size:13px;color:#bbaecb}
+:root{font-family:'IBM Plex Sans Arabic',sans-serif;color:#fff;background:#130d1d}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 10%,#43326655,transparent 35%),linear-gradient(145deg,#130d1d,#251834)}.card{width:min(520px,100%);background:#21162f;border:1px solid #ffffff18;border-radius:24px;padding:30px;box-shadow:0 30px 80px #0008}.brand{display:flex;align-items:center;gap:14px;margin-bottom:20px}.brand img{width:54px;height:54px}.brand span{font-family:Alexandria,sans-serif;font-weight:700;letter-spacing:.08em}.lang{display:flex;gap:8px;justify-content:flex-end;margin-bottom:18px}.lang button{width:auto;margin:0;padding:8px 12px;border-radius:999px;background:#342344;color:#d9caef;border:1px solid #ffffff14;font-size:12px}.lang button.active{background:#fff;color:#251834}h1{font-family:Alexandria,sans-serif;font-size:28px;margin:0 0 10px}p{color:#d8cfe3;line-height:1.8}label{display:block;margin:18px 0 8px;color:#eee}input{width:100%;border:1px solid #ffffff20;background:#160f21;color:#fff;border-radius:12px;padding:14px;font:inherit;outline:none}input:focus{border-color:#8c72bd}button{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px 18px;font:600 15px Alexandria,sans-serif;cursor:pointer;background:#fff;color:#251834}button:disabled{opacity:.55;cursor:not-allowed}.msg{min-height:28px;margin-top:15px;color:#d9caef}.ok{color:#a7efbd}.bad{color:#ffb8b8}.small{font-size:13px;color:#bbaecb}.security{display:flex;align-items:center;gap:10px;margin:16px 0 0;padding:12px 14px;border:1px solid #ffffff12;border-radius:12px;background:#ffffff08;color:#cfc1df;font-size:12px}.security i{width:8px;height:8px;border-radius:50%;background:#8fe3ad}.back{display:inline-block;margin-top:16px;color:#cdbce6;font-size:13px}
 </style>
 </head>
 <body>
 <main class="card">
 <div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS</span></div>
-<h1>دخول المالك</h1>
-<p>أدخل بريد المالك المعتمد. سيصلك رابط دخول آمن لمرة واحدة، بدون كلمة مرور.</p>
-<label for="email">البريد الإلكتروني</label>
-<input id="email" type="email" autocomplete="email" placeholder="name@example.com">
-<button id="send" type="button">إرسال رابط الدخول</button>
-<p class="small">افتح رابط البريد في نفس المتصفح الذي تريد استخدام Control Center عليه.</p>
-<div id="message" class="msg"></div>
+<div class="lang"><button type="button" data-lang="ar">العربية</button><button type="button" data-lang="en">EN</button></div>
+<h1 id="title">دخول المالك</h1>
+<p id="intro">أدخل بريد المالك المعتمد. سيصلك رابط دخول آمن لمرة واحدة، بدون كلمة مرور.</p>
+<form id="accessForm" novalidate>
+<label id="emailLabel" for="email">البريد الإلكتروني</label>
+<input id="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" required>
+<button id="send" type="submit">إرسال رابط الدخول</button>
+</form>
+<p id="hint" class="small">افتح رابط البريد في المتصفح الذي تريد استخدام Control Center عليه.</p>
+<div class="security"><i></i><span id="securityText">يتم التحقق من صلاحية المالك قبل فتح لوحة التحكم.</span></div>
+<div id="message" class="msg" role="status" aria-live="polite"></div>
+<a id="backLink" class="back" href="./">العودة إلى Control Center</a>
 </main>
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-const supabase=createClient('https://xnoalyxxrjyovivdeojo.supabase.co','sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const message=document.querySelector('#message');
-const setMessage=(text,cls='')=>{message.textContent=text;message.className='msg '+cls};
-async function goIfSignedIn(){const {data}=await supabase.auth.getSession();if(data.session){setMessage('تم تسجيل الدخول. جاري فتح Control Center…','ok');setTimeout(()=>location.replace('./'),500);return true}return false}
-if(!(await goIfSignedIn())){
- document.querySelector('#send').onclick=async()=>{
-  const email=document.querySelector('#email').value.trim();
-  if(!/^\S+@\S+\.\S+$/.test(email)){setMessage('أدخل بريدًا صحيحًا.','bad');return}
-  const button=document.querySelector('#send');button.disabled=true;setMessage('جاري إرسال رابط الدخول…');
-  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:`${location.origin}${location.pathname}`}});
-  if(error)setMessage('تعذر إرسال الرابط. تأكد من البريد وحاول مرة أخرى.','bad');else setMessage('تم إرسال رابط الدخول. افتح بريدك واضغط الرابط في نفس المتصفح.','ok');
-  button.disabled=false;
- };
+const PROJECT_URL='https://xnoalyxxrjyovivdeojo.supabase.co';
+const PUBLISHABLE_KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
+const API=`${PROJECT_URL}/functions/v1/admin-api`;
+const supabase=createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=s=>document.querySelector(s);
+let lang=localStorage.getItem('dc_admin_lang')||'ar';
+let checking=false;
+const copy={
+ ar:{title:'دخول المالك',intro:'أدخل بريد المالك المعتمد. سيصلك رابط دخول آمن لمرة واحدة، بدون كلمة مرور.',label:'البريد الإلكتروني',send:'إرسال رابط الدخول',hint:'افتح رابط البريد في المتصفح الذي تريد استخدام Control Center عليه.',security:'يتم التحقق من صلاحية المالك قبل فتح لوحة التحكم.',back:'العودة إلى Control Center',invalid:'أدخل بريدًا صحيحًا.',sending:'جاري إرسال رابط الدخول…',sent:'تم إرسال رابط الدخول. افتح بريدك واضغط الرابط للمتابعة.',sendFail:'تعذر إرسال الرابط الآن. حاول مرة أخرى.',checking:'تم تسجيل الدخول. جاري التحقق من صلاحية المالك…',opening:'تم التحقق من حساب المالك. جاري فتح Control Center…',unauthorized:'تم تسجيل الدخول، لكن هذا الحساب غير مخول كمالك للنظام.',verifyFail:'تعذر التحقق من صلاحية الحساب الآن. حاول تحديث الصفحة.'},
+ en:{title:'Owner access',intro:'Enter the authorized owner email. You will receive a secure one-time sign-in link with no password required.',label:'Email address',send:'Send secure sign-in link',hint:'Open the email link in the browser you want to use for Control Center.',security:'Owner authorization is verified before Control Center opens.',back:'Back to Control Center',invalid:'Enter a valid email address.',sending:'Sending secure sign-in link…',sent:'Sign-in link sent. Open your email and follow the link to continue.',sendFail:'The sign-in link could not be sent right now. Try again.',checking:'Signed in. Verifying owner authorization…',opening:'Owner account verified. Opening Control Center…',unauthorized:'You are signed in, but this account is not authorized as the system owner.',verifyFail:'Owner authorization could not be verified right now. Refresh and try again.'}
+};
+function applyLang(){const c=copy[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.body.dir=document.documentElement.dir;$('#title').textContent=c.title;$('#intro').textContent=c.intro;$('#emailLabel').textContent=c.label;$('#send').textContent=c.send;$('#hint').textContent=c.hint;$('#securityText').textContent=c.security;$('#backLink').textContent=c.back;document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang))}
+function setMessage(text,cls=''){const el=$('#message');el.textContent=text;el.className='msg '+cls}
+async function verifyOwner(session){
+ const url=new URL(API);url.searchParams.set('action','summary');
+ try{
+  const r=await fetch(url,{headers:{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.access_token}`,Accept:'application/json'},cache:'no-store'});
+  if(r.ok)return true;
+  if(r.status===401||r.status===403)return false;
+  throw new Error(`HTTP_${r.status}`);
+ }catch(e){if(String(e.message||'').startsWith('HTTP_'))throw e;throw new Error('VERIFY_NETWORK')}
 }
-supabase.auth.onAuthStateChange((_event,session)=>{if(session)goIfSignedIn()});
+async function goIfSignedIn(){
+ if(checking)return false;checking=true;
+ try{
+  const {data}=await supabase.auth.getSession();const session=data.session;if(!session)return false;
+  setMessage(copy[lang].checking);
+  const owner=await verifyOwner(session);
+  if(!owner){await supabase.auth.signOut();setMessage(copy[lang].unauthorized,'bad');return false}
+  setMessage(copy[lang].opening,'ok');setTimeout(()=>location.replace('./'),500);return true;
+ }catch(e){setMessage(copy[lang].verifyFail,'bad');return false}
+ finally{checking=false}
+}
+document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;localStorage.setItem('dc_admin_lang',lang);applyLang()}));
+$('#accessForm').addEventListener('submit',async e=>{
+ e.preventDefault();const email=$('#email').value.trim();const c=copy[lang];
+ if(!/^\S+@\S+\.\S+$/.test(email)){setMessage(c.invalid,'bad');$('#email').focus();return}
+ const button=$('#send');button.disabled=true;setMessage(c.sending);
+ try{
+  const redirect=`${location.origin}${location.pathname}`;
+  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:redirect}});
+  if(error)throw error;
+  setMessage(c.sent,'ok');
+ }catch(e){setMessage(c.sendFail,'bad')}
+ finally{button.disabled=false}
+});
+applyLang();
+await goIfSignedIn();
+supabase.auth.onAuthStateChange((_event,session)=>{if(session)queueMicrotask(()=>goIfSignedIn())});
 </script>
 </body>
 </html>
