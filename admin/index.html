@@ -19,13 +19,24 @@
 <link rel="stylesheet" href="./admin-extra.css">
 <link rel="stylesheet" href="./assistant-ui.css">
 <link rel="stylesheet" href="./pwa.css">
+<style>
+.passwordlessCard{max-width:520px}.passwordlessCard h2{margin:0 0 12px;font-family:Alexandria,sans-serif}.passwordlessCard p{line-height:1.8}.secureAccessButton{display:flex;align-items:center;justify-content:center;width:100%;margin-top:20px;padding:15px 18px;border-radius:14px;background:#fff;color:#251834;text-decoration:none;font:700 15px Alexandria,sans-serif}.secureAccessMeta{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid #ffffff16;font-size:12px;color:#bbaecb}.secureAccessMeta a{color:#d9caef}.secureBadge{display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;font:600 12px Alexandria,sans-serif;color:#cdbce6;letter-spacing:.08em}.secureBadge i{width:8px;height:8px;border-radius:50%;background:#8fe3ad;box-shadow:0 0 0 5px #8fe3ad18}
+</style>
 </head>
 <body>
 <div id="authView" class="authView">
   <div class="authArt"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><div class="orb"></div><div class="authStatement"><span>CONTROL CENTER</span><h1>Digital Compass<br>Operating System</h1><p id="authIntro">لوحة واحدة لاكتشاف الفرص، تدقيقها، بناء النماذج، ومتابعة التواصل.</p></div></div>
   <div class="authPanel">
     <div class="language"><button data-lang="ar" class="active">العربية</button><button data-lang="en">EN</button></div>
-    <div class="authCard">
+    <div class="authCard passwordlessCard">
+      <div class="secureBadge"><i></i> OWNER ACCESS / دخول المالك</div>
+      <h2>دخول آمن بدون كلمة مرور</h2>
+      <p>يتم الدخول إلى Control Center عبر رابط آمن لمرة واحدة يُرسل إلى بريد المالك المعتمد. لا نعرض حقول كلمة المرور أو رمز الإعداد في صفحة التشغيل اليومية.</p>
+      <p dir="ltr">Control Center uses a one-time secure email link for owner access. Password and bootstrap fields are not exposed in the normal sign-in flow.</p>
+      <a class="secureAccessButton" href="./access.html">فتح صفحة دخول المالك / Secure owner access</a>
+      <div class="secureAccessMeta"><span>MAGIC LINK · VERIFIED SESSION</span><a href="./setup.html">الإعداد الأول فقط / Initial setup</a></div>
+    </div>
+    <div hidden aria-hidden="true">
       <div class="authTabs"><button id="loginTab" class="active">تسجيل الدخول</button><button id="setupTab">الإعداد الأول</button></div>
       <form id="loginForm" class="form active">
         <label>البريد الإلكتروني<input id="loginEmail" type="email" autocomplete="username" required></label>
@@ -33,7 +44,6 @@
         <button class="primary" type="submit">دخول إلى النظام</button>
       </form>
       <form id="setupForm" class="form">
-        <p class="formHint">يُستخدم مرة واحدة فقط لإنشاء حساب مالك النظام.</p>
         <label>رمز الإعداد<input id="setupCode" type="password" autocomplete="one-time-code" required></label>
         <label>البريد الإلكتروني<input id="setupEmail" type="email" autocomplete="username" required></label>
         <label>كلمة مرور جديدة<input id="setupPassword" type="password" autocomplete="new-password" minlength="12" required></label>
