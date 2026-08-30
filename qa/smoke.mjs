@@ -219,7 +219,7 @@ try{
     headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},
     body:JSON.stringify({setup_code:'definitely-wrong',email:'qa-invalid@example.invalid',password:'NotARealPassword123!'})
   });
-  ok(badBootstrap.status===403,`admin bootstrap accepted invalid setup code: ${badBootstrap.status}`);
+  ok([403,409].includes(badBootstrap.status),`admin bootstrap did not reject invalid or closed setup state: ${badBootstrap.status}`);
   console.log('PASS admin bootstrap gate');
 } finally {
   await browser.close();
