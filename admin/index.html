@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="../assets/digital-compass-logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./admin.css">
 <link rel="stylesheet" href="./admin-extra.css">
 <link rel="stylesheet" href="./assistant-ui.css">
@@ -36,21 +36,6 @@
       <a class="secureAccessButton" href="./access.html">فتح صفحة دخول المالك / Secure owner access</a>
       <div class="secureAccessMeta"><span>MAGIC LINK · VERIFIED SESSION</span><a href="./setup.html">الإعداد الأول فقط / Initial setup</a></div>
     </div>
-    <div hidden aria-hidden="true">
-      <div class="authTabs"><button id="loginTab" class="active">تسجيل الدخول</button><button id="setupTab">الإعداد الأول</button></div>
-      <form id="loginForm" class="form active">
-        <label>البريد الإلكتروني<input id="loginEmail" type="email" autocomplete="username" required></label>
-        <label>كلمة المرور<input id="loginPassword" type="password" autocomplete="current-password" minlength="12" required></label>
-        <button class="primary" type="submit">دخول إلى النظام</button>
-      </form>
-      <form id="setupForm" class="form">
-        <label>رمز الإعداد<input id="setupCode" type="password" autocomplete="one-time-code" required></label>
-        <label>البريد الإلكتروني<input id="setupEmail" type="email" autocomplete="username" required></label>
-        <label>كلمة مرور جديدة<input id="setupPassword" type="password" autocomplete="new-password" minlength="12" required></label>
-        <button class="primary" type="submit">إنشاء حساب المالك</button>
-      </form>
-      <div id="authMessage" class="message"></div>
-    </div>
   </div>
 </div>
 <div id="appView" class="appView hidden">
@@ -69,16 +54,13 @@
     <div class="sidebarFoot"><div class="liveDot"><i></i><span>System online</span></div><button id="logoutBtn">تسجيل الخروج</button></div>
   </aside>
   <main class="main">
-    <header class="topbar"><div><span class="eyebrow">DIGITAL COMPASS / OPS</span><h1 id="viewTitle">نظرة عامة</h1></div><div class="topActions"><div class="language"><button data-lang="ar" class="active">العربية</button><button data-lang="en">EN</button></div><button id="refreshBtn" class="iconBtn" title="Refresh">↻</button></div></header>
+    <header class="topbar"><div><span class="eyebrow">DIGITAL COMPASS / OPS</span><h1 id="viewTitle">نظرة عامة</h1></div><div class="topActions"><div class="language"><button data-lang="ar" class="active">العربية</button><button data-lang="en">EN</button></div><button id="refreshBtn" class="iconBtn" title="Refresh" aria-label="Refresh">↻</button></div></header>
     <section id="content" class="content"></section>
   </main>
 </div>
-<div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer>×</button><div id="drawerContent"></div></div></div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer aria-label="Close">×</button><div id="drawerContent"></div></div></div>
 <div id="toast" class="toast"></div>
 <script type="module" src="./admin.js"></script>
-<script type="module" src="./view-router.js"></script>
-<script type="module" src="./assistant-ui.js"></script>
-<script type="module" src="./push-ui.js"></script>
 <script type="module" src="./pwa.js"></script>
 </body>
 </html>
