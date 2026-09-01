@@ -5,7 +5,8 @@ const KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
 const API=`${PROJECT_URL}/functions/v1/social-oauth`;
 const supabase=createClient(PROJECT_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 
-// The Meta configuration used by Digital Compass is a User Access Token configuration.
+// User Access Token login compatibility shim. Keep this file separate until the
+// social-oauth Edge Function is folded back to the same parameter set.
 // Meta documents override_default_response_type for Business Integration System User
 // token configurations. The core backend currently returns that legacy parameter, so
 // strip only that parameter before navigation while preserving the server-created state,
