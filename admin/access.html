@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{font-family:'IBM Plex Sans Arabic',sans-serif;color:#fff;background:#130d1d}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 10%,#43326655,transparent 35%),linear-gradient(145deg,#130d1d,#251834)}.card{width:min(520px,100%);background:#21162f;border:1px solid #ffffff18;border-radius:24px;padding:30px;box-shadow:0 30px 80px #0008}.brand{display:flex;align-items:center;gap:14px;margin-bottom:20px}.brand img{width:54px;height:54px}.brand span{font-family:Alexandria,sans-serif;font-weight:700;letter-spacing:.08em}.lang{display:flex;gap:8px;justify-content:flex-end;margin-bottom:18px}.lang button{width:auto;margin:0;padding:8px 12px;border-radius:999px;background:#342344;color:#d9caef;border:1px solid #ffffff14;font-size:12px}.lang button.active{background:#fff;color:#251834}h1{font-family:Alexandria,sans-serif;font-size:28px;margin:0 0 10px}p{color:#d8cfe3;line-height:1.8}label{display:block;margin:18px 0 8px;color:#eee}input{width:100%;border:1px solid #ffffff20;background:#160f21;color:#fff;border-radius:12px;padding:14px;font:inherit;outline:none}input:focus{border-color:#8c72bd}button{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px 18px;font:600 15px Alexandria,sans-serif;cursor:pointer;background:#fff;color:#251834}button:disabled{opacity:.55;cursor:not-allowed}.msg{min-height:28px;margin-top:15px;color:#d9caef}.ok{color:#a7efbd}.bad{color:#ffb8b8}.small{font-size:13px;color:#bbaecb}.security{display:flex;align-items:center;gap:10px;margin:16px 0 0;padding:12px 14px;border:1px solid #ffffff12;border-radius:12px;background:#ffffff08;color:#cfc1df;font-size:12px}.security i{width:8px;height:8px;border-radius:50%;background:#8fe3ad}.back{display:inline-block;margin-top:16px;color:#cdbce6;font-size:13px}
+:root{font-family:'IBM Plex Sans Arabic',sans-serif;color:#fff;background:#130d1d}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 10%,#43326655,transparent 35%),linear-gradient(145deg,#130d1d,#251834)}.card{width:min(520px,100%);background:#21162f;border:1px solid #ffffff18;border-radius:24px;padding:30px;box-shadow:0 30px 80px #0008}.brand{display:flex;align-items:center;gap:14px;margin-bottom:20px}.brand img{width:54px;height:54px}.brand span{font-family:Alexandria,sans-serif;font-weight:700;letter-spacing:.08em}.lang{display:flex;gap:8px;justify-content:flex-end;margin-bottom:18px}.lang button{width:auto;margin:0;padding:8px 12px;border-radius:999px;background:#342344;color:#d9caef;border:1px solid #ffffff14;font-size:12px}.lang button.active{background:#fff;color:#251834}h1{font-family:Alexandria,sans-serif;font-size:28px;margin:0 0 10px}p{color:#d8cfe3;line-height:1.8}label{display:block;margin:16px 0 7px;color:#eee}input{width:100%;border:1px solid #ffffff20;background:#160f21;color:#fff;border-radius:12px;padding:14px;font:inherit;outline:none}input:focus{border-color:#8c72bd}button{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px 18px;font:600 15px Alexandria,sans-serif;cursor:pointer;background:#fff;color:#251834}button:disabled{opacity:.55;cursor:not-allowed}.msg{min-height:28px;margin-top:15px;color:#d9caef}.ok{color:#a7efbd}.bad{color:#ffb8b8}.small{font-size:13px;color:#bbaecb}.security{display:flex;align-items:center;gap:10px;margin:16px 0 0;padding:12px 14px;border:1px solid #ffffff12;border-radius:12px;background:#ffffff08;color:#cfc1df;font-size:12px}.security i{width:8px;height:8px;border-radius:50%;background:#8fe3ad}.back,.setupLink{display:inline-block;margin-top:16px;color:#cdbce6;font-size:13px}.setupLink{margin-inline-end:16px}.passwordWrap{position:relative}.passwordWrap input{padding-inline-end:72px}.passwordWrap .toggle{position:absolute;inset-inline-end:8px;top:7px;width:auto;margin:0;padding:7px 10px;background:#342344;color:#d9caef;font:500 12px Alexandria,sans-serif}
 </style>
 </head>
 <body>
@@ -19,15 +19,18 @@
 <div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS</span></div>
 <div class="lang"><button type="button" data-lang="ar">العربية</button><button type="button" data-lang="en">EN</button></div>
 <h1 id="title">دخول المالك</h1>
-<p id="intro">أدخل بريد المالك المعتمد. سيصلك رابط دخول آمن لمرة واحدة، بدون كلمة مرور.</p>
+<p id="intro">ادخل اسم المستخدم وكلمة المرور لفتح Control Center.</p>
 <form id="accessForm" novalidate>
-<label id="emailLabel" for="email">البريد الإلكتروني</label>
-<input id="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" required>
-<button id="send" type="submit">إرسال رابط الدخول</button>
+<label id="usernameLabel" for="username">اسم المستخدم</label>
+<input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+<label id="passwordLabel" for="password">كلمة المرور</label>
+<div class="passwordWrap"><input id="password" name="password" type="password" autocomplete="current-password" required><button id="togglePassword" class="toggle" type="button">إظهار</button></div>
+<button id="send" type="submit">دخول</button>
 </form>
-<p id="hint" class="small">افتح رابط البريد في المتصفح الذي تريد استخدام Control Center عليه.</p>
-<div class="security"><i></i><span id="securityText">يتم التحقق من صلاحية المالك قبل فتح لوحة التحكم.</span></div>
+<p id="hint" class="small">إذا ما جهزت اسم المستخدم وكلمة المرور بعد، استخدم رابط الإعداد لمرة واحدة.</p>
+<div class="security"><i></i><span id="securityText">يتم التحقق من كلمة المرور وصلاحية المالك قبل فتح لوحة التحكم.</span></div>
 <div id="message" class="msg" role="status" aria-live="polite"></div>
+<a id="setupLink" class="setupLink" href="./credentials.html">إعداد اليوزر والباسوورد</a>
 <a id="backLink" class="back" href="./">العودة إلى Control Center</a>
 </main>
 <script type="module">
@@ -40,10 +43,10 @@ const $=s=>document.querySelector(s);
 let lang=localStorage.getItem('dc_admin_lang')||'ar';
 let checking=false;
 const copy={
- ar:{title:'دخول المالك',intro:'أدخل بريد المالك المعتمد. سيصلك رابط دخول آمن لمرة واحدة، بدون كلمة مرور.',label:'البريد الإلكتروني',send:'إرسال رابط الدخول',hint:'افتح رابط البريد في المتصفح الذي تريد استخدام Control Center عليه.',security:'يتم التحقق من صلاحية المالك قبل فتح لوحة التحكم.',back:'العودة إلى Control Center',invalid:'أدخل بريدًا صحيحًا.',sending:'جاري إرسال رابط الدخول…',sent:'تم إرسال رابط الدخول. افتح بريدك واضغط الرابط للمتابعة.',sendFail:'تعذر إرسال الرابط الآن. حاول مرة أخرى.',checking:'تم تسجيل الدخول. جاري التحقق من صلاحية المالك…',opening:'تم التحقق من حساب المالك. جاري فتح Control Center…',unauthorized:'تم تسجيل الدخول، لكن هذا الحساب غير مخول كمالك للنظام.',verifyFail:'تعذر التحقق من صلاحية الحساب الآن. حاول تحديث الصفحة.'},
- en:{title:'Owner access',intro:'Enter the authorized owner email. You will receive a secure one-time sign-in link with no password required.',label:'Email address',send:'Send secure sign-in link',hint:'Open the email link in the browser you want to use for Control Center.',security:'Owner authorization is verified before Control Center opens.',back:'Back to Control Center',invalid:'Enter a valid email address.',sending:'Sending secure sign-in link…',sent:'Sign-in link sent. Open your email and follow the link to continue.',sendFail:'The sign-in link could not be sent right now. Try again.',checking:'Signed in. Verifying owner authorization…',opening:'Owner account verified. Opening Control Center…',unauthorized:'You are signed in, but this account is not authorized as the system owner.',verifyFail:'Owner authorization could not be verified right now. Refresh and try again.'}
+ ar:{title:'دخول المالك',intro:'ادخل اسم المستخدم وكلمة المرور لفتح Control Center.',username:'اسم المستخدم',password:'كلمة المرور',send:'دخول',show:'إظهار',hide:'إخفاء',hint:'إذا ما جهزت اسم المستخدم وكلمة المرور بعد، استخدم رابط الإعداد لمرة واحدة.',security:'يتم التحقق من كلمة المرور وصلاحية المالك قبل فتح لوحة التحكم.',setup:'إعداد اليوزر والباسوورد',back:'العودة إلى Control Center',invalid:'أدخل اسم المستخدم وكلمة المرور.',signing:'جاري التحقق من بيانات الدخول…',bad:'اسم المستخدم أو كلمة المرور غير صحيحة.',checking:'تم تسجيل الدخول. جاري التحقق من صلاحية المالك…',opening:'تم التحقق من حساب المالك. جاري فتح Control Center…',unauthorized:'الحساب صحيح لكنه غير مخول كمالك للنظام.',verifyFail:'تعذر التحقق من صلاحية الحساب الآن. حاول مرة أخرى.',setupDone:'تم إعداد الدخول التقليدي. سجل دخولك الآن باسم المستخدم وكلمة المرور.'},
+ en:{title:'Owner login',intro:'Enter your username and password to open Control Center.',username:'Username',password:'Password',send:'Sign in',show:'Show',hide:'Hide',hint:'If you have not created your username and password yet, use the one-time setup link.',security:'Password and owner authorization are verified before Control Center opens.',setup:'Set up username & password',back:'Back to Control Center',invalid:'Enter your username and password.',signing:'Checking your credentials…',bad:'Incorrect username or password.',checking:'Signed in. Verifying owner authorization…',opening:'Owner verified. Opening Control Center…',unauthorized:'The account is valid but is not authorized as the system owner.',verifyFail:'Owner authorization could not be verified right now. Try again.',setupDone:'Traditional login is ready. Sign in now with your username and password.'}
 };
-function applyLang(){const c=copy[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.body.dir=document.documentElement.dir;$('#title').textContent=c.title;$('#intro').textContent=c.intro;$('#emailLabel').textContent=c.label;$('#send').textContent=c.send;$('#hint').textContent=c.hint;$('#securityText').textContent=c.security;$('#backLink').textContent=c.back;document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang))}
+function applyLang(){const c=copy[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.body.dir=document.documentElement.dir;$('#title').textContent=c.title;$('#intro').textContent=c.intro;$('#usernameLabel').textContent=c.username;$('#passwordLabel').textContent=c.password;$('#send').textContent=c.send;$('#hint').textContent=c.hint;$('#securityText').textContent=c.security;$('#setupLink').textContent=c.setup;$('#backLink').textContent=c.back;$('#togglePassword').textContent=$('#password').type==='password'?c.show:c.hide;document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang))}
 function setMessage(text,cls=''){const el=$('#message');el.textContent=text;el.className='msg '+cls}
 async function verifyOwner(session){
  const url=new URL(API);url.searchParams.set('action','summary');
@@ -61,24 +64,29 @@ async function goIfSignedIn(){
   setMessage(copy[lang].checking);
   const owner=await verifyOwner(session);
   if(!owner){await supabase.auth.signOut();setMessage(copy[lang].unauthorized,'bad');return false}
-  setMessage(copy[lang].opening,'ok');setTimeout(()=>location.replace('./'),500);return true;
- }catch(e){setMessage(copy[lang].verifyFail,'bad');return false}
+  setMessage(copy[lang].opening,'ok');setTimeout(()=>location.replace('./'),350);return true;
+ }catch{setMessage(copy[lang].verifyFail,'bad');return false}
  finally{checking=false}
 }
 document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;localStorage.setItem('dc_admin_lang',lang);applyLang()}));
+$('#togglePassword').addEventListener('click',()=>{const p=$('#password');p.type=p.type==='password'?'text':'password';applyLang()});
 $('#accessForm').addEventListener('submit',async e=>{
- e.preventDefault();const email=$('#email').value.trim();const c=copy[lang];
- if(!/^\S+@\S+\.\S+$/.test(email)){setMessage(c.invalid,'bad');$('#email').focus();return}
- const button=$('#send');button.disabled=true;setMessage(c.sending);
+ e.preventDefault();const username=$('#username').value.trim();const password=$('#password').value;const c=copy[lang];
+ if(!username||!password){setMessage(c.invalid,'bad');return}
+ const button=$('#send');button.disabled=true;setMessage(c.signing);
  try{
-  const redirect=`${location.origin}${location.pathname}`;
-  const {error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:redirect}});
-  if(error)throw error;
-  setMessage(c.sent,'ok');
- }catch(e){setMessage(c.sendFail,'bad')}
+  const {data:email,error:lookupError}=await supabase.rpc('resolve_admin_login_email',{p_username:username,p_password:password});
+  if(lookupError||!email)throw new Error('BAD_CREDENTIALS');
+  const {data,error}=await supabase.auth.signInWithPassword({email,password});
+  if(error||!data.session)throw new Error('BAD_CREDENTIALS');
+  setMessage(c.checking);
+  if(!(await verifyOwner(data.session))){await supabase.auth.signOut();setMessage(c.unauthorized,'bad');return}
+  setMessage(c.opening,'ok');setTimeout(()=>location.replace('./'),350);
+ }catch{await supabase.auth.signOut().catch(()=>{});setMessage(c.bad,'bad')}
  finally{button.disabled=false}
 });
 applyLang();
+if(new URL(location.href).searchParams.get('setup')==='done')setMessage(copy[lang].setupDone,'ok');
 await goIfSignedIn();
 supabase.auth.onAuthStateChange((_event,session)=>{if(session)queueMicrotask(()=>goIfSignedIn())});
 </script>
