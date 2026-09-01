@@ -107,10 +107,10 @@ async function auditAdmin(browser,viewport,label){
   ok(await page.locator('#authView').isVisible(),`admin/${label}: auth gate not visible`);
   ok(!(await page.locator('#appView').isVisible()),`admin/${label}: private dashboard visible without auth`);
   ok((await page.title()).includes('Control Center'),`admin/${label}: title missing`);
-  ok(!(await page.locator('#loginForm').isVisible()),`admin/${label}: legacy password login is visible`);
+  ok(!(await page.locator('#loginForm').isVisible()),`admin/${label}: obsolete embedded login form is visible`);
   ok(!(await page.locator('#setupForm').isVisible()),`admin/${label}: legacy bootstrap form is visible`);
   ok(await page.locator('.secureAccessButton').getAttribute('href')==='./access.html',`admin/${label}: owner access link is wrong`);
-  ok(await page.locator('.secureAccessMeta a').getAttribute('href')==='./setup.html',`admin/${label}: initial setup link is wrong`);
+  ok(await page.locator('.secureAccessMeta a').getAttribute('href')==='./credentials.html',`admin/${label}: credential setup link is wrong`);
 
   await noHorizontalOverflow(page,`admin/${label}`);
   const logo=page.locator('.authArt img').first();
@@ -123,9 +123,9 @@ async function auditAdmin(browser,viewport,label){
   await page.locator('.secureAccessButton').click();
   await page.waitForURL(/\/admin\/access\.html(?:[?#].*)?$/,{timeout:10000});
   await page.waitForSelector('#accessForm',{state:'visible',timeout:10000});
-  ok(await page.locator('#email[type="email"]').isVisible(),`owner-access/${label}: owner email field missing`);
-  ok(await page.locator('input[type="password"]').count()===0,`owner-access/${label}: password field exposed`);
-  ok(await page.locator('#send').isVisible(),`owner-access/${label}: magic-link submit button missing`);
+  ok(await page.locator('#username[autocomplete="username"]').isVisible(),`owner-access/${label}: username field missing`);
+  ok(await page.locator('#password[type="password"]').isVisible(),`owner-access/${label}: password field missing`);
+  ok(await page.locator('#send').isVisible(),`owner-access/${label}: sign-in button missing`);
   await noHorizontalOverflow(page,`owner-access/${label}`);
 
   await page.locator('.lang button[data-lang="en"]').click();
@@ -135,7 +135,7 @@ async function auditAdmin(browser,viewport,label){
 
   ok(errors.length===0,`admin/${label}: runtime errors: ${errors.join(' || ')}`);
   await context.close();
-  console.log(`PASS admin passwordless ${label}`);
+  console.log(`PASS admin username-password ${label}`);
 }
 
 async function auditSocialAuthGate(browser,viewport,label){
@@ -161,7 +161,7 @@ async function auditSocialAuthGate(browser,viewport,label){
   ok(page.url().startsWith(`${BASE}admin/`),`social/${label}: unexpected redirect target ${page.url()}`);
   ok(!page.url().includes('social.html'),`social/${label}: unauthenticated social dashboard did not redirect to auth gate`);
   await page.waitForSelector('.secureAccessButton',{state:'visible',timeout:10000});
-  ok(!(await page.locator('#loginForm').isVisible()),`social/${label}: redirect exposed legacy password login`);
+  ok(!(await page.locator('#loginForm').isVisible()),`social/${label}: redirect exposed obsolete embedded login`);
   await noHorizontalOverflow(page,`social-auth/${label}`);
   ok(errors.length===0,`social/${label}: runtime errors: ${errors.join(' || ')}`);
 
@@ -203,6 +203,18 @@ try{
   await auditSocialAuthGate(browser,{width:1440,height:1000},'desktop');
   await auditSocialAuthGate(browser,{width:390,height:844},'mobile');
 
+  const access=await fetch(`${BASE}admin/access.html`);ok(access.ok,'owner access page missing');const accessHtml=await access.text();
+  ok(accessHtml.includes("resolve_admin_login_email"),'owner access username resolver missing');
+  ok(accessHtml.includes('signInWithPassword'),'owner access Supabase password signin missing');
+  ok(!accessHtml.includes('signInWithOtp'),'daily owner access still contains magic-link signin');
+  const credentials=await fetch(`${BASE}admin/credentials.html`);ok(credentials.ok,'credentials setup page missing');const credentialsHtml=await credentials.text();
+  ok(credentialsHtml.includes('set_current_admin_username'),'credentials setup username RPC missing');
+  ok(credentialsHtml.includes('updateUser({password})'),'credentials setup password update missing');
+  const recovery=await fetch(`${BASE}admin/email-login.html`);ok(recovery.ok,'email recovery/setup page missing');const recoveryHtml=await recovery.text();
+  ok(recoveryHtml.includes('signInWithOtp'),'email setup fallback no longer provides owner verification');
+  ok(recoveryHtml.includes('next=credentials.html')||recoveryHtml.includes("credentials.html"),'email setup fallback does not return to credential setup');
+  console.log('PASS owner credential auth assets');
+
   const unauthorized=await fetch(`${PROJECT_URL}/functions/v1/admin-api?action=summary`,{headers:{apikey:PUBLISHABLE_KEY}});
   ok([401,403].includes(unauthorized.status),`admin API accepted unauthenticated request: ${unauthorized.status}`);
 
@@ -213,6 +225,15 @@ try{
   });
   ok([401,403].includes(unauthorizedManual.status),`manual social API accepted unauthenticated request: ${unauthorizedManual.status}`);
   console.log('PASS admin API auth gates');
+
+  const invalidCredentialLookup=await fetch(`${PROJECT_URL}/rest/v1/rpc/resolve_admin_login_email`,{
+    method:'POST',
+    headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({p_username:'definitely-invalid-qa-user',p_password:'DefinitelyWrong-QA-Password-123!'})
+  });
+  ok(invalidCredentialLookup.ok,`credential resolver unavailable: ${invalidCredentialLookup.status}`);
+  ok((await invalidCredentialLookup.json())===null,'credential resolver disclosed an account for invalid credentials');
+  console.log('PASS credential resolver invalid-login gate');
 
   const badBootstrap=await fetch(`${PROJECT_URL}/functions/v1/admin-bootstrap`,{
     method:'POST',
