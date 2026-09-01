@@ -5,17 +5,16 @@ const KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
 const API=`${PROJECT_URL}/functions/v1/social-oauth`;
 const supabase=createClient(PROJECT_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 
-// User Access Token login compatibility shim. Keep this file separate until the
-// social-oauth Edge Function is folded back to the same parameter set.
-// Meta documents override_default_response_type for Business Integration System User
-// token configurations. The core backend currently returns that legacy parameter, so
-// strip only that parameter before navigation while preserving the server-created state,
-// config_id, response_type=code, redirect URI and callback flow.
+// User Access Token login compatibility shim.
+// For this Meta configuration, keep the Facebook Login for Business dialog to
+// the minimal UAT parameter set: client_id + redirect_uri + state + config_id.
+// The backend still emits legacy response_type / override params used by other
+// Business Login variants, so strip both before browser navigation.
 document.addEventListener('click',async event=>{
   const target=event.target instanceof Element?event.target.closest('#dcMetaConnectBtn'):null;
   if(!target)return;
   const workspaceId=Number(document.querySelector('#workspaceSelect')?.value||0);
-  if(!workspaceId)return; // Let the normal UI show its "choose client" message.
+  if(!workspaceId)return;
 
   event.preventDefault();
   event.stopPropagation();
@@ -34,6 +33,7 @@ document.addEventListener('click',async event=>{
 
     const authUrl=new URL(payload.authorization_url);
     authUrl.searchParams.delete('override_default_response_type');
+    authUrl.searchParams.delete('response_type');
     location.href=authUrl.toString();
   }catch(error){
     console.error('Meta OAuth start failed',error);
