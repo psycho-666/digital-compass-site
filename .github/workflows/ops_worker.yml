@@ -21,53 +21,118 @@ concurrency:
 jobs:
   operations:
     runs-on: ubuntu-latest
-    timeout-minutes: 28
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Request OIDC token for prototype research
-        id: oidc_research
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install lightweight ops dependencies
+        run: npm install --no-save cheerio@1.0.0 playwright@1.55.0
+
+      # ---------- SOCIAL ENRICHMENT ----------
+      - name: Request OIDC token for social enrichment
+        id: oidc_enrich
         shell: bash
         run: |
           set -euo pipefail
-          RESPONSE="$(curl --fail --silent --show-error \
-            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Claim social enrichment tasks
+        id: claim_enrich
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_enrich.outputs.token }}
+        run: |
+          curl --fail-with-body --silent --show-error -X POST \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" \
+            --data '{"action":"claim_social_enrichment"}' \
+            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-worker-bridge" -o social-enrichment-tasks.json
+          COUNT="$(python -c 'import json; d=json.load(open("social-enrichment-tasks.json")); print(len(d.get("tasks",[])))')"
+          COMMAND_ID="$(python -c 'import json; d=json.load(open("social-enrichment-tasks.json")); print(d.get("command_id") or "")')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" -gt 0 ]; then echo "has_tasks=true" >> "$GITHUB_OUTPUT"; else echo "has_tasks=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Run social enrichment
+        id: run_enrich
+        if: steps.claim_enrich.outputs.has_tasks == 'true'
+        continue-on-error: true
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_enrich.outputs.token }}
+          SOCIAL_ENRICH_TASK_FILE: social-enrichment-tasks.json
+        run: node ops/social-enrichment.mjs
+
+      - name: Finalize social enrichment batch
+        if: always() && steps.claim_enrich.outputs.command_id != ''
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_enrich.outputs.token }}
+          COMMAND_ID: ${{ steps.claim_enrich.outputs.command_id }}
+          PROCESSED: ${{ steps.run_enrich.outputs.processed }}
+          FAILURES: ${{ steps.run_enrich.outputs.failures }}
+          PARTIAL: ${{ steps.run_enrich.outputs.partial }}
+          SUCCEEDED: ${{ steps.run_enrich.outputs.succeeded }}
+        run: |
+          BODY="$(python - <<'PY'
+          import json,os
+          print(json.dumps({'action':'finish_social_batch','command_type':'SOCIAL_ENRICHMENT','command_id':int(os.environ['COMMAND_ID']),'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'completed':int(os.environ.get('SUCCEEDED') or 0),'needs_review':int(os.environ.get('PARTIAL') or 0)}))
+          PY
+          )"
+          curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-worker-bridge"
+
+      # ---------- SOCIAL AUDIT CLAIM ----------
+      - name: Request OIDC token to claim social audit
+        id: oidc_audit_claim
+        if: always()
+        run: |
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Claim social audit tasks
+        id: claim_audit
+        if: steps.oidc_audit_claim.outcome == 'success'
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_audit_claim.outputs.token }}
+        run: |
+          curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data '{"action":"claim_social_audit"}' "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-worker-bridge" -o social-audit-tasks.json
+          COUNT="$(python -c 'import json; d=json.load(open("social-audit-tasks.json")); print(len(d.get("tasks",[])))')"
+          COMMAND_ID="$(python -c 'import json; d=json.load(open("social-audit-tasks.json")); print(d.get("command_id") or "")')"
+          RUN_ID="$(python -c 'import json; d=json.load(open("social-audit-tasks.json")); print(d.get("run_id") or "")')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" -gt 0 ]; then echo "has_tasks=true" >> "$GITHUB_OUTPUT"; else echo "has_tasks=false" >> "$GITHUB_OUTPUT"; fi
+
+      # ---------- PROTOTYPE RESEARCH ----------
+      - name: Request OIDC token for prototype research
+        id: oidc_research
+        if: always()
+        run: |
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
           TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Claim prototype research tasks
         id: claim_research
-        shell: bash
+        if: steps.oidc_research.outcome == 'success'
         env:
           OIDC_TOKEN: ${{ steps.oidc_research.outputs.token }}
         run: |
-          set -euo pipefail
-          curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer ${OIDC_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data '{"action":"claim_prototype_research"}' \
-            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge" \
-            -o prototype-research-tasks.json
+          curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data '{"action":"claim_prototype_research"}' "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge" -o prototype-research-tasks.json
           COUNT="$(python -c 'import json; d=json.load(open("prototype-research-tasks.json")); print(len(d.get("tasks",[])))')"
           COMMAND_ID="$(python -c 'import json; d=json.load(open("prototype-research-tasks.json")); print(d.get("command_id") or "")')"
-          echo "Prototype research tasks: $COUNT"
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" -gt 0 ]; then echo "has_tasks=true" >> "$GITHUB_OUTPUT"; else echo "has_tasks=false" >> "$GITHUB_OUTPUT"; fi
-
-      - name: Setup Node
-        if: steps.claim_research.outputs.has_tasks == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install prototype research dependency
-        if: steps.claim_research.outputs.has_tasks == 'true'
-        run: npm install --no-save cheerio@1.0.0
 
       - name: Run prototype research
         id: run_research
@@ -80,7 +145,6 @@ jobs:
 
       - name: Finalize prototype research queue command
         if: always() && steps.claim_research.outputs.command_id != ''
-        shell: bash
         env:
           OIDC_TOKEN: ${{ steps.oidc_research.outputs.token }}
           COMMAND_ID: ${{ steps.claim_research.outputs.command_id }}
@@ -90,111 +154,123 @@ jobs:
           FAILURES: ${{ steps.run_research.outputs.failures }}
           PARTIAL: ${{ steps.run_research.outputs.partial }}
         run: |
-          set -euo pipefail
           BODY="$(python - <<'PY'
           import json,os
-          print(json.dumps({
-            'action':'finish_stage_command','command_id':int(os.environ['COMMAND_ID']),
-            'command_type':'PROTOTYPE_RESEARCH','status':os.environ['STATUS'],
-            'result':{'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'partial':int(os.environ.get('PARTIAL') or 0),'worker':'OIDC_PUBLIC_RESEARCH_V1'},
-            'error_message':os.environ.get('ERROR') or None
-          }))
+          print(json.dumps({'action':'finish_stage_command','command_id':int(os.environ['COMMAND_ID']),'command_type':'PROTOTYPE_RESEARCH','status':os.environ['STATUS'],'result':{'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'partial':int(os.environ.get('PARTIAL') or 0),'worker':'OIDC_PUBLIC_RESEARCH_V1'},'error_message':os.environ.get('ERROR') or None}))
           PY
           )"
-          curl --fail-with-body --silent --show-error -X POST \
-            -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" \
-            --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge"
+          curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge"
 
-      - name: Request fresh OIDC token for browser QA
-        id: oidc_qa
-        if: always() && steps.claim_research.outcome == 'success'
-        shell: bash
+      # ---------- PROTOTYPE QA CLAIM ----------
+      - name: Request OIDC token to claim prototype QA
+        id: oidc_qa_claim
+        if: always()
         run: |
-          set -euo pipefail
-          RESPONSE="$(curl --fail --silent --show-error \
-            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
           TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Claim prototype QA tasks
         id: claim_qa
-        if: steps.oidc_qa.outcome == 'success'
-        shell: bash
+        if: steps.oidc_qa_claim.outcome == 'success'
         env:
-          OIDC_TOKEN: ${{ steps.oidc_qa.outputs.token }}
+          OIDC_TOKEN: ${{ steps.oidc_qa_claim.outputs.token }}
         run: |
-          set -euo pipefail
-          curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer ${OIDC_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data '{"action":"claim_prototype_qa"}' \
-            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge" \
-            -o qa-tasks.json
+          curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data '{"action":"claim_prototype_qa"}' "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge" -o qa-tasks.json
           COUNT="$(python -c 'import json; d=json.load(open("qa-tasks.json")); print(len(d.get("tasks",[])))')"
           COMMAND_ID="$(python -c 'import json; d=json.load(open("qa-tasks.json")); print(d.get("command_id") or "")')"
-          echo "Prototype QA tasks: $COUNT"
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" -gt 0 ]; then echo "has_tasks=true" >> "$GITHUB_OUTPUT"; else echo "has_tasks=false" >> "$GITHUB_OUTPUT"; fi
 
-      - name: Setup Node for browser QA
-        if: steps.claim_qa.outputs.has_tasks == 'true' && steps.claim_research.outputs.has_tasks != 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+      # ---------- BROWSER INSTALL ONCE ----------
+      - name: Install Chromium when browser work exists
+        if: steps.claim_audit.outputs.has_tasks == 'true' || steps.claim_qa.outputs.has_tasks == 'true'
+        run: npx playwright install --with-deps chromium
 
-      - name: Install Playwright Chromium
+      # ---------- SOCIAL AUDIT RUN ----------
+      - name: Request fresh OIDC token for social audit execution
+        id: oidc_audit_run
+        if: steps.claim_audit.outputs.has_tasks == 'true'
+        run: |
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Run social browser audit
+        id: run_audit
+        if: steps.claim_audit.outputs.has_tasks == 'true'
+        continue-on-error: true
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_audit_run.outputs.token }}
+          SOCIAL_AUDIT_TASK_FILE: social-audit-tasks.json
+        run: node ops/social-audit.mjs
+
+      - name: Finalize social audit batch
+        if: always() && steps.claim_audit.outputs.command_id != ''
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_audit_run.outputs.token }}
+          COMMAND_ID: ${{ steps.claim_audit.outputs.command_id }}
+          RUN_ID: ${{ steps.claim_audit.outputs.run_id }}
+          PROCESSED: ${{ steps.run_audit.outputs.processed }}
+          FAILURES: ${{ steps.run_audit.outputs.failures }}
+          COMPLETED: ${{ steps.run_audit.outputs.completed }}
+          NEEDS_REVIEW: ${{ steps.run_audit.outputs.needs_review }}
+        run: |
+          BODY="$(python - <<'PY'
+          import json,os
+          print(json.dumps({'action':'finish_social_batch','command_type':'SOCIAL_AUDIT','command_id':int(os.environ['COMMAND_ID']),'run_id':int(os.environ.get('RUN_ID') or 0),'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'completed':int(os.environ.get('COMPLETED') or 0),'needs_review':int(os.environ.get('NEEDS_REVIEW') or 0)}))
+          PY
+          )"
+          curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-worker-bridge"
+
+      # ---------- PROTOTYPE QA RUN ----------
+      - name: Request fresh OIDC token for prototype QA execution
+        id: oidc_qa_run
         if: steps.claim_qa.outputs.has_tasks == 'true'
         run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Run prototype browser QA
         id: run_qa
         if: steps.claim_qa.outputs.has_tasks == 'true'
         continue-on-error: true
         env:
-          OIDC_TOKEN: ${{ steps.oidc_qa.outputs.token }}
+          OIDC_TOKEN: ${{ steps.oidc_qa_run.outputs.token }}
           QA_TASK_FILE: qa-tasks.json
         run: node ops/prototype-qa.mjs
 
       - name: Finalize prototype QA queue command
         if: always() && steps.claim_qa.outputs.command_id != ''
-        shell: bash
         env:
-          OIDC_TOKEN: ${{ steps.oidc_qa.outputs.token }}
+          OIDC_TOKEN: ${{ steps.oidc_qa_run.outputs.token }}
           COMMAND_ID: ${{ steps.claim_qa.outputs.command_id }}
           STATUS: ${{ steps.run_qa.outcome == 'failure' && 'FAILED' || 'SUCCEEDED' }}
           ERROR: ${{ steps.run_qa.outcome == 'failure' && 'One or more prototype browser QA tasks failed' || '' }}
           PROCESSED: ${{ steps.run_qa.outputs.processed }}
           FAILURES: ${{ steps.run_qa.outputs.failures }}
         run: |
-          set -euo pipefail
           BODY="$(python - <<'PY'
           import json,os
-          print(json.dumps({
-            'action':'finish_stage_command','command_id':int(os.environ['COMMAND_ID']),
-            'command_type':'PROTOTYPE_QA','status':os.environ['STATUS'],
-            'result':{'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'worker':'OIDC_PUBLIC_QA'},
-            'error_message':os.environ.get('ERROR') or None
-          }))
+          print(json.dumps({'action':'finish_stage_command','command_id':int(os.environ['COMMAND_ID']),'command_type':'PROTOTYPE_QA','status':os.environ['STATUS'],'result':{'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'worker':'OIDC_PUBLIC_QA'},'error_message':os.environ.get('ERROR') or None}))
           PY
           )"
-          curl --fail-with-body --silent --show-error -X POST \
-            -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" \
-            --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge"
+          curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge"
 
-      - name: Fail workflow on worker failure
+      - name: Fail workflow on unexpected worker failure
         if: always()
-        shell: bash
         env:
+          ENRICH_OUTCOME: ${{ steps.run_enrich.outcome }}
+          AUDIT_OUTCOME: ${{ steps.run_audit.outcome }}
           RESEARCH_OUTCOME: ${{ steps.run_research.outcome }}
           QA_OUTCOME: ${{ steps.run_qa.outcome }}
         run: |
-          if [ "${RESEARCH_OUTCOME}" = "failure" ] || [ "${QA_OUTCOME}" = "failure" ]; then
-            echo "One or more public operations workers failed."
+          if [ "${ENRICH_OUTCOME}" = "failure" ] || [ "${AUDIT_OUTCOME}" = "failure" ] || [ "${RESEARCH_OUTCOME}" = "failure" ] || [ "${QA_OUTCOME}" = "failure" ]; then
+            echo "One or more public operations workers failed unexpectedly."
             exit 1
           fi
