@@ -19,10 +19,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  probe:
+  operations:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 18
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Request GitHub OIDC token
         id: oidc
         shell: bash
@@ -32,19 +35,42 @@ jobs:
             -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
           TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
-      - name: Verify secretless Supabase bridge
+      - name: Claim prototype QA tasks
+        id: claim
         shell: bash
         env:
           OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
-          RESPONSE="$(curl --fail-with-body --silent --show-error \
+          curl --fail-with-body --silent --show-error \
             -X POST \
             -H "Authorization: Bearer ${OIDC_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data '{"action":"probe"}' \
-            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge")"
-          echo "$RESPONSE"
-          python -c 'import json,sys; d=json.load(sys.stdin); assert d.get("ok") is True and d.get("action")=="probe"' <<< "$RESPONSE"
+            --data '{"action":"claim_prototype_qa"}' \
+            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge" \
+            -o qa-tasks.json
+          COUNT="$(python -c 'import json; d=json.load(open("qa-tasks.json")); print(len(d.get("tasks",[])))')"
+          echo "Prototype QA tasks: $COUNT"
+          if [ "$COUNT" -gt 0 ]; then echo "has_tasks=true" >> "$GITHUB_OUTPUT"; else echo "has_tasks=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Setup Node
+        if: steps.claim.outputs.has_tasks == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright Chromium
+        if: steps.claim.outputs.has_tasks == 'true'
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Run prototype browser QA
+        if: steps.claim.outputs.has_tasks == 'true'
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+          QA_TASK_FILE: qa-tasks.json
+        run: node ops/prototype-qa.mjs
