@@ -1,0 +1,50 @@
+name: Digital Compass Public Ops Runner
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ops_worker.yml"
+      - "ops/**"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: digital-compass-public-ops
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Verify secretless Supabase bridge
+        shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"action":"probe"}' \
+            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge")"
+          echo "$RESPONSE"
+          python -c 'import json,sys; d=json.load(sys.stdin); assert d.get("ok") is True and d.get("action")=="probe"' <<< "$RESPONSE"
