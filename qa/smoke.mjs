@@ -204,7 +204,8 @@ try{
   await auditSocialAuthGate(browser,{width:390,height:844},'mobile');
 
   const access=await fetch(`${BASE}admin/access.html`);ok(access.ok,'owner access page missing');const accessHtml=await access.text();
-  ok(accessHtml.includes("resolve_admin_login_email"),'owner access username resolver missing');
+  ok(accessHtml.includes("admin-login-resolver"),'owner access edge username resolver missing');
+  ok(!accessHtml.includes("resolve_admin_login_email"),'owner access still references direct credential resolver RPC');
   ok(accessHtml.includes('signInWithPassword'),'owner access Supabase password signin missing');
   ok(!accessHtml.includes('signInWithOtp'),'daily owner access still contains magic-link signin');
   const credentials=await fetch(`${BASE}admin/credentials.html`);ok(credentials.ok,'credentials setup page missing');const credentialsHtml=await credentials.text();
@@ -226,14 +227,20 @@ try{
   ok([401,403].includes(unauthorizedManual.status),`manual social API accepted unauthenticated request: ${unauthorizedManual.status}`);
   console.log('PASS admin API auth gates');
 
-  const invalidCredentialLookup=await fetch(`${PROJECT_URL}/rest/v1/rpc/resolve_admin_login_email`,{
+  const invalidDirectCredentialLookup=await fetch(`${PROJECT_URL}/rest/v1/rpc/resolve_admin_login_email`,{
     method:'POST',
     headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json'},
     body:JSON.stringify({p_username:'definitely-invalid-qa-user',p_password:'DefinitelyWrong-QA-Password-123!'})
   });
-  ok(invalidCredentialLookup.ok,`credential resolver unavailable: ${invalidCredentialLookup.status}`);
-  ok((await invalidCredentialLookup.json())===null,'credential resolver disclosed an account for invalid credentials');
-  console.log('PASS credential resolver invalid-login gate');
+  ok([401,403].includes(invalidDirectCredentialLookup.status),`direct credential resolver RPC is still anonymously callable: ${invalidDirectCredentialLookup.status}`);
+
+  const invalidEdgeCredentialLookup=await fetch(`${PROJECT_URL}/functions/v1/admin-login-resolver`,{
+    method:'POST',
+    headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json',Origin:'https://psycho-666.github.io'},
+    body:JSON.stringify({username:'definitely-invalid-qa-user',password:'DefinitelyWrong-QA-Password-123!'})
+  });
+  ok(invalidEdgeCredentialLookup.status===401,`edge credential resolver did not reject invalid credentials: ${invalidEdgeCredentialLookup.status}`);
+  console.log('PASS credential resolver isolation and invalid-login gate');
 
   const badBootstrap=await fetch(`${PROJECT_URL}/functions/v1/admin-bootstrap`,{
     method:'POST',
