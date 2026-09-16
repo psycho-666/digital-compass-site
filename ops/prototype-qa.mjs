@@ -7,6 +7,7 @@ const TASK_FILE=process.env.QA_TASK_FILE||'qa-tasks.json';
 if(!TOKEN) throw new Error('OIDC_TOKEN missing');
 const payload=JSON.parse(fs.readFileSync(TASK_FILE,'utf8'));
 const tasks=Array.isArray(payload.tasks)?payload.tasks:[];
+const output=(name,value)=>{if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,`${name}=${value}\n`)};
 
 async function bridge(body){
   const r=await fetch(BRIDGE,{method:'POST',headers:{Authorization:`Bearer ${TOKEN}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -67,5 +68,7 @@ try{
     results.push({site_id:task.site_id,slug:task.slug,status,errors:errors.slice(0,8)});
   }
 }finally{await browser.close()}
-console.log(JSON.stringify({processed:tasks.length,results}));
-if(results.some(r=>r.status==='FAILED')) throw new Error('One or more prototypes failed browser QA');
+const failures=results.filter(r=>r.status==='FAILED').length;
+console.log(JSON.stringify({processed:tasks.length,failures,results}));
+output('processed',tasks.length);output('failures',failures);
+if(failures) throw new Error('One or more prototypes failed browser QA');
