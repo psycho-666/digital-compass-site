@@ -19,6 +19,7 @@ const ALIASES:any={'UAE':'United Arab Emirates','Saudi':'Saudi Arabia','KSA':'Sa
 
 function json(body:unknown,status=200){return new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow, noarchive'}})}
 function now(){return new Date().toISOString()}
+function leaseUntil(minutes=55){return new Date(Date.now()+minutes*60*1000).toISOString()}
 function today(){return new Date().toISOString().slice(0,10)}
 function text(v:any,n=2000){return String(v??'').slice(0,n)}
 function bounded(v:any,max=30000){if(!v||typeof v!=='object')return {};const s=JSON.stringify(v);if(s.length>max)throw new Error('object_too_large');return v}
@@ -35,20 +36,30 @@ async function rest(path:string,init:RequestInit={}){
   const h=new Headers(init.headers||{});h.set('apikey',SECRET_KEY);h.set('authorization',`Bearer ${SECRET_KEY}`);h.set('content-type','application/json');
   const r=await fetch(`${PROJECT_URL}/rest/v1/${path}`,{...init,headers:h});const t=await r.text();if(!r.ok)throw new Error(`rest_${r.status}_${t.slice(0,500)}`);return t?JSON.parse(t):null;
 }
+async function rpc(name:string,body:any={}){return await rest(`rpc/${name}`,{method:'POST',body:JSON.stringify(body)})}
 async function patch(table:string,filter:string,body:any,prefer='return=minimal'){return await rest(`${table}?${filter}`,{method:'PATCH',headers:{Prefer:prefer},body:JSON.stringify(body)})}
 async function insert(table:string,body:any,prefer='return=representation',query=''){return await rest(`${table}${query?`?${query}`:''}`,{method:'POST',headers:{Prefer:prefer},body:JSON.stringify(body)})}
 async function one(table:string,filter:string){const rows=await rest(`${table}?${filter}&limit=1`)||[];return rows[0]||null}
 
 async function claimCommand(type:string){
-  const rows=await rest(`automation_commands?status=eq.QUEUED&command_type=eq.${encodeURIComponent(type)}&select=id,requested_at&order=requested_at.asc,id.asc&limit=1`)||[];
-  if(!rows.length)return null;const id=Number(rows[0].id);
-  const claimed=await patch('automation_commands',`id=eq.${id}&status=eq.QUEUED`,{status:'RUNNING',started_at:now(),completed_at:null,error_message:null,result:{claimed_by:'OIDC_PUBLIC_CORE_V1'}},'return=representation')||[];
+  const rows=await rest(`automation_commands?status=eq.QUEUED&command_type=eq.${encodeURIComponent(type)}&select=id,requested_at,attempt_count,max_attempts&order=requested_at.asc,id.asc&limit=1`)||[];
+  if(!rows.length)return null;const row=rows[0],id=Number(row.id),attempt=Number(row.attempt_count||0)+1;
+  if(attempt>Number(row.max_attempts||3)){await patch('automation_commands',`id=eq.${id}&status=eq.QUEUED`,{status:'FAILED',completed_at:now(),error_message:'Maximum automatic attempts exceeded',lease_expires_at:null,last_heartbeat_at:now()});return null}
+  const claimed=await patch('automation_commands',`id=eq.${id}&status=eq.QUEUED`,{status:'RUNNING',started_at:now(),completed_at:null,error_message:null,attempt_count:attempt,lease_expires_at:leaseUntil(),last_heartbeat_at:now(),result:{claimed_by:'OIDC_PUBLIC_CORE_V2',attempt}},'return=representation')||[];
   return claimed.length?id:null;
 }
 async function commandIsRunning(id:number,type:string){return !!(await one('automation_commands',`id=eq.${id}&command_type=eq.${encodeURIComponent(type)}&status=eq.RUNNING&select=id`))}
 async function finishCommand(id:number,type:string,status:string,result:any,error:any=null){
   if(!id||!['SUCCEEDED','FAILED'].includes(status)||!(await commandIsRunning(id,type)))throw new Error('command_not_claimed');
-  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:bounded(result),error_message:error?text(error,4000):null});
+  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:bounded(result),error_message:error?text(error,4000):null,lease_expires_at:null,last_heartbeat_at:now()});
+}
+
+async function recoverStaleCommands(){
+  const rows=await rest(`automation_commands?status=eq.RUNNING&lease_expires_at=lt.${encodeURIComponent(now())}&select=id,command_type,attempt_count,max_attempts,lease_expires_at&order=lease_expires_at.asc,id.asc&limit=50`)||[];
+  let requeued=0,failed=0;
+  for(const row of rows){const id=Number(row.id),attempt=Number(row.attempt_count||0),max=Number(row.max_attempts||3);if(attempt>=max){await patch('automation_commands',`id=eq.${id}&status=eq.RUNNING`,{status:'FAILED',completed_at:now(),lease_expires_at:null,last_heartbeat_at:now(),error_message:`Automatic recovery exhausted after ${attempt} attempt(s)`});failed++}else{await patch('automation_commands',`id=eq.${id}&status=eq.RUNNING`,{status:'QUEUED',started_at:null,completed_at:null,lease_expires_at:null,last_heartbeat_at:now(),error_message:`Recovered expired worker lease after attempt ${attempt}`});requeued++}}
+  const dependentRecovery=await rpc('recover_stale_automation_work',{});
+  return {ok:true,action:'recover_stale_commands',scanned:rows.length,requeued,failed,dependent_recovery:dependentRecovery};
 }
 
 async function enabledMarkets(){
@@ -127,6 +138,7 @@ Deno.serve(async(req:Request)=>{
   if(req.method!=='POST')return json({error:'method_not_allowed'},405);
   try{const identity=await auth(req);const body=await req.json().catch(()=>({}));const action=String(body.action||'');
     if(action==='probe')return json({ok:true,repository:identity.repository,run_id:identity.run_id});
+    if(action==='recover_stale_commands')return json(await recoverStaleCommands());
     if(action==='claim_discovery')return json(await claimDiscovery());
     if(action==='submit_discovery_batch')return json(await submitDiscoveryBatch(body));
     if(action==='finish_discovery')return json(await finishDiscovery(body));

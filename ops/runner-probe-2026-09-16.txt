@@ -6,3 +6,5 @@ Prototype refreshed-research QA invalidation validation trigger: 2026-09-16T17:1
 Social Browser Audit OIDC end-to-end validation trigger: 2026-09-16T17:30Z.
 
 DC-OPS-01 end-to-end verification queued at 2026-09-16T21:24:40Z.
+
+DC-OPS-02 stale lease recovery validation trigger: 2026-09-16T22:08Z.

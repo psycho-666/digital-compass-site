@@ -310,6 +310,88 @@ $$;
 revoke all on function public.persist_social_discovery_results(bigint, bigint, bigint, jsonb, jsonb, jsonb) from public;
 grant execute on function public.persist_social_discovery_results(bigint, bigint, bigint, jsonb, jsonb, jsonb) to service_role;
 
+create or replace function public.recover_stale_automation_work(p_stale_after interval default interval '65 minutes')
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'public', 'pg_temp'
+as $$
+declare
+  discovery_runs_closed integer := 0;
+  social_runs_closed integer := 0;
+  social_audits_requeued integer := 0;
+  social_requests_requeued integer := 0;
+  prototype_requests_requeued integer := 0;
+  prototype_runs_closed integer := 0;
+  prototype_qa_closed integer := 0;
+begin
+  update public.discovery_runs
+  set status = 'FAILED',
+      finished_at = now(),
+      error_message = 'Recovered orphaned discovery run after its worker lease expired.'
+  where status = 'RUNNING' and started_at < now() - p_stale_after;
+  get diagnostics discovery_runs_closed = row_count;
+
+  update public.social_research_runs
+  set status = 'PARTIAL',
+      completed_at = now(),
+      notes = concat_ws(' ', nullif(notes, ''), 'Recovered orphaned social research run after its worker lease expired.')
+  where status = 'RUNNING' and started_at < now() - p_stale_after;
+  get diagnostics social_runs_closed = row_count;
+
+  update public.social_audits
+  set status = 'PENDING',
+      error_message = 'Automatically requeued after the previous worker lease expired.',
+      updated_at = now()
+  where status = 'RUNNING' and updated_at < now() - p_stale_after;
+  get diagnostics social_audits_requeued = row_count;
+
+  update public.social_research_requests
+  set status = 'PENDING',
+      started_at = null,
+      completed_at = null,
+      error_message = 'Automatically requeued after the previous worker lease expired.'
+  where status = 'RUNNING' and started_at < now() - p_stale_after;
+  get diagnostics social_requests_requeued = row_count;
+
+  update public.prototype_research_requests
+  set status = 'PENDING',
+      started_at = null,
+      completed_at = null,
+      error_message = 'Automatically requeued after the previous worker lease expired.',
+      updated_at = now()
+  where status = 'RUNNING' and started_at < now() - p_stale_after;
+  get diagnostics prototype_requests_requeued = row_count;
+
+  update public.prototype_research_runs
+  set status = 'FAILED',
+      completed_at = now(),
+      error_message = 'Recovered orphaned prototype research run after its worker lease expired.'
+  where status = 'RUNNING' and started_at < now() - p_stale_after;
+  get diagnostics prototype_runs_closed = row_count;
+
+  update public.prototype_qa_runs
+  set status = 'FAILED',
+      completed_at = now(),
+      errors = coalesce(errors, '[]'::jsonb) || jsonb_build_array('Recovered orphaned QA run after its worker lease expired.')
+  where status = 'RUNNING' and started_at < now() - p_stale_after;
+  get diagnostics prototype_qa_closed = row_count;
+
+  return jsonb_build_object(
+    'discovery_runs_closed', discovery_runs_closed,
+    'social_runs_closed', social_runs_closed,
+    'social_audits_requeued', social_audits_requeued,
+    'social_requests_requeued', social_requests_requeued,
+    'prototype_requests_requeued', prototype_requests_requeued,
+    'prototype_runs_closed', prototype_runs_closed,
+    'prototype_qa_closed', prototype_qa_closed
+  );
+end;
+$$;
+
+revoke all on function public.recover_stale_automation_work(interval) from public;
+grant execute on function public.recover_stale_automation_work(interval) to service_role;
+
 do $$
 declare
   existing_job bigint;
