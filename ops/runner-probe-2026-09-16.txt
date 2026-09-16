@@ -2,3 +2,4 @@ Digital Compass public GitHub Actions runner probe.
 Created 2026-09-16 to verify hosted runner availability without changing production application behavior.
 Prototype QA migration validation trigger: 2026-09-16T16:34Z.
 Prototype Research OIDC end-to-end validation trigger: 2026-09-16T17:15Z.
+Prototype refreshed-research QA invalidation validation trigger: 2026-09-16T17:19Z.
