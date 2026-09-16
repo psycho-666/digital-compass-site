@@ -8,3 +8,5 @@ Social Browser Audit OIDC end-to-end validation trigger: 2026-09-16T17:30Z.
 DC-OPS-01 end-to-end verification queued at 2026-09-16T21:24:40Z.
 
 DC-OPS-02 stale lease recovery validation trigger: 2026-09-16T22:08Z.
+
+DC-OPS-02 command-gated worker validation trigger: 2026-09-16T22:16Z.
