@@ -53,6 +53,16 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
+      - name: Recover expired automation commands
+        id: recover_commands
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_discovery.outputs.token }}
+        run: |
+          curl --fail-with-body --silent --show-error -X POST \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" \
+            --data '{"action":"recover_stale_commands"}' \
+            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-core-worker-bridge"
+
       - name: Run prospect discovery
         id: run_discovery
         continue-on-error: true
@@ -157,6 +167,31 @@ jobs:
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" -gt 0 ]; then echo "has_tasks=true" >> "$GITHUB_OUTPUT"; else echo "has_tasks=false" >> "$GITHUB_OUTPUT"; fi
 
+      # ---------- SOCIAL DISCOVERY CLAIM ----------
+      - name: Request OIDC token to claim social discovery
+        id: oidc_social_discovery_claim
+        if: always()
+        run: |
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Claim social discovery task
+        id: claim_social_discovery
+        if: steps.oidc_social_discovery_claim.outcome == 'success'
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_social_discovery_claim.outputs.token }}
+        run: |
+          curl --fail-with-body --silent --show-error -X POST \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" \
+            --data '{"action":"claim_social_discovery"}' \
+            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-discovery-bridge" -o social-discovery-task.json
+          HAS_TASK="$(python -c 'import json; print("true" if json.load(open("social-discovery-task.json")).get("task") else "false")')"
+          COMMAND_ID="$(python -c 'import json; d=json.load(open("social-discovery-task.json")); print(d.get("command_id") or "")')"
+          echo "has_tasks=$HAS_TASK" >> "$GITHUB_OUTPUT"
+          echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
+
       # ---------- PROTOTYPE RESEARCH ----------
       - name: Request OIDC token for prototype research
         id: oidc_research
@@ -232,8 +267,27 @@ jobs:
 
       # ---------- BROWSER INSTALL ONCE ----------
       - name: Install Chromium when browser work exists
-        if: steps.claim_audit.outputs.has_tasks == 'true' || steps.claim_qa.outputs.has_tasks == 'true'
+        if: steps.claim_audit.outputs.has_tasks == 'true' || steps.claim_social_discovery.outputs.has_tasks == 'true' || steps.claim_qa.outputs.has_tasks == 'true'
         run: npx playwright install --with-deps chromium
+
+      # ---------- SOCIAL DISCOVERY RUN ----------
+      - name: Request fresh OIDC token for social discovery execution
+        id: oidc_social_discovery_run
+        if: steps.claim_social_discovery.outputs.has_tasks == 'true'
+        run: |
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Run social ad discovery
+        id: run_social_discovery
+        if: steps.claim_social_discovery.outputs.has_tasks == 'true'
+        continue-on-error: true
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_social_discovery_run.outputs.token }}
+          SOCIAL_DISCOVERY_TASK_FILE: social-discovery-task.json
+        run: node ops/social-discovery.mjs
 
       # ---------- SOCIAL AUDIT RUN ----------
       - name: Request fresh OIDC token for social audit execution
@@ -315,10 +369,11 @@ jobs:
           AUDIT_OUTCOME: ${{ steps.run_audit.outcome }}
           RESEARCH_OUTCOME: ${{ steps.run_research.outcome }}
           QA_OUTCOME: ${{ steps.run_qa.outcome }}
+          SOCIAL_DISCOVERY_OUTCOME: ${{ steps.run_social_discovery.outcome }}
           DISCOVERY_OUTCOME: ${{ steps.run_discovery.outcome }}
           DEEP_AUDIT_OUTCOME: ${{ steps.run_deep_audit.outcome }}
         run: |
-          if [ "${DISCOVERY_OUTCOME}" = "failure" ] || [ "${DEEP_AUDIT_OUTCOME}" = "failure" ] || [ "${ENRICH_OUTCOME}" = "failure" ] || [ "${AUDIT_OUTCOME}" = "failure" ] || [ "${RESEARCH_OUTCOME}" = "failure" ] || [ "${QA_OUTCOME}" = "failure" ]; then
+          if [ "${DISCOVERY_OUTCOME}" = "failure" ] || [ "${DEEP_AUDIT_OUTCOME}" = "failure" ] || [ "${ENRICH_OUTCOME}" = "failure" ] || [ "${AUDIT_OUTCOME}" = "failure" ] || [ "${SOCIAL_DISCOVERY_OUTCOME}" = "failure" ] || [ "${RESEARCH_OUTCOME}" = "failure" ] || [ "${QA_OUTCOME}" = "failure" ]; then
             echo "One or more public operations workers failed unexpectedly."
             exit 1
           fi
