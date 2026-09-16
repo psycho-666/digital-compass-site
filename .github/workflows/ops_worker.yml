@@ -84,14 +84,13 @@ jobs:
         env:
           OIDC_TOKEN: ${{ steps.oidc_research.outputs.token }}
           COMMAND_ID: ${{ steps.claim_research.outputs.command_id }}
-          WORKER_OUTCOME: ${{ steps.run_research.outcome }}
+          STATUS: ${{ steps.run_research.outcome == 'failure' && 'FAILED' || 'SUCCEEDED' }}
+          ERROR: ${{ steps.run_research.outcome == 'failure' && 'OIDC prototype research worker failed' || '' }}
           PROCESSED: ${{ steps.run_research.outputs.processed }}
           FAILURES: ${{ steps.run_research.outputs.failures }}
           PARTIAL: ${{ steps.run_research.outputs.partial }}
         run: |
           set -euo pipefail
-          STATUS="SUCCEEDED"; ERROR=""
-          if [ "${WORKER_OUTCOME}" = "failure" ]; then STATUS="FAILED"; ERROR="OIDC prototype research worker failed"; fi
           BODY="$(python - <<'PY'
           import json,os
           print(json.dumps({
@@ -105,9 +104,6 @@ jobs:
           curl --fail-with-body --silent --show-error -X POST \
             -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" \
             --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge"
-        env:
-          STATUS: ${{ steps.run_research.outcome == 'failure' && 'FAILED' || 'SUCCEEDED' }}
-          ERROR: ${{ steps.run_research.outcome == 'failure' && 'OIDC prototype research worker failed' || '' }}
 
       - name: Request fresh OIDC token for browser QA
         id: oidc_qa
