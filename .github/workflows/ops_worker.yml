@@ -21,7 +21,7 @@ concurrency:
 jobs:
   operations:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 55
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +33,52 @@ jobs:
 
       - name: Install lightweight ops dependencies
         run: npm install --no-save cheerio@1.0.0 playwright@1.55.0
+
+      - name: Setup Python for discovery
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install discovery dependencies
+        run: pip install --disable-pip-version-check --no-cache-dir duckdb==1.4.0 requests==2.32.5
+
+      # ---------- CORE DISCOVERY ----------
+      - name: Request OIDC token for discovery
+        id: oidc_discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Run prospect discovery
+        id: run_discovery
+        continue-on-error: true
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_discovery.outputs.token }}
+        run: python ops/discovery.py
+
+      # ---------- CORE DEEP AUDIT ----------
+      - name: Request OIDC token for deep audit
+        id: oidc_deep_audit
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Run deep website audit
+        id: run_deep_audit
+        if: steps.oidc_deep_audit.outcome == 'success'
+        continue-on-error: true
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_deep_audit.outputs.token }}
+        run: node ops/deep-audit.mjs
 
       # ---------- SOCIAL ENRICHMENT ----------
       - name: Request OIDC token for social enrichment
@@ -269,8 +315,10 @@ jobs:
           AUDIT_OUTCOME: ${{ steps.run_audit.outcome }}
           RESEARCH_OUTCOME: ${{ steps.run_research.outcome }}
           QA_OUTCOME: ${{ steps.run_qa.outcome }}
+          DISCOVERY_OUTCOME: ${{ steps.run_discovery.outcome }}
+          DEEP_AUDIT_OUTCOME: ${{ steps.run_deep_audit.outcome }}
         run: |
-          if [ "${ENRICH_OUTCOME}" = "failure" ] || [ "${AUDIT_OUTCOME}" = "failure" ] || [ "${RESEARCH_OUTCOME}" = "failure" ] || [ "${QA_OUTCOME}" = "failure" ]; then
+          if [ "${DISCOVERY_OUTCOME}" = "failure" ] || [ "${DEEP_AUDIT_OUTCOME}" = "failure" ] || [ "${ENRICH_OUTCOME}" = "failure" ] || [ "${AUDIT_OUTCOME}" = "failure" ] || [ "${RESEARCH_OUTCOME}" = "failure" ] || [ "${QA_OUTCOME}" = "failure" ]; then
             echo "One or more public operations workers failed unexpectedly."
             exit 1
           fi
