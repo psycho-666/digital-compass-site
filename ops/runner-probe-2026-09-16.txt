@@ -1,0 +1,2 @@
+Digital Compass public GitHub Actions runner probe.
+Created 2026-09-16 to verify hosted runner availability without changing production application behavior.
