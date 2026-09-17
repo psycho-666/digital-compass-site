@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3b31">
 <meta name="description" content="تصميم تجريبي احترافي لعيادة المجر للأسنان والتجميل — Digital Compass">
+<meta name="robots" content="noindex,nofollow">
+<meta property="og:title" content="عيادة المجر للأسنان والتجميل | Majer Dental">
+<meta property="og:description" content="تجربة رقمية تجريبية لعيادة المجر للأسنان والتجميل، مبنية على معلومات عامة متحقق منها.">
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="light">
+<script>document.documentElement.classList.add('js')</script>
 <title>عيادة المجر للأسنان والتجميل | Majer Dental</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +27,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Alexandria",sys
 body.en{direction:ltr}
 a{text-decoration:none;color:inherit}
 button,input,select,textarea{font:inherit}
+:focus-visible{outline:3px solid var(--mint);outline-offset:4px}
+section[id]{scroll-margin-top:100px}
+.skip-link{position:fixed;z-index:100;top:10px;inset-inline-start:10px;transform:translateY(-160%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:10px}
+.skip-link:focus{transform:none}
 img{display:block;max-width:100%}
 .wrap{width:min(1320px,calc(100% - 48px));margin:auto}
 .eyebrow{font:600 12px/1.2 "Manrope",sans-serif;letter-spacing:.14em;color:var(--green2)}
@@ -104,8 +114,9 @@ h1{font-size:clamp(58px,6vw,88px);line-height:1.06;letter-spacing:-.04em;margin:
 .footer{border-top:1px solid var(--line);padding:30px 0 40px}
 .footer-in{display:flex;justify-content:space-between;gap:20px;align-items:center;color:var(--muted);font-size:12px}
 .mobile-bar{display:none}
-.reveal{opacity:0;transform:translateY(16px);transition:.6s cubic-bezier(.2,.75,.2,1)}
-.reveal.on{opacity:1;transform:none}
+.reveal{opacity:1;transform:none}
+.js .reveal{opacity:0;transform:translateY(16px);transition:.6s cubic-bezier(.2,.75,.2,1)}
+.js .reveal.on{opacity:1;transform:none}
 @media(max-width:900px){
   .wrap{width:min(100% - 36px,720px)}
   .nav{height:74px}.navlinks{display:none}.brand{min-width:auto}.actions .cta{display:none}
@@ -129,17 +140,18 @@ h1{font-size:clamp(58px,6vw,88px);line-height:1.06;letter-spacing:-.04em;margin:
   .section-head h2{font-size:34px}.journey{grid-template-columns:1fr}.step{min-height:170px}
   .trust-copy{padding:28px}.trust-copy h3{font-size:26px}
 }
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.reveal{opacity:1;transform:none;transition:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.js .reveal{opacity:1;transform:none;transition:none}}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#mainContent" data-ar="تجاوز إلى المحتوى" data-en="Skip to content">تجاوز إلى المحتوى</a>
 <header class="header">
   <div class="wrap nav">
     <a class="brand" href="#top" aria-label="Majer Dental">
       <span class="mark"></span>
       <span class="brand-copy"><strong>MAJER</strong><span data-ar="المجر" data-en="Majer Dental">المجر</span></span>
     </a>
-    <nav class="navlinks">
+    <nav class="navlinks" aria-label="التنقل الرئيسي">
       <a href="#about" data-ar="عن العيادة" data-en="About">عن العيادة</a>
       <a class="active" href="#services" data-ar="العلاجات" data-en="Treatments">العلاجات</a>
       <a href="#journey" data-ar="رحلة المريض" data-en="Patient journey">رحلة المريض</a>
@@ -152,7 +164,8 @@ h1{font-size:clamp(58px,6vw,88px);line-height:1.06;letter-spacing:-.04em;margin:
   </div>
 </header>
 
-<main id="top">
+<main id="mainContent" tabindex="-1">
+<div id="top"></div>
 <section class="hero" id="about">
   <div class="wrap hero-grid">
     <div class="hero-copy reveal">
@@ -165,7 +178,7 @@ h1{font-size:clamp(58px,6vw,88px);line-height:1.06;letter-spacing:-.04em;margin:
       </div>
     </div>
     <div class="hero-visual reveal">
-      <img src="https://images.pexels.com/photos/34007082/pexels-photo-34007082.jpeg?cs=srgb&dl=pexels-khezez-34007082.jpg&fm=jpg" alt="صورة مرجعية لطبيب أسنان داخل عيادة حديثة في العراق">
+      <img src="https://images.pexels.com/photos/34007082/pexels-photo-34007082.jpeg?cs=srgb&dl=pexels-khezez-34007082.jpg&fm=jpg" alt="صورة مرجعية لطبيب أسنان داخل عيادة حديثة" width="900" height="1200" decoding="async" fetchpriority="high" onerror="this.style.display='none'">
       <div class="visual-top">DENTAL + AESTHETICS</div>
       <div class="photo-badge" data-ar="صورة مرجعية" data-en="Reference visual">صورة مرجعية</div>
       <div class="visual-number">01</div>
@@ -215,7 +228,7 @@ h1{font-size:clamp(58px,6vw,88px);line-height:1.06;letter-spacing:-.04em;margin:
       <div class="eyebrow" style="color:var(--mint)">BOOKING</div>
       <h2 data-ar="موعدك يبدأ برسالة." data-en="Your appointment starts with a message.">موعدك يبدأ برسالة.</h2>
       <p data-ar="ميسان / المجر الكبير / شارع الأطباء. معلومات فرع العمارة تُستكمل بعد تأكيد العيادة." data-en="Maysan / Al-Majar Al-Kabir / Doctors Street. Amarah branch details are completed after clinic confirmation.">ميسان / المجر الكبير / شارع الأطباء. معلومات فرع العمارة تُستكمل بعد تأكيد العيادة.</p>
-      <div class="meta"><span>0773 571 5766</span><span>@majer_dental_clinic</span></div>
+      <div class="meta"><a href="tel:+9647735715766" aria-label="اتصال بعيادة المجر">0773 571 5766</a><a href="https://instagram.com/majer_dental_clinic" target="_blank" rel="noopener noreferrer" aria-label="Instagram @majer_dental_clinic">@majer_dental_clinic</a></div>
     </div>
     <form class="form" id="bookForm">
       <h3 data-ar="طلب موعد سريع" data-en="Quick appointment request">طلب موعد سريع</h3>
@@ -232,7 +245,7 @@ h1{font-size:clamp(58px,6vw,88px);line-height:1.06;letter-spacing:-.04em;margin:
         <input id="note" type="text" placeholder="ملاحظة مختصرة" data-ph-ar="ملاحظة مختصرة" data-ph-en="Short note">
         <button type="submit" data-ar="إرسال الطلب عبر واتساب" data-en="Send request on WhatsApp">إرسال الطلب عبر واتساب</button>
       </div>
-      <div class="form-msg" id="formMsg"></div>
+      <div class="form-msg" id="formMsg" role="status" aria-live="polite"></div>
     </form>
   </div>
 </section>
@@ -254,6 +267,7 @@ const langBtn=document.getElementById('langBtn');
 let lang='ar';
 function setLang(next){
   lang=next;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.querySelector('.navlinks')?.setAttribute('aria-label',lang==='ar'?'التنقل الرئيسي':'Primary navigation');
   document.body.classList.toggle('en',lang==='en');
   dictNodes.forEach(el=>{el.innerHTML=el.dataset[lang]});
   phNodes.forEach(el=>{el.placeholder=el.dataset['ph'+lang.charAt(0).toUpperCase()+lang.slice(1)]||el.dataset[lang==='ar'?'phAr':'phEn']});
@@ -272,7 +286,9 @@ document.getElementById('bookForm').addEventListener('submit',e=>{
   const msg=lang==='ar'
     ? `مرحبا عيادة المجر، أود طلب موعد.\nالاسم: ${name}\nالهاتف: ${phone}\nالخدمة: ${service}${note?'\nملاحظة: '+note:''}`
     : `Hello Majer Dental, I would like to request an appointment.\nName: ${name}\nPhone: ${phone}\nService: ${service}${note?'\nNote: '+note:''}`;
-  window.open('https://wa.me/9647735715766?text='+encodeURIComponent(msg),'_blank','noopener');
+  const popup=window.open('https://wa.me/9647735715766?text='+encodeURIComponent(msg),'_blank','noopener,noreferrer');
+  document.getElementById('formMsg').textContent=lang==='ar'?'تم تجهيز رسالة واتساب. إذا لم تُفتح النافذة، اسمح بالنوافذ المنبثقة وحاول مرة ثانية.':'Your WhatsApp message is ready. If no window opened, allow pop-ups and try again.';
+  if(!popup){document.getElementById('formMsg').textContent=lang==='ar'?'المتصفح منع فتح واتساب. اسمح بالنوافذ المنبثقة ثم حاول مرة ثانية.':'Your browser blocked WhatsApp. Allow pop-ups, then try again.';}
 });
 </script>
 </body>
