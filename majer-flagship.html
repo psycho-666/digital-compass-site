@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b3b31">
+<meta name="description" content="تصميم تجريبي احترافي لعيادة المجر للأسنان والتجميل — Digital Compass">
+<title>عيادة المجر للأسنان والتجميل | Majer Dental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ea;--surface:#fbfaf5;--card:#eeebe2;--ink:#0e1413;--muted:#59635c;
+  --green:#0b3b31;--green2:#1f5e54;--mint:#c7dbcc;--line:#d6d1c2;--white:#fff;
+  --r-lg:32px;--r-md:22px;--shadow:0 24px 70px rgba(14,20,19,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Alexandria",system-ui,sans-serif}
+body.en{direction:ltr}
+a{text-decoration:none;color:inherit}
+button,input,select,textarea{font:inherit}
+img{display:block;max-width:100%}
+.wrap{width:min(1320px,calc(100% - 48px));margin:auto}
+.eyebrow{font:600 12px/1.2 "Manrope",sans-serif;letter-spacing:.14em;color:var(--green2)}
+.muted{color:var(--muted)}
+.header{position:sticky;top:0;z-index:30;background:rgba(244,241,234,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(214,209,194,.7)}
+.nav{height:88px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:12px;min-width:190px}
+.mark{width:42px;height:42px;border-radius:50%;background:var(--green2);position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.mark:after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:var(--bg);inset:0;margin:auto}
+.brand-copy{display:grid;line-height:1}
+.brand-copy strong{font:800 15px "Manrope",sans-serif;letter-spacing:.05em}
+.brand-copy span{font-size:11px;color:var(--muted);margin-top:5px}
+.navlinks{display:flex;align-items:center;gap:34px;font-size:14px;color:#68716d}
+.navlinks a{position:relative;padding:32px 0}
+.navlinks a:hover,.navlinks a.active{color:var(--ink)}
+.navlinks a.active:after{content:"";width:5px;height:5px;background:var(--green2);border-radius:50%;position:absolute;bottom:15px;left:50%;transform:translateX(-50%)}
+.actions{display:flex;align-items:center;gap:10px}
+.lang{border:1px solid var(--line);background:transparent;border-radius:999px;padding:11px 14px;cursor:pointer;color:var(--ink)}
+.cta{border:0;border-radius:999px;background:var(--ink);color:white;padding:14px 22px;font-weight:700;cursor:pointer;transition:.2s ease}
+.cta:hover{transform:translateY(-2px);background:var(--green)}
+.hero{padding:66px 0 104px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,.96fr) minmax(460px,1.04fr);gap:70px;align-items:center}
+.hero-copy{max-width:620px}
+.kicker{display:flex;align-items:center;gap:10px;color:var(--green2);font-size:13px;font-weight:600;margin-bottom:26px}
+.kicker:before{content:"";width:8px;height:8px;background:var(--green2);border-radius:50%}
+h1{font-size:clamp(58px,6vw,88px);line-height:1.06;letter-spacing:-.04em;margin:0 0 28px;font-weight:800}
+.hero-copy>p{font-size:20px;line-height:1.9;max-width:580px;margin:0 0 32px;color:var(--muted)}
+.hero-buttons{display:flex;gap:12px;flex-wrap:wrap}
+.btn{min-height:58px;border-radius:999px;padding:0 26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);font-weight:700;transition:.2s ease}
+.btn.primary{background:var(--green2);color:white;border-color:var(--green2)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(14,20,19,.09)}
+.hero-visual{position:relative;min-height:720px;border-radius:34px;overflow:hidden;background:var(--green);box-shadow:var(--shadow)}
+.hero-visual img{width:100%;height:100%;min-height:720px;object-fit:cover;object-position:50% 35%;filter:saturate(.76) contrast(.95)}
+.hero-visual:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,59,49,.05),rgba(11,59,49,.30) 70%,rgba(11,59,49,.86))}
+.visual-top{position:absolute;z-index:2;top:28px;inset-inline-start:28px;color:#dceae4;font:600 11px "Manrope";letter-spacing:.12em}
+.visual-number{position:absolute;z-index:2;bottom:18px;inset-inline-start:28px;color:rgba(220,234,228,.24);font:800 78px "Manrope"}
+.visual-note{position:absolute;z-index:3;bottom:34px;inset-inline-end:32px;max-width:240px;text-align:end;color:#e6efeb;font-size:12px;line-height:1.65}
+.photo-badge{position:absolute;z-index:3;top:28px;inset-inline-end:28px;background:rgba(251,250,245,.90);color:var(--green);padding:8px 12px;border-radius:999px;font-size:10px;font-weight:700}
+.section{padding:100px 0}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:40px;margin-bottom:42px}
+.section-head h2{font-size:clamp(38px,4vw,58px);line-height:1.2;letter-spacing:-.03em;margin:8px 0 0;max-width:850px}
+.section-head p{max-width:430px;line-height:1.8;color:var(--muted);margin:0}
+.services{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.service{min-height:300px;border:1px solid var(--line);background:var(--card);border-radius:26px;padding:26px;display:flex;flex-direction:column;transition:.25s ease}
+.service:hover{transform:translateY(-6px);box-shadow:0 18px 45px rgba(14,20,19,.08)}
+.service .num{font:700 12px "Manrope";color:var(--green)}
+.service h3{font-size:24px;line-height:1.45;margin:45px 0 16px}
+.service p{font-size:14px;line-height:1.9;color:var(--muted);margin:0}
+.rule{margin-top:18px;border-radius:22px;background:var(--green);color:#eef4f0;padding:28px 32px;display:flex;justify-content:space-between;gap:24px;align-items:center}
+.rule b{font:700 11px "Manrope";letter-spacing:.12em;color:var(--mint)}
+.rule span{font-size:17px}
+.journey{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:42px}
+.step{min-height:250px;border:1px solid var(--line);background:var(--surface);border-radius:24px;padding:26px}
+.step:first-child{background:var(--green);border-color:var(--green);color:white}
+.step .num{font:800 28px "Manrope";color:var(--green)}
+.step:first-child .num,.step:first-child p{color:var(--mint)}
+.step h3{font-size:22px;margin:38px 0 12px}
+.step p{font-size:14px;line-height:1.8;color:var(--muted);margin:0}
+.trust{margin-top:18px;display:grid;grid-template-columns:.92fr 1.08fr;gap:18px}
+.trust-art{border-radius:26px;background:var(--green);min-height:300px;position:relative;overflow:hidden}
+.trust-art .ring{position:absolute;width:210px;height:210px;border:38px solid rgba(199,219,204,.25);border-radius:50%;top:44px;left:56px}
+.trust-art .pill{position:absolute;width:160px;height:160px;background:rgba(199,219,204,.18);border-radius:80px;top:88px;left:200px}
+.trust-art b{position:absolute;bottom:34px;right:34px;color:var(--mint);font:700 11px "Manrope";letter-spacing:.12em}
+.trust-copy{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:38px}
+.trust-copy h3{font-size:30px;line-height:1.4;margin:0 0 18px}
+.trust-copy p{line-height:2;color:var(--muted);margin:0}
+.booking{padding:70px 0 105px}
+.booking-box{background:var(--green);border-radius:32px;padding:58px;display:grid;grid-template-columns:1fr .8fr;gap:60px;color:white}
+.booking-copy h2{font-size:48px;margin:0 0 20px}
+.booking-copy p{color:var(--mint);line-height:1.9;margin:0 0 28px}
+.meta{display:flex;flex-wrap:wrap;gap:10px}
+.meta span{border:1px solid rgba(199,219,204,.35);border-radius:999px;padding:10px 14px;font-size:12px}
+.form{background:rgba(251,250,245,.06);border:1px solid rgba(199,219,204,.22);border-radius:24px;padding:24px}
+.form h3{margin:0 0 18px;font-size:20px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields input,.fields select{width:100%;min-height:52px;border:1px solid rgba(199,219,204,.32);background:rgba(251,250,245,.08);color:white;border-radius:14px;padding:0 14px;outline:none}
+.fields select option{color:#111}
+.fields input::placeholder{color:rgba(255,255,255,.65)}
+.fields button{grid-column:1/-1;min-height:54px;border:0;border-radius:14px;background:var(--surface);color:var(--green);font-weight:800;cursor:pointer}
+.form-msg{font-size:11px;color:var(--mint);margin-top:12px;min-height:18px}
+.footer{border-top:1px solid var(--line);padding:30px 0 40px}
+.footer-in{display:flex;justify-content:space-between;gap:20px;align-items:center;color:var(--muted);font-size:12px}
+.mobile-bar{display:none}
+.reveal{opacity:0;transform:translateY(16px);transition:.6s cubic-bezier(.2,.75,.2,1)}
+.reveal.on{opacity:1;transform:none}
+@media(max-width:900px){
+  .wrap{width:min(100% - 36px,720px)}
+  .nav{height:74px}.navlinks{display:none}.brand{min-width:auto}.actions .cta{display:none}
+  .hero{padding:34px 0 72px}.hero-grid{grid-template-columns:1fr;gap:32px}.hero-copy{max-width:none}
+  h1{font-size:52px}.hero-copy>p{font-size:16px}.hero-visual{min-height:440px;border-radius:28px}.hero-visual img{min-height:440px}
+  .section{padding:72px 0}.section-head{display:block;margin-bottom:28px}.section-head p{margin-top:16px}
+  .services{grid-template-columns:1fr}.service{min-height:170px}.service h3{margin:18px 0 10px}
+  .rule{display:block;padding:24px}.rule b{display:block;margin-bottom:10px}
+  .journey{grid-template-columns:1fr 1fr}.step{min-height:210px}.step h3{margin-top:24px}
+  .trust{grid-template-columns:1fr}.trust-art{min-height:260px}
+  .booking{padding:54px 0 100px}.booking-box{grid-template-columns:1fr;padding:28px;gap:28px;border-radius:26px}.booking-copy h2{font-size:36px}
+  .fields{grid-template-columns:1fr}.fields button{grid-column:auto}
+  .footer-in{display:block;line-height:2}
+  .mobile-bar{display:flex;position:fixed;z-index:40;left:14px;right:14px;bottom:14px;background:rgba(14,20,19,.94);backdrop-filter:blur(12px);border-radius:999px;padding:6px;box-shadow:0 18px 50px rgba(14,20,19,.25)}
+  .mobile-bar a{display:flex;align-items:center;justify-content:center;min-height:50px;width:100%;color:#fff;font-weight:700}
+}
+@media(max-width:520px){
+  .wrap{width:calc(100% - 32px)}
+  .brand-copy strong{font-size:13px}.lang{padding:9px 11px;font-size:12px}
+  h1{font-size:46px}.hero-buttons .btn{width:100%}.hero-visual{min-height:390px}.hero-visual img{min-height:390px}
+  .section-head h2{font-size:34px}.journey{grid-template-columns:1fr}.step{min-height:170px}
+  .trust-copy{padding:28px}.trust-copy h3{font-size:26px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Majer Dental">
+      <span class="mark"></span>
+      <span class="brand-copy"><strong>MAJER</strong><span data-ar="المجر" data-en="Majer Dental">المجر</span></span>
+    </a>
+    <nav class="navlinks">
+      <a href="#about" data-ar="عن العيادة" data-en="About">عن العيادة</a>
+      <a class="active" href="#services" data-ar="العلاجات" data-en="Treatments">العلاجات</a>
+      <a href="#journey" data-ar="رحلة المريض" data-en="Patient journey">رحلة المريض</a>
+      <a href="#booking" data-ar="تواصل" data-en="Contact">تواصل</a>
+    </nav>
+    <div class="actions">
+      <button class="lang" id="langBtn" type="button" aria-label="Switch language">EN</button>
+      <a class="cta" href="#booking" data-ar="احجز موعد ↗" data-en="Book now ↗">احجز موعد ↗</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" id="about">
+  <div class="wrap hero-grid">
+    <div class="hero-copy reveal">
+      <div class="kicker" data-ar="عيادة أسنان وتجميل · ميسان" data-en="Dental & aesthetics clinic · Maysan">عيادة أسنان وتجميل · ميسان</div>
+      <h1 data-ar="ابتسامتك،<br>بتفاصيل أدق." data-en="Your smile,<br>refined in detail.">ابتسامتك،<br>بتفاصيل أدق.</h1>
+      <p data-ar="تجربة علاجية هادئة تبدأ من تشخيص واضح، وتكمل بخطة مدروسة." data-en="A calm treatment experience that starts with clear diagnosis and continues with a considered plan.">تجربة علاجية هادئة تبدأ من تشخيص واضح، وتكمل بخطة مدروسة.</p>
+      <div class="hero-buttons">
+        <a class="btn primary" href="#booking" data-ar="احجز استشارتك ↗" data-en="Book a consultation ↗">احجز استشارتك ↗</a>
+        <a class="btn" href="#services" data-ar="استكشف العلاجات" data-en="Explore treatments">استكشف العلاجات</a>
+      </div>
+    </div>
+    <div class="hero-visual reveal">
+      <img src="https://images.pexels.com/photos/34007082/pexels-photo-34007082.jpeg?cs=srgb&dl=pexels-khezez-34007082.jpg&fm=jpg" alt="صورة مرجعية لطبيب أسنان داخل عيادة حديثة في العراق">
+      <div class="visual-top">DENTAL + AESTHETICS</div>
+      <div class="photo-badge" data-ar="صورة مرجعية" data-en="Reference visual">صورة مرجعية</div>
+      <div class="visual-number">01</div>
+      <div class="visual-note" data-ar="الصورة المرجعية تُستبدل بصور العيادة الحقيقية قبل الإطلاق." data-en="Reference visual is replaced with the clinic's real photography before launch.">الصورة المرجعية تُستبدل بصور العيادة الحقيقية قبل الإطلاق.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="services">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="eyebrow">VERIFIED SERVICES</div><h2 data-ar="علاجات مرتبة حسب قرار المريض، مو حسب قائمة طويلة." data-en="Treatments organized around patient decisions, not a long list.">علاجات مرتبة حسب قرار المريض، مو حسب قائمة طويلة.</h2></div>
+      <p data-ar="كل خدمة هنا مبنية فقط على البيانات العامة المتحقق منها للعيادة." data-en="Every service shown here is based only on publicly verified clinic information.">كل خدمة هنا مبنية فقط على البيانات العامة المتحقق منها للعيادة.</p>
+    </div>
+    <div class="services">
+      <article class="service reveal"><span class="num">01</span><h3 data-ar="العناية بالأسنان" data-en="Dental care">العناية بالأسنان</h3><p data-ar="فحص وتشخيص وخطة علاج واضحة مع انتقال مباشر للحجز." data-en="Examination, diagnosis and a clear care plan with a direct route to booking.">فحص وتشخيص وخطة علاج واضحة مع انتقال مباشر للحجز.</p></article>
+      <article class="service reveal"><span class="num">02</span><h3 data-ar="زراعة الأسنان" data-en="Dental implants">زراعة الأسنان</h3><p data-ar="تقديم الخدمة كرحلة مفهومة بدل نصوص طبية متراكمة." data-en="Presenting the treatment as a clear journey rather than dense medical copy.">تقديم الخدمة كرحلة مفهومة بدل نصوص طبية متراكمة.</p></article>
+      <article class="service reveal"><span class="num">03</span><h3 data-ar="تجميل الأسنان" data-en="Aesthetic dentistry">تجميل الأسنان</h3><p data-ar="تجربة بصرية هادئة تركز على الثقة والنتيجة." data-en="A calm visual experience centered on trust and outcomes.">تجربة بصرية هادئة تركز على الثقة والنتيجة.</p></article>
+      <article class="service reveal"><span class="num">04</span><h3 data-ar="علاجات تجميلية" data-en="Cosmetic treatments">علاجات تجميلية</h3><p data-ar="مسار مستقل حتى ما يضيع المحتوى بين باقي الخدمات." data-en="A dedicated path so cosmetic content does not get lost among other services.">مسار مستقل حتى ما يضيع المحتوى بين باقي الخدمات.</p></article>
+    </div>
+    <div class="rule reveal"><b>CONTENT RULE</b><span data-ar="قسم «قبل / بعد» ينضاف فقط بصور حقيقية ومصرّح باستخدامها من العيادة." data-en="A before/after section is added only with real clinic-approved images.">قسم «قبل / بعد» ينضاف فقط بصور حقيقية ومصرّح باستخدامها من العيادة.</span></div>
+  </div>
+</section>
+
+<section class="section" id="journey">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div><div class="eyebrow">PATIENT JOURNEY</div><h2 data-ar="الموقع يشرح للمريض شو بصير بعد الضغط." data-en="The site explains what happens after the patient clicks.">الموقع يشرح للمريض شو بصير بعد الضغط.</h2></div>
+      <p data-ar="رحلة مختصرة بأربع مراحل واضحة بدل التنقل بين صفحات كثيرة." data-en="A concise four-step journey instead of making patients search across pages.">رحلة مختصرة بأربع مراحل واضحة بدل التنقل بين صفحات كثيرة.</p>
+    </div>
+    <div class="journey">
+      <article class="step reveal"><span class="num">01</span><h3 data-ar="تواصل" data-en="Contact">تواصل</h3><p data-ar="واتساب أو اتصال مباشر." data-en="WhatsApp or direct call.">واتساب أو اتصال مباشر.</p></article>
+      <article class="step reveal"><span class="num">02</span><h3 data-ar="استشارة" data-en="Consultation">استشارة</h3><p data-ar="فهم الحالة والهدف." data-en="Understand the case and the goal.">فهم الحالة والهدف.</p></article>
+      <article class="step reveal"><span class="num">03</span><h3 data-ar="خطة" data-en="Plan">خطة</h3><p data-ar="شرح الخيارات قبل البدء." data-en="Explain options before treatment starts.">شرح الخيارات قبل البدء.</p></article>
+      <article class="step reveal"><span class="num">04</span><h3 data-ar="متابعة" data-en="Follow-up">متابعة</h3><p data-ar="خطوة واضحة بعد العلاج." data-en="A clear next step after treatment.">خطوة واضحة بعد العلاج.</p></article>
+    </div>
+    <div class="trust">
+      <div class="trust-art reveal"><div class="ring"></div><div class="pill"></div><b>CALM · CLEAR · DIRECT</b></div>
+      <div class="trust-copy reveal"><h3 data-ar="الثقة تُبنى بالمعلومة الموثقة، مو بالوعود." data-en="Trust is built with verified information, not promises.">الثقة تُبنى بالمعلومة الموثقة، مو بالوعود.</h3><p data-ar="أسماء الأطباء، الشهادات، التقييمات، ساعات الدوام وصور الحالات ما ننشرها إلا من مصدر موثوق أو بعد موافقة العيادة." data-en="Doctor names, credentials, reviews, opening hours and case photography are published only when verified or approved by the clinic.">أسماء الأطباء، الشهادات، التقييمات، ساعات الدوام وصور الحالات ما ننشرها إلا من مصدر موثوق أو بعد موافقة العيادة.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="booking" id="booking">
+  <div class="wrap booking-box reveal">
+    <div class="booking-copy">
+      <div class="eyebrow" style="color:var(--mint)">BOOKING</div>
+      <h2 data-ar="موعدك يبدأ برسالة." data-en="Your appointment starts with a message.">موعدك يبدأ برسالة.</h2>
+      <p data-ar="ميسان / المجر الكبير / شارع الأطباء. معلومات فرع العمارة تُستكمل بعد تأكيد العيادة." data-en="Maysan / Al-Majar Al-Kabir / Doctors Street. Amarah branch details are completed after clinic confirmation.">ميسان / المجر الكبير / شارع الأطباء. معلومات فرع العمارة تُستكمل بعد تأكيد العيادة.</p>
+      <div class="meta"><span>0773 571 5766</span><span>@majer_dental_clinic</span></div>
+    </div>
+    <form class="form" id="bookForm">
+      <h3 data-ar="طلب موعد سريع" data-en="Quick appointment request">طلب موعد سريع</h3>
+      <div class="fields">
+        <input id="name" type="text" autocomplete="name" placeholder="الاسم" data-ph-ar="الاسم" data-ph-en="Name" required>
+        <input id="phone" type="tel" autocomplete="tel" placeholder="رقم الهاتف" data-ph-ar="رقم الهاتف" data-ph-en="Phone" required>
+        <select id="service" required>
+          <option value="" data-ar="اختر الخدمة" data-en="Choose a service">اختر الخدمة</option>
+          <option data-ar="العناية بالأسنان" data-en="Dental care">العناية بالأسنان</option>
+          <option data-ar="زراعة الأسنان" data-en="Dental implants">زراعة الأسنان</option>
+          <option data-ar="تجميل الأسنان" data-en="Aesthetic dentistry">تجميل الأسنان</option>
+          <option data-ar="علاجات تجميلية" data-en="Cosmetic treatments">علاجات تجميلية</option>
+        </select>
+        <input id="note" type="text" placeholder="ملاحظة مختصرة" data-ph-ar="ملاحظة مختصرة" data-ph-en="Short note">
+        <button type="submit" data-ar="إرسال الطلب عبر واتساب" data-en="Send request on WhatsApp">إرسال الطلب عبر واتساب</button>
+      </div>
+      <div class="form-msg" id="formMsg"></div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-in">
+    <span>MAJER Dental & Aesthetics</span>
+    <span data-ar="نموذج تصميم تجريبي — Digital Compass" data-en="Flagship prototype — Digital Compass">نموذج تصميم تجريبي — Digital Compass</span>
+  </div>
+</footer>
+
+<div class="mobile-bar"><a href="#booking" data-ar="احجز موعدك" data-en="Book appointment">احجز موعدك</a></div>
+
+<script>
+const dictNodes=[...document.querySelectorAll('[data-ar][data-en]')];
+const phNodes=[...document.querySelectorAll('[data-ph-ar][data-ph-en]')];
+const langBtn=document.getElementById('langBtn');
+let lang='ar';
+function setLang(next){
+  lang=next;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.body.classList.toggle('en',lang==='en');
+  dictNodes.forEach(el=>{el.innerHTML=el.dataset[lang]});
+  phNodes.forEach(el=>{el.placeholder=el.dataset['ph'+lang.charAt(0).toUpperCase()+lang.slice(1)]||el.dataset[lang==='ar'?'phAr':'phEn']});
+  langBtn.textContent=lang==='ar'?'EN':'ع';
+}
+langBtn.addEventListener('click',()=>setLang(lang==='ar'?'en':'ar'));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on')}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+document.getElementById('bookForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=document.getElementById('name').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const service=document.getElementById('service').selectedOptions[0]?.textContent||'';
+  const note=document.getElementById('note').value.trim();
+  if(!name||!phone||!service){document.getElementById('formMsg').textContent=lang==='ar'?'أكمل الاسم والرقم والخدمة.':'Please complete name, phone and service.';return}
+  const msg=lang==='ar'
+    ? `مرحبا عيادة المجر، أود طلب موعد.\nالاسم: ${name}\nالهاتف: ${phone}\nالخدمة: ${service}${note?'\nملاحظة: '+note:''}`
+    : `Hello Majer Dental, I would like to request an appointment.\nName: ${name}\nPhone: ${phone}\nService: ${service}${note?'\nNote: '+note:''}`;
+  window.open('https://wa.me/9647735715766?text='+encodeURIComponent(msg),'_blank','noopener');
+});
+</script>
+</body>
+</html>
