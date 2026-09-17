@@ -29,12 +29,12 @@
   <div class="authPanel">
     <div class="language"><button data-lang="ar" class="active">العربية</button><button data-lang="en">EN</button></div>
     <div class="authCard credentialCard">
-      <div class="secureBadge"><i></i> OWNER ACCESS / دخول المالك</div>
-      <h2>دخول باسم المستخدم وكلمة المرور</h2>
-      <p>استخدم بيانات الدخول الخاصة بالمالك لفتح Control Center مباشرة. لا تحتاج لفتح البريد في كل مرة.</p>
-      <p dir="ltr">Use your owner username and password for normal access. Email verification is reserved for first-time credential setup or recovery.</p>
-      <a class="secureAccessButton" href="./access.html">فتح تسجيل الدخول / Owner login</a>
-      <div class="secureAccessMeta"><span>USERNAME · PASSWORD · VERIFIED OWNER</span><a href="./credentials.html">إعداد بيانات الدخول / One-time setup</a></div>
+      <div class="secureBadge"><i></i> SECURE ACCESS / دخول النظام</div>
+      <h2>الدخول باسم المستخدم وكلمة المرور</h2>
+      <p>كل مستخدم يدخل بحسابه الخاص، والنظام يطبق الصلاحيات الممنوحة له تلقائياً.</p>
+      <p dir="ltr">Sign in with your assigned username and password. Access is restricted by role and permissions.</p>
+      <a class="secureAccessButton" href="./access.html">فتح تسجيل الدخول / Sign in</a>
+      <div class="secureAccessMeta"><span>USERNAME · PASSWORD · ROLE BASED ACCESS</span><a href="./access.html">دخول آمن</a></div>
     </div>
   </div>
 </div>
@@ -50,6 +50,7 @@
       <button class="navItem" data-view="outreach"><b>06</b><span>التواصل</span></button>
       <button class="navItem" data-view="automation"><b>07</b><span>الأتمتة</span></button>
       <button class="navItem" data-view="settings"><b>08</b><span>الإعدادات</span></button>
+      <a class="navItem" href="./users.html"><b>09</b><span>المستخدمون والصلاحيات</span></a>
     </nav>
     <div class="sidebarFoot"><div class="liveDot"><i></i><span>System online</span></div><button id="logoutBtn">تسجيل الخروج</button></div>
   </aside>
@@ -61,6 +62,7 @@
 <div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer aria-label="Close">×</button><div id="drawerContent"></div></div></div>
 <div id="toast" class="toast"></div>
 <script type="module" src="./admin.js"></script>
+<script type="module" src="./permissions-ui.js"></script>
 <script type="module" src="./pwa.js"></script>
 </body>
 </html>
