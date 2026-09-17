@@ -206,8 +206,9 @@ try{
   const access=await fetch(`${BASE}admin/access.html`);ok(access.ok,'owner access page missing');const accessHtml=await access.text();
   ok(accessHtml.includes("admin-login-resolver"),'owner access edge username resolver missing');
   ok(!accessHtml.includes("resolve_admin_login_email"),'owner access still references direct credential resolver RPC');
-  ok(accessHtml.includes('signInWithPassword'),'owner access Supabase password signin missing');
-  ok(!accessHtml.includes('signInWithOtp'),'daily owner access still contains magic-link signin');
+  ok(accessHtml.includes('token_hash'),'owner access server-issued token hash flow missing');
+  ok(accessHtml.includes('verifyOtp'),'owner access secure token exchange missing');
+  ok(!accessHtml.includes('signInWithPassword'),'owner access still depends on Supabase password signin');
   const credentials=await fetch(`${BASE}admin/credentials.html`);ok(credentials.ok,'credentials setup page missing');const credentialsHtml=await credentials.text();
   ok(credentialsHtml.includes('set_current_admin_username'),'credentials setup username RPC missing');
   ok(credentialsHtml.includes('updateUser({password})'),'credentials setup password update missing');
