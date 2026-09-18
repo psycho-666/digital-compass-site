@@ -98,7 +98,47 @@ function renderStrategy(){
   }
 }
 function renderInbox(){const rows=data.inbox||[];$('#panel').innerHTML=`<div class="section"><div class="sectionHead"><h3>Inbox & Comments</h3><span>${rows.length}</span></div><div class="tableWrap"><table class="table"><thead><tr><th>المرسل</th><th>النوع</th><th>الرسالة</th><th>الطريقة</th><th>الثقة</th><th>الحالة</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.sender_name||'—')}</td><td>${esc(x.message_type||'MESSAGE')}</td><td class="messagePreview">${esc(x.message_text||'')}</td><td>${esc(x.chosen_method||x.response_method||'—')}</td><td class="confidence">${x.decision_confidence!=null?Math.round(Number(x.decision_confidence)*100)+'%':'—'}</td><td>${esc(x.response_status)}</td><td>${x.response_status==='PENDING'?`<button class="smallBtn primary" data-prepare="${x.id}">معالجة</button>`:''}</td></tr>`).join('')}</tbody></table></div></div>`;$$('[data-prepare]').forEach(b=>b.onclick=async()=>{await api('prepare_reply',{method:'POST',body:{inbox_item_id:Number(b.dataset.prepare)}});toast('تم تجهيز قرار الرد');await loadWorkspace()})}
-function renderFaq(){const f=data.faq||[],lib=data.library||[];$('#panel').innerHTML=`<div class="panelGrid"><div class="card"><h3>FAQ inventory — آخر سنة</h3><p>يجمع الأسئلة المتكررة ويقرب الصيغ المتشابهة تلقائيًا.</p><div class="actionRow"><button id="rebuildFaq" class="smallBtn primary">إعادة الجرد</button></div>${f.slice(0,12).map(x=>line(`${x.canonical_question} ×${x.occurrence_count_365d}`,x.status)).join('')||'<p class="muted">لا يوجد Inventory بعد.</p>'}</div><div class="card"><h3>إضافة رد رسمي</h3><div class="formGrid"><label class="full">السؤال<input id="faqQ"></label><label class="full">الرد<textarea id="faqA"></textarea></label><label>الأولوية<input id="faqPriority" type="number" value="50"></label><button id="saveFaq" class="smallBtn primary">حفظ الرد</button></div></div></div><div class="section"><div class="sectionHead"><h3>Approved reply library</h3><span>${lib.length}</span></div>${lib.map(x=>`<div class="statusLine"><b>${esc(x.canonical_question)}</b><span class="muted">${esc(x.approved_response)}</span></div>`).join('')}</div>`;$('#rebuildFaq').onclick=async()=>{await api('rebuild_faq',{method:'POST',body:{workspace_id:data.workspace.id,days:365,min_occurrences:2}});toast('تم تحديث جرد FAQ');await loadWorkspace()};$('#saveFaq').onclick=async()=>{const q=$('#faqQ').value.trim(),a=$('#faqA').value.trim();if(!q||!a)return toast('أدخل السؤال والرد');await api('library_reply',{method:'POST',body:{workspace_id:data.workspace.id,question:q,response:a,priority:Number($('#faqPriority').value||50)}});toast('تم حفظ الرد الرسمي');await loadWorkspace()}}
+function renderFaq(){
+  const f=data.faq||[],lib=data.library||[],p=data.response_policy||{};
+  const intents=Array.isArray(p.human_escalation_intents)?p.human_escalation_intents.join(', '):'';
+  const blocked=Array.isArray(p.blocked_topics)?p.blocked_topics.join(', '):'';
+  $('#panel').innerHTML=
+    '<div class="panelGrid">'+
+      '<div class="card"><h3>FAQ inventory — آخر سنة</h3><p>يجمع الأسئلة المتكررة ويقرب الصيغ المتشابهة تلقائيًا.</p><div class="actionRow"><button id="rebuildFaq" class="smallBtn primary">إعادة الجرد</button></div>'+(f.slice(0,12).map(x=>line(String(x.canonical_question)+' ×'+x.occurrence_count_365d,x.status)).join('')||'<p class="muted">لا يوجد Inventory بعد.</p>')+'</div>'+
+      '<div class="card"><h3>إضافة رد رسمي</h3><div class="formGrid"><label class="full">السؤال<input id="faqQ"></label><label class="full">الرد<textarea id="faqA"></textarea></label><label>الأولوية<input id="faqPriority" type="number" value="50"></label><button id="saveFaq" class="smallBtn primary">حفظ الرد</button></div></div>'+
+      '<div class="card"><h3>Reply governance</h3><div class="formGrid">'+
+        '<label>Auto-send confidence<input id="autoConfidence" type="number" min="0" max="1" step="0.01" value="'+esc(p.auto_send_min_confidence??0.90)+'"></label>'+
+        '<label>Max retrieved answers<input id="maxResults" type="number" min="1" max="20" value="'+esc(p.max_retrieval_results??5)+'"></label>'+
+        '<label>Library similarity<input id="librarySimilarity" type="number" min="0" max="1" step="0.01" value="'+esc(p.library_min_similarity??0.62)+'"></label>'+
+        '<label>Memory similarity<input id="memorySimilarity" type="number" min="0" max="1" step="0.01" value="'+esc(p.memory_min_similarity??0.68)+'"></label>'+
+        '<label class="full">Human escalation intents<input id="humanIntents" value="'+esc(intents)+'"></label>'+
+        '<label class="full">Blocked topics<input id="blockedTopics" value="'+esc(blocked)+'"></label>'+
+        '<label class="checkLabel"><input id="approvalBelow" type="checkbox" '+(p.require_approval_below_confidence?'checked':'')+'> موافقة بشرية تحت حد الثقة</label>'+
+        '<label class="checkLabel"><input id="learnApproved" type="checkbox" '+(p.learn_only_from_approved?'checked':'')+'> التعلم فقط من الردود المعتمدة</label>'+
+        '<label class="checkLabel"><input id="learnSent" type="checkbox" '+(p.learn_only_from_sent?'checked':'')+'> التعلم فقط من الردود المرسلة</label>'+
+        '<button id="saveReplyPolicy" class="smallBtn primary">حفظ سياسة الرد</button>'+
+      '</div></div>'+
+    '</div>'+
+    '<div class="section"><div class="sectionHead"><h3>Approved reply library</h3><span>'+lib.length+'</span></div>'+lib.map(x=>'<div class="statusLine"><b>'+esc(x.canonical_question)+'</b><span class="muted">'+esc(x.approved_response)+'</span></div>').join('')+'</div>';
+  $('#rebuildFaq').onclick=async()=>{await api('rebuild_faq',{method:'POST',body:{workspace_id:data.workspace.id,days:365,min_occurrences:2}});toast('تم تحديث جرد FAQ');await loadWorkspace()};
+  $('#saveFaq').onclick=async()=>{const q=$('#faqQ').value.trim(),a=$('#faqA').value.trim();if(!q||!a)return toast('أدخل السؤال والرد');await api('library_reply',{method:'POST',body:{workspace_id:data.workspace.id,question:q,response:a,priority:Number($('#faqPriority').value||50)}});toast('تم حفظ الرد الرسمي');await loadWorkspace()};
+  $('#saveReplyPolicy').onclick=async()=>{
+    const split=v=>v.split(',').map(x=>x.trim()).filter(Boolean);
+    await api('update_response_policy',{method:'POST',body:{
+      workspace_id:data.workspace.id,
+      auto_send_min_confidence:Number($('#autoConfidence').value||0.9),
+      max_retrieval_results:Number($('#maxResults').value||5),
+      library_min_similarity:Number($('#librarySimilarity').value||0.62),
+      memory_min_similarity:Number($('#memorySimilarity').value||0.68),
+      human_escalation_intents:split($('#humanIntents').value),
+      blocked_topics:split($('#blockedTopics').value),
+      require_approval_below_confidence:$('#approvalBelow').checked,
+      learn_only_from_approved:$('#learnApproved').checked,
+      learn_only_from_sent:$('#learnSent').checked
+    }});
+    toast('تم حفظ سياسة الرد والموديريشن');await loadWorkspace()
+  }
+}
 function renderContent(){
   const items=data.content||[],jobs=data.design_jobs||[],publish=data.publish_jobs||[],approved=items.filter(x=>x.approval_status==='APPROVED');
   const conns=(data.connections||[]).filter(x=>x.connection_status==='CONNECTED'&&x.authorized_by_client);
