@@ -18,7 +18,7 @@ window.addEventListener('appinstalled',()=>{deferredInstall=null;document.getEle
 if('serviceWorker' in navigator){
   window.addEventListener('load',async()=>{
     try{
-      const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+      const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
       reg.addEventListener('updatefound',()=>{
         const worker=reg.installing;if(!worker)return;
         worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller){
