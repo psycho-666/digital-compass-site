@@ -4,17 +4,20 @@ const KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
 const API=`${PROJECT_URL}/functions/v1/social-management-api`;
 const supabase=createClient(PROJECT_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-let session=null,workspaces=[],data=null,health=null,tab='overview';
+let session=null,workspaces=[],data=null,health=null,permissions=null,tab='overview';
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
 async function api(action,{method='GET',body,params={}}={}){const u=new URL(API);u.searchParams.set('action',action);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));const r=await fetch(u,{method,headers:{apikey:KEY,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'request_failed');return d}
 async function boot(){const s=await supabase.auth.getSession();session=s.data.session;if(!session){location.href='./';return}$('#app').classList.remove('hidden');await loadWorkspaces();$('#logoutBtn').onclick=async()=>{await supabase.auth.signOut();location.href='./'};$('#refreshBtn').onclick=()=>loadWorkspace();$('#workspaceSelect').onchange=()=>loadWorkspace();$('#tabs').onclick=e=>{const b=e.target.closest('button[data-tab]');if(!b)return;tab=b.dataset.tab;$$('#tabs button').forEach(x=>x.classList.toggle('active',x===b));render()}}
 async function loadWorkspaces(){const d=await api('workspaces');workspaces=d.items||[];const sel=$('#workspaceSelect');sel.innerHTML='<option value="">اختر العميل</option>'+workspaces.map(w=>`<option value="${w.workspace_id}">${esc(w.company_name)}</option>`).join('');if(!workspaces.length){$('#emptyState').classList.remove('hidden');$('#workspaceView').classList.add('hidden');return}$('#emptyState').classList.add('hidden');$('#workspaceView').classList.remove('hidden');if(!sel.value)sel.value=String(workspaces[0].workspace_id);await loadWorkspace()}
-async function loadWorkspace(){const id=Number($('#workspaceSelect').value);if(!id)return;const [w,h]=await Promise.all([api('workspace',{params:{id}}),api('operations_health').catch(()=>null)]);data=w;health=h;renderMetrics();render()}
+async function loadWorkspace(){const id=Number($('#workspaceSelect').value);if(!id)return;const [w,h,p]=await Promise.all([api('workspace',{params:{id}}),api('operations_health').catch(()=>null),api('permissions_readiness',{params:{workspace_id:id}}).catch(()=>null)]);data=w;health=h;permissions=p;renderMetrics();render()}
 function renderMetrics(){const s=data.summary||{};const items=[['Connected',s.connected_accounts],['Open inbox',s.open_inbox],['Content approvals',s.content_waiting_approval],['Scheduled',s.scheduled_posts],['Blocked jobs',health?.blocked_connection_jobs||0],['Failed jobs',health?.failed_execution_jobs||0]];$('#metrics').innerHTML=items.map(([l,v])=>'<div class="metric"><span class="label">'+esc(l)+'</span><strong>'+Number(v||0)+'</strong><div class="mini">LIVE</div></div>').join('')}
 function render(){if(!data)return;({overview:renderOverview,strategy:renderStrategy,inbox:renderInbox,faq:renderFaq,content:renderContent,ads:renderAds,reports:renderReports,activity:renderActivity}[tab]||renderOverview)()}
 function renderOverview(){
   const w=data.workspace||{},p=data.response_policy||{},g=data.guardrails||{},conns=data.connections||[],jobs=data.execution_jobs||[];
   const connected=conns.filter(x=>x.connection_status==='CONNECTED'&&x.authorized_by_client);
+  const permConn=permissions?.connections?.find(x=>String(x.platform).toUpperCase()==='FACEBOOK')||permissions?.connections?.[0]||null;
+  const caps=permConn?.capabilities||{};
+  const capLine=(label,key)=>line(label,caps[key]?.ready?'READY':'MISSING');
   const failed=jobs.filter(x=>x.status==='FAILED').length,blocked=jobs.filter(x=>x.status==='BLOCKED_CONNECTION').length;
   let connectionHtml=conns.length?conns.map(x=>line(x.platform,String(x.connection_status||'')+' · '+String(x.sync_status||'NO SYNC'))).join(''):line('الحسابات','NOT CONNECTED');
   let queueHtml=jobs.slice(0,8).map(x=>line(String(x.job_type)+' #'+x.id,x.status)).join('')||'<p class="muted">No jobs yet.</p>';
@@ -27,7 +30,14 @@ function renderOverview(){
         line('Client approval',w.client_approval_required?'REQUIRED':'OPTIONAL')+
         line('Response SLA',w.response_sla_minutes?String(w.response_sla_minutes)+' min':'NOT SET')+
         '<div class="readinessList"><span class="'+(connected.length?'ready':'notReady')+'">1. ربط الحسابات الرسمية</span><span class="'+(w.strategy_status==='APPROVED'?'ready':'notReady')+'">2. اعتماد الاستراتيجية</span><span class="'+((p.smart_memory_enabled||p.approved_library_enabled)?'ready':'notReady')+'">3. سياسة الردود</span><span class="'+(connected.length&&w.strategy_status==='APPROVED'?'ready':'notReady')+'">4. جاهز للتشغيل</span></div></div>'+
-      '<div class="card"><h3>Connection health</h3>'+connectionHtml+'<div class="actionRow"><span class="muted">التوكنات والصلاحيات تبقى بالخلفية ولا تظهر بالواجهة.</span></div></div>'+
+      '<div class="card"><h3>Connection health</h3>'+connectionHtml+'<div class="actionRow"><span class="muted">التوكنات والصلاحيات تبقى بالخلفية ولا تظهر بالواجهة.</span></div></div>'+      '<div class="card"><h3>Meta permission readiness</h3>'+
+        capLine('Messenger reply','messenger_reply')+
+        capLine('Comment reply','comments_reply')+
+        capLine('Publishing','publishing')+
+        capLine('Insights','insights')+
+        capLine('Page read','page_read')+
+        capLine('Page metadata','page_metadata')+
+        '<div class="actionRow"><span class="muted">المفقود عندك حاليًا ما يوقف Messenger، لكنه يوقف التعليقات أو النشر أو التقارير حسب الصلاحية.</span></div></div>'+
       '<div class="card"><h3>Reply policy</h3>'+
         line('Smart memory',p.smart_memory_enabled?'ON':'OFF')+
         line('Approved library',p.approved_library_enabled?'ON':'OFF')+
