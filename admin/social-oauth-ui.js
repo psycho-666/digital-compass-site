@@ -13,7 +13,7 @@ function close(){document.querySelector('.dcOauthOverlay')?.remove()}
 function modal(html){close();document.body.insertAdjacentHTML('beforeend',`<div class="dcOauthOverlay"><section class="dcOauthModal"><div class="dcOauthHead"><div><span class="eyebrow">META / OAUTH</span><h2>ربط حساب العميل</h2><p>الربط الرسمي مع Facebook وInstagram Business، بدون تخزين التوكن في المتصفح.</p></div><button class="dcOauthClose" aria-label="Close">×</button></div>${html}</section></div>`);$('.dcOauthClose').onclick=close;$('.dcOauthOverlay').addEventListener('click',e=>{if(e.target.classList.contains('dcOauthOverlay'))close()})}
 function statusText(el,text,good=false){if(!el)return;el.textContent=text;el.style.color=good?'#9de7bb':'#e8c77f'}
 async function showSetup(){
-  modal('<div class="dcOauthNotice">إعداد Meta مرة واحدة للنظام: OAuth للربط + Webhook لاستقبال الرسائل والتعليقات الحقيقية.</div><div id="dcOauthSetupInfo"></div><form id="dcOauthSetupForm" class="dcOauthForm"><label>Meta App ID<input id="dcMetaAppId" inputmode="numeric" placeholder="123456789..."></label><label>Graph API Version<input id="dcMetaApiVersion" placeholder="vXX.X"></label><label class="full">Login Configuration ID<input id="dcMetaLoginConfigId" inputmode="numeric" placeholder="Facebook Login for Business config ID"></label><label class="full">Meta App Secret<input id="dcMetaAppSecret" type="password" autocomplete="off" placeholder="يُحفظ بشكل آمن ولا يظهر لاحقاً"></label><label class="full">Webhook Verify Token<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="dcMetaWebhookToken" type="text" autocomplete="off" placeholder="اضغط توليد Verify Token"><button type="button" id="dcCopyWebhookToken">نسخ</button></div><div id="dcWebhookTokenPreview" class="dcOauthCode" style="display:none;direction:ltr;text-align:left;word-break:break-all;margin-top:8px"></div></label></form><div class="dcOauthActions"><button id="dcGenerateWebhook">توليد Verify Token</button><button class="primary" id="dcSaveMeta">حفظ إعداد Meta</button><button id="dcRefreshMeta">فحص الإعداد</button></div><div id="dcOauthSetupStatus" class="dcOauthStatus"></div>');
+  modal('<div class="dcOauthNotice">إعداد Meta مرة واحدة للنظام. بما أن OAuth الأساسي جاهز، نخزن Webhook Verify Token بشكل مستقل ثم نكمل إعداد Webhooks داخل Meta Developer.</div><div id="dcOauthSetupInfo"></div><div class="dcOauthForm"><label class="full">Webhook Verify Token<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="dcMetaWebhookToken" type="text" autocomplete="off" placeholder="اضغط توليد Verify Token"><button type="button" id="dcCopyWebhookToken">نسخ</button></div><div id="dcWebhookTokenPreview" class="dcOauthCode" style="display:none;direction:ltr;text-align:left;word-break:break-all;margin-top:8px"></div></label></div><div class="dcOauthActions"><button id="dcGenerateWebhook">توليد Verify Token جديد</button><button class="primary" id="dcSaveWebhook">حفظ Webhook Token فقط</button><button id="dcRefreshMeta">فحص الإعداد</button><button id="dcShowAdvanced">إعدادات OAuth المتقدمة</button></div><div id="dcAdvancedMeta" style="display:none;margin-top:16px"><div class="dcOauthForm"><label>Meta App ID<input id="dcMetaAppId" inputmode="numeric" placeholder="123456789..."></label><label>Graph API Version<input id="dcMetaApiVersion" placeholder="vXX.X"></label><label class="full">Login Configuration ID<input id="dcMetaLoginConfigId" inputmode="numeric" placeholder="Facebook Login for Business config ID"></label><label class="full">Meta App Secret<input id="dcMetaAppSecret" type="password" autocomplete="off" placeholder="يُحفظ بشكل آمن ولا يظهر لاحقاً"></label></div><div class="dcOauthActions"><button id="dcSaveMeta">حفظ إعدادات OAuth المتقدمة</button></div></div><div id="dcOauthSetupStatus" class="dcOauthStatus"></div>');
   const info=$('#dcOauthSetupInfo'),statusEl=$('#dcOauthSetupStatus');
   async function refresh(){
     try{
@@ -21,26 +21,40 @@ async function showSetup(){
       const full=s.ready&&s.webhook_ready;
       info.innerHTML='<div class="dcOauthNotice '+(full?'dcOauthGood':'')+'"><b>'+(full?'✓ Meta OAuth + Webhook جاهزين':s.ready?'OAuth جاهز · Webhook ناقص':'الإعداد ناقص')+'</b><br>App ID: '+(s.app_id_configured?'موجود':'غير موجود')+' · App Secret: '+(s.app_secret_configured?'محفوظ':'غير موجود')+' · Login Config: '+(s.login_config_id_configured?'موجود':'غير موجود')+' · Webhook Token: '+(s.webhook_verify_token_configured?'محفوظ':'غير موجود')+' · API: '+esc(s.api_version||'غير محدد')+'</div><p class="muted">Valid OAuth Redirect URI:</p><div class="dcOauthCode">'+esc(s.callback_url)+'</div><p class="muted">Meta Webhook Callback URL:</p><div class="dcOauthCode">'+esc(s.webhook_callback_url||'')+'</div><p class="muted">الصلاحيات المطلوبة: '+esc((s.required_scopes||[]).join(', '))+'</p>';
       if(full)statusText(statusEl,'الإعداد الداخلي جاهز للربط والاستقبال الحقيقي.',true);
-      else if(s.ready)statusText(statusEl,'OAuth جاهز، لكن لازم تهيئ Webhook Verify Token وتستخدم نفس القيمة داخل Meta Webhooks.');
+      else if(s.ready)statusText(statusEl,'OAuth جاهز. المطلوب الآن فقط حفظ Webhook Verify Token.');
     }catch(e){statusText(statusEl,'تعذر فحص إعداد Meta الآن.')}
   }
   await refresh();
   $('#dcRefreshMeta').onclick=refresh;
-  $('#dcGenerateWebhook').onclick=async e=>{e.preventDefault();const bytes=new Uint8Array(24);crypto.getRandomValues(bytes);const token=Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');const input=$('#dcMetaWebhookToken'),preview=$('#dcWebhookTokenPreview');input.value=token;preview.textContent=token;preview.style.display='block';try{await navigator.clipboard.writeText(token);statusText(statusEl,'تم توليد Verify Token ونسخه للحافظة. القيمة ظاهرة أيضًا بالمربع تحت الحقل.',true)}catch{statusText(statusEl,'تم توليد Verify Token. القيمة ظاهرة بالمربع تحت الحقل؛ اضغط نسخ أو حددها يدويًا.')}};$('#dcCopyWebhookToken').onclick=async e=>{e.preventDefault();const token=$('#dcMetaWebhookToken').value;if(!token)return statusText(statusEl,'ولّد Verify Token أولاً.');try{await navigator.clipboard.writeText(token);statusText(statusEl,'تم نسخ Verify Token للحافظة.',true)}catch{const input=$('#dcMetaWebhookToken');input.focus();input.select();statusText(statusEl,'تم تحديد التوكن. اختر نسخ من المتصفح.')}};
+  $('#dcShowAdvanced').onclick=e=>{e.preventDefault();const box=$('#dcAdvancedMeta');box.style.display=box.style.display==='none'?'block':'none'};
+  $('#dcGenerateWebhook').onclick=async e=>{e.preventDefault();const bytes=new Uint8Array(24);crypto.getRandomValues(bytes);const token=Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');const input=$('#dcMetaWebhookToken'),preview=$('#dcWebhookTokenPreview');input.value=token;preview.textContent=token;preview.style.display='block';try{await navigator.clipboard.writeText(token);statusText(statusEl,'تم توليد Verify Token جديد ونسخه للحافظة. احتفظ فيه لاستخدامه داخل Meta Webhooks.',true)}catch{statusText(statusEl,'تم توليد Verify Token جديد. انسخه من الحقل أو المربع الظاهر تحته.')}};
+  $('#dcCopyWebhookToken').onclick=async e=>{e.preventDefault();const token=$('#dcMetaWebhookToken').value;if(!token)return statusText(statusEl,'ولّد Verify Token أولاً.');try{await navigator.clipboard.writeText(token);statusText(statusEl,'تم نسخ Verify Token للحافظة.',true)}catch{const input=$('#dcMetaWebhookToken');input.focus();input.select();statusText(statusEl,'تم تحديد التوكن. اختر نسخ من المتصفح.')}};
+  $('#dcSaveWebhook').onclick=async()=>{
+    const b=$('#dcSaveWebhook'),token=$('#dcMetaWebhookToken').value.trim();
+    if(token.length<16)return statusText(statusEl,'ولّد Verify Token جديد أولاً.');
+    b.disabled=true;statusText(statusEl,'جاري حفظ Webhook Token فقط…');
+    try{
+      const r=await api('configure_webhook',{method:'POST',body:{webhook_verify_token:token}});
+      if(!r.webhook_ready)throw new Error('webhook_save_failed');
+      statusText(statusEl,'تم حفظ Webhook Token بنجاح. الآن استخدم نفس القيمة داخل Meta Webhooks.',true);
+      await refresh()
+    }catch(e){
+      statusText(statusEl,'تعذر حفظ Webhook Token: '+esc(e.message||'unknown'))
+    }finally{b.disabled=false}
+  };
   $('#dcSaveMeta').onclick=async()=>{
-    const b=$('#dcSaveMeta');b.disabled=true;statusText(statusEl,'جاري حفظ إعداد Meta…');
+    const b=$('#dcSaveMeta');b.disabled=true;statusText(statusEl,'جاري حفظ إعدادات OAuth المتقدمة…');
     try{
       await api('configure_meta',{method:'POST',body:{
         app_id:$('#dcMetaAppId').value.trim(),
         app_secret:$('#dcMetaAppSecret').value.trim(),
         api_version:$('#dcMetaApiVersion').value.trim(),
-        login_config_id:$('#dcMetaLoginConfigId').value.trim(),
-        webhook_verify_token:$('#dcMetaWebhookToken').value.trim()
+        login_config_id:$('#dcMetaLoginConfigId').value.trim()
       }});
-      $('#dcMetaAppSecret').value='';$('#dcMetaWebhookToken').value='';
-      statusText(statusEl,'تم حفظ الإعداد بشكل آمن.',true);await refresh()
+      $('#dcMetaAppSecret').value='';
+      statusText(statusEl,'تم حفظ إعدادات OAuth المتقدمة.',true);await refresh()
     }catch(e){
-      statusText(statusEl,e.message==='app_secret_required'?'App Secret مطلوب أول مرة.':e.message==='webhook_verify_token_too_short'?'Webhook Verify Token لازم يكون 16 حرف على الأقل.':'تحقق من App ID وLogin Config ونسخة Graph API ثم جرّب مرة ثانية.')
+      statusText(statusEl,'تعذر حفظ إعدادات OAuth: '+esc(e.message||'unknown'))
     }finally{b.disabled=false}
   }
 }
