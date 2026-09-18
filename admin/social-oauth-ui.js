@@ -58,8 +58,28 @@ async function showSetup(){
     }finally{b.disabled=false}
   }
 }
+async function showUatTokenConnect(){
+  const wid=Number($('#workspaceSelect')?.value);
+  if(!wid){modal('<div class="dcOauthNotice">اختر العميل أولاً من القائمة أعلى الصفحة.</div>');return}
+  modal('<div class="dcOauthNotice">UAT فقط — استخدم Page Access Token من Meta Messenger Setup. التوكن يُرسل مباشرة إلى backend عبر HTTPS ويُخزن في Vault، ولا ترسله في المحادثة.</div><div class="dcOauthForm"><label class="full">Page Access Token<textarea id="dcUatPageToken" autocomplete="off" style="min-height:110px;direction:ltr;text-align:left" placeholder="الصق التوكن هنا"></textarea></label></div><div class="dcOauthActions"><button class="primary" id="dcConnectUatToken">ربط صفحة الاختبار</button></div><div id="dcUatStatus" class="dcOauthStatus"></div>');
+  const btn=$('#dcConnectUatToken'),statusEl=$('#dcUatStatus');
+  btn.onclick=async()=>{
+    const token=$('#dcUatPageToken').value.trim();
+    if(token.length<20)return statusText(statusEl,'الصق Page Access Token أولاً.');
+    btn.disabled=true;statusText(statusEl,'جاري التحقق من التوكن وربط الصفحة…');
+    try{
+      const r=await api('uat_page_token',{method:'POST',body:{workspace_id:wid,page_access_token:token}});
+      $('#dcUatPageToken').value='';
+      statusText(statusEl,'تم ربط صفحة الاختبار بنجاح: '+(r.page?.name||r.page?.id||'Page'),true);
+      setTimeout(()=>location.reload(),900)
+    }catch(e){
+      const m=e.message==='invalid_page_token'?'التوكن غير صالح أو منتهي.':e.message==='token_app_mismatch'?'التوكن تابع لتطبيق Meta مختلف.':e.message==='page_identity_unavailable'?'تعذر قراءة هوية الصفحة من التوكن.':e.message;
+      statusText(statusEl,'تعذر الربط: '+m)
+    }finally{btn.disabled=false}
+  }
+}
 async function startConnect(){const wid=Number($('#workspaceSelect')?.value);if(!wid){modal('<div class="dcOauthNotice">اختر العميل أولاً من القائمة أعلى الصفحة.</div>');return}const btn=$('#dcMetaConnectBtn');if(btn)btn.disabled=true;try{const s=await api('status');if(!s.ready||!s.webhook_ready){await showSetup();return}const d=await api('start',{method:'POST',body:{workspace_id:wid}});if(!d.authorization_url)throw new Error('missing_authorization_url');location.href=d.authorization_url}catch(e){if(e.message==='meta_not_configured')await showSetup();else modal(`<div class="dcOauthNotice">تعذر بدء ربط Meta: ${esc(e.message)}</div>`)}finally{if(btn)btn.disabled=false}}
 async function showAssets(state){modal('<div class="dcOauthNotice dcOauthGood">✓ تمت موافقة Meta. اختر صفحة العميل التي تريد ربطها بهذا Workspace.</div><div id="dcAssets"><p class="muted">جاري تحميل الصفحات المسموح بها…</p></div><div id="dcAssetStatus" class="dcOauthStatus"></div>');const box=$('#dcAssets'),statusEl=$('#dcAssetStatus');try{const d=await api('assets',{params:{state}}),items=d.item?.assets||[];if(!items.length){box.innerHTML='<div class="dcOauthNotice">Meta لم يرجع أي Page متاح لهذا الحساب. تأكد أن الشخص الذي سجل الدخول عنده صلاحية على صفحة العميل وأن الصلاحيات المطلوبة مفعّلة في Meta App.</div>';return}box.innerHTML=items.map(x=>`<article class="dcAsset"><div><b>${esc(x.page_name)}</b><small>Facebook Page ID: ${esc(x.page_id)}${x.instagram_business_account?`<br>Instagram: @${esc(x.instagram_business_account.username||x.instagram_business_account.id)}`:'<br>لا يوجد Instagram Business مربوط بهذه الصفحة'}</small></div><button data-page-id="${esc(x.page_id)}">ربط هذه الصفحة</button></article>`).join('');box.querySelectorAll('[data-page-id]').forEach(b=>b.onclick=async()=>{b.disabled=true;statusText(statusEl,'جاري حفظ الاتصال والتوكن بشكل آمن…');try{const r=await api('complete',{method:'POST',body:{state,page_id:b.dataset.pageId,connect_facebook:true,connect_instagram:true}});statusText(statusEl,`تم الربط بنجاح: ${(r.connected||[]).map(x=>x.platform).join(' + ')}`,true);setTimeout(()=>{const u=new URL(location.href);u.searchParams.delete('oauth');u.searchParams.delete('state');u.searchParams.delete('workspace');history.replaceState(null,'',u);location.reload()},900)}catch(e){statusText(statusEl,`تعذر إكمال الربط: ${e.message}`);b.disabled=false}})}catch(e){box.innerHTML=`<div class="dcOauthNotice">تعذر تحميل صفحات Meta: ${esc(e.message)}</div>`}}
 async function handleReturn(){const u=new URL(location.href),mode=u.searchParams.get('oauth'),state=u.searchParams.get('state');if(mode==='select'&&state){await showAssets(state);return}if(mode==='error'){modal(`<div class="dcOauthNotice">Meta OAuth لم يكتمل. السبب: ${esc(u.searchParams.get('reason')||'unknown')}</div>`);u.searchParams.delete('oauth');u.searchParams.delete('reason');history.replaceState(null,'',u)}}
-async function inject(){styles();for(let i=0;i<50&&!$('#workspaceSelect');i++)await new Promise(r=>setTimeout(r,100));const actions=document.querySelector('.topActions');if(actions&&!$('#dcMetaConnectBtn'))actions.insertAdjacentHTML('afterbegin','<button id="dcMetaConnectBtn" class="dcOauthBtn" type="button">ربط Facebook / Instagram</button>');$('#dcMetaConnectBtn')?.addEventListener('click',startConnect);await handleReturn()}
+async function inject(){styles();for(let i=0;i<50&&!$('#workspaceSelect');i++)await new Promise(r=>setTimeout(r,100));const actions=document.querySelector('.topActions');if(actions&&!$('#dcMetaConnectBtn'))actions.insertAdjacentHTML('afterbegin','<button id="dcUatTokenBtn" class="dcOauthBtn" type="button">ربط صفحة اختبار (UAT)</button><button id="dcMetaConnectBtn" class="dcOauthBtn" type="button">ربط Facebook / Instagram</button>');$('#dcMetaConnectBtn')?.addEventListener('click',startConnect);$('#dcUatTokenBtn')?.addEventListener('click',showUatTokenConnect);await handleReturn()}
 supabase.auth.onAuthStateChange((_e,s)=>{currentSession=s||null});inject().catch(console.error);
