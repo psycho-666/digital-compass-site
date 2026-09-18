@@ -13,3 +13,9 @@ body{background:#100b16;color:#f7f3fb}.workspaceSelect{min-width:240px;backgroun
 button:disabled{opacity:.42;cursor:not-allowed}
 .statusLine small{display:block;color:#8f8395;font-size:9px;font-weight:400;max-width:280px;white-space:normal;margin-top:4px}
 @media(max-width:900px){.contentLifecycle{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.checkLabel{display:flex!important;align-items:center;gap:8px!important;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:10px}
+.checkLabel input{width:auto!important;margin:0}
+#brandVoice,#contentPillars,#audienceProfiles,#platformStrategy,#publishingRules,#moderationRules,#escalationRules,#kpiTargets{min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.65;direction:ltr;text-align:left}
+.emptyMini{display:grid;gap:6px;border:1px dashed rgba(255,255,255,.12);border-radius:14px;padding:22px;color:#a99db0}
+.emptyMini b{color:#fff;font-size:13px}
