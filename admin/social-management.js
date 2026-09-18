@@ -11,7 +11,7 @@ async function boot(){const s=await supabase.auth.getSession();session=s.data.se
 async function loadWorkspaces(){const d=await api('workspaces');workspaces=d.items||[];const sel=$('#workspaceSelect');sel.innerHTML='<option value="">اختر العميل</option>'+workspaces.map(w=>`<option value="${w.workspace_id}">${esc(w.company_name)}</option>`).join('');if(!workspaces.length){$('#emptyState').classList.remove('hidden');$('#workspaceView').classList.add('hidden');return}$('#emptyState').classList.add('hidden');$('#workspaceView').classList.remove('hidden');if(!sel.value)sel.value=String(workspaces[0].workspace_id);await loadWorkspace()}
 async function loadWorkspace(){const id=Number($('#workspaceSelect').value);if(!id)return;const [w,h]=await Promise.all([api('workspace',{params:{id}}),api('operations_health').catch(()=>null)]);data=w;health=h;renderMetrics();render()}
 function renderMetrics(){const s=data.summary||{};const items=[['Connected',s.connected_accounts],['Open inbox',s.open_inbox],['Content approvals',s.content_waiting_approval],['Scheduled',s.scheduled_posts],['Blocked jobs',health?.blocked_connection_jobs||0],['Failed jobs',health?.failed_execution_jobs||0]];$('#metrics').innerHTML=items.map(([l,v])=>'<div class="metric"><span class="label">'+esc(l)+'</span><strong>'+Number(v||0)+'</strong><div class="mini">LIVE</div></div>').join('')}
-function render(){if(!data)return;({overview:renderOverview,inbox:renderInbox,faq:renderFaq,content:renderContent,ads:renderAds,activity:renderActivity}[tab]||renderOverview)()}
+function render(){if(!data)return;({overview:renderOverview,strategy:renderStrategy,inbox:renderInbox,faq:renderFaq,content:renderContent,ads:renderAds,reports:renderReports,activity:renderActivity}[tab]||renderOverview)()}
 function renderOverview(){
   const w=data.workspace||{},p=data.response_policy||{},g=data.guardrails||{},conns=data.connections||[],jobs=data.execution_jobs||[];
   const connected=conns.filter(x=>x.connection_status==='CONNECTED'&&x.authorized_by_client);
@@ -44,6 +44,59 @@ function renderOverview(){
 }
 function line(a,b){const c=['CONNECTED','ON','APPROVED','SUCCEEDED','ACTIVE'].includes(String(b))?'good':['ERROR','FAILED','REVOKED'].includes(String(b))?'bad':'warn';return `<div class="statusLine"><b>${esc(a)}</b><span class="pill2 ${c}">${esc(b)}</span></div>`}
 async function toggleAuto(which){const p=data.response_policy||{};const body={workspace_id:data.workspace.id};body[which==='messages'?'messages_auto_reply_enabled':'comments_auto_reply_enabled']=!(which==='messages'?p.messages_auto_reply_enabled:p.comments_auto_reply_enabled);await api('update_response_policy',{method:'POST',body});toast('تم تحديث السياسة');await loadWorkspace()}
+function pretty(v,fallback){try{return JSON.stringify(v??fallback,null,2)}catch{return JSON.stringify(fallback,null,2)}}
+function parseJsonField(id,fallback){const raw=$(id).value.trim();if(!raw)return fallback;try{return JSON.parse(raw)}catch{throw new Error('INVALID_JSON:'+id)}}
+function renderStrategy(){
+  const w=data.workspace||{};
+  $('#panel').innerHTML=
+    '<div class="connectionBanner">هذه الإعدادات هي عقل إدارة الحساب. ما يصير تشغيل Workspace فعلي بدون Connection رسمي، والاستراتيجية تبقى منفصلة عن صلاحيات النشر.</div>'+
+    '<div class="panelGrid">'+
+      '<div class="card"><h3>Workspace controls</h3><div class="formGrid">'+
+        '<label>Workspace status<select id="wsStatus"><option>PLANNING</option><option>ONBOARDING</option><option>ACTIVE</option><option>PAUSED</option><option>ENDED</option></select></label>'+
+        '<label>Strategy status<select id="strategyStatus"><option>PENDING</option><option>DRAFT</option><option>READY_FOR_REVIEW</option><option>APPROVED</option><option>NEEDS_CHANGES</option></select></label>'+
+        '<label>Response SLA (minutes)<input id="slaMinutes" type="number" min="1" max="10080" value="'+esc(w.response_sla_minutes||60)+'"></label>'+
+        '<label class="checkLabel"><input id="clientApproval" type="checkbox" '+(w.client_approval_required?'checked':'')+'> يتطلب موافقة العميل قبل النشر</label>'+
+        '<button id="saveStrategy" class="smallBtn primary">حفظ الإعدادات</button>'+
+      '</div></div>'+
+      '<div class="card"><h3>Brand voice & content pillars</h3><div class="formGrid">'+
+        '<label class="full">Brand voice JSON<textarea id="brandVoice">'+esc(pretty(w.brand_voice,{}))+'</textarea></label>'+
+        '<label class="full">Content pillars JSON<textarea id="contentPillars">'+esc(pretty(w.content_pillars,[]))+'</textarea></label>'+
+        '<label class="full">Audience profiles JSON<textarea id="audienceProfiles">'+esc(pretty(w.audience_profiles,[]))+'</textarea></label>'+
+      '</div></div>'+
+      '<div class="card"><h3>Platform & publishing rules</h3><div class="formGrid">'+
+        '<label class="full">Platform strategy JSON<textarea id="platformStrategy">'+esc(pretty(w.platform_strategy,{}))+'</textarea></label>'+
+        '<label class="full">Publishing rules JSON<textarea id="publishingRules">'+esc(pretty(w.publishing_rules,{}))+'</textarea></label>'+
+      '</div></div>'+
+      '<div class="card"><h3>Moderation, escalation & KPIs</h3><div class="formGrid">'+
+        '<label class="full">Moderation rules JSON<textarea id="moderationRules">'+esc(pretty(w.moderation_rules,{}))+'</textarea></label>'+
+        '<label class="full">Escalation rules JSON<textarea id="escalationRules">'+esc(pretty(w.escalation_rules,{}))+'</textarea></label>'+
+        '<label class="full">KPI targets JSON<textarea id="kpiTargets">'+esc(pretty(w.kpi_targets,{}))+'</textarea></label>'+
+      '</div></div>'+
+    '</div>';
+  $('#wsStatus').value=w.workspace_status||'PLANNING';
+  $('#strategyStatus').value=w.strategy_status||'PENDING';
+  $('#saveStrategy').onclick=async()=>{
+    try{
+      const body={
+        workspace_id:w.id,
+        workspace_status:$('#wsStatus').value,
+        strategy_status:$('#strategyStatus').value,
+        response_sla_minutes:Number($('#slaMinutes').value||60),
+        client_approval_required:$('#clientApproval').checked,
+        brand_voice:parseJsonField('#brandVoice',{}),
+        content_pillars:parseJsonField('#contentPillars',[]),
+        audience_profiles:parseJsonField('#audienceProfiles',[]),
+        platform_strategy:parseJsonField('#platformStrategy',{}),
+        publishing_rules:parseJsonField('#publishingRules',{}),
+        moderation_rules:parseJsonField('#moderationRules',{}),
+        escalation_rules:parseJsonField('#escalationRules',{}),
+        kpi_targets:parseJsonField('#kpiTargets',{})
+      };
+      await api('update_workspace_setup',{method:'POST',body});
+      toast('تم حفظ استراتيجية وقواعد العميل');await loadWorkspace()
+    }catch(e){toast(String(e.message||'').startsWith('INVALID_JSON')?'في حقل JSON غير صحيح':e.message==='connection_required_for_active_workspace'?'اربط حساب العميل قبل تحويل Workspace إلى ACTIVE':'تعذر حفظ الإعدادات')}
+  }
+}
 function renderInbox(){const rows=data.inbox||[];$('#panel').innerHTML=`<div class="section"><div class="sectionHead"><h3>Inbox & Comments</h3><span>${rows.length}</span></div><div class="tableWrap"><table class="table"><thead><tr><th>المرسل</th><th>النوع</th><th>الرسالة</th><th>الطريقة</th><th>الثقة</th><th>الحالة</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.sender_name||'—')}</td><td>${esc(x.message_type||'MESSAGE')}</td><td class="messagePreview">${esc(x.message_text||'')}</td><td>${esc(x.chosen_method||x.response_method||'—')}</td><td class="confidence">${x.decision_confidence!=null?Math.round(Number(x.decision_confidence)*100)+'%':'—'}</td><td>${esc(x.response_status)}</td><td>${x.response_status==='PENDING'?`<button class="smallBtn primary" data-prepare="${x.id}">معالجة</button>`:''}</td></tr>`).join('')}</tbody></table></div></div>`;$$('[data-prepare]').forEach(b=>b.onclick=async()=>{await api('prepare_reply',{method:'POST',body:{inbox_item_id:Number(b.dataset.prepare)}});toast('تم تجهيز قرار الرد');await loadWorkspace()})}
 function renderFaq(){const f=data.faq||[],lib=data.library||[];$('#panel').innerHTML=`<div class="panelGrid"><div class="card"><h3>FAQ inventory — آخر سنة</h3><p>يجمع الأسئلة المتكررة ويقرب الصيغ المتشابهة تلقائيًا.</p><div class="actionRow"><button id="rebuildFaq" class="smallBtn primary">إعادة الجرد</button></div>${f.slice(0,12).map(x=>line(`${x.canonical_question} ×${x.occurrence_count_365d}`,x.status)).join('')||'<p class="muted">لا يوجد Inventory بعد.</p>'}</div><div class="card"><h3>إضافة رد رسمي</h3><div class="formGrid"><label class="full">السؤال<input id="faqQ"></label><label class="full">الرد<textarea id="faqA"></textarea></label><label>الأولوية<input id="faqPriority" type="number" value="50"></label><button id="saveFaq" class="smallBtn primary">حفظ الرد</button></div></div></div><div class="section"><div class="sectionHead"><h3>Approved reply library</h3><span>${lib.length}</span></div>${lib.map(x=>`<div class="statusLine"><b>${esc(x.canonical_question)}</b><span class="muted">${esc(x.approved_response)}</span></div>`).join('')}</div>`;$('#rebuildFaq').onclick=async()=>{await api('rebuild_faq',{method:'POST',body:{workspace_id:data.workspace.id,days:365,min_occurrences:2}});toast('تم تحديث جرد FAQ');await loadWorkspace()};$('#saveFaq').onclick=async()=>{const q=$('#faqQ').value.trim(),a=$('#faqA').value.trim();if(!q||!a)return toast('أدخل السؤال والرد');await api('library_reply',{method:'POST',body:{workspace_id:data.workspace.id,question:q,response:a,priority:Number($('#faqPriority').value||50)}});toast('تم حفظ الرد الرسمي');await loadWorkspace()}}
 function renderContent(){
@@ -94,6 +147,18 @@ function renderContent(){
   $$('[data-cancel-publish]').forEach(b=>b.onclick=async()=>{await api('cancel_publish',{method:'POST',body:{workspace_id:data.workspace.id,publish_job_id:Number(b.dataset.cancelPublish)}});toast('تم إلغاء الجدولة');await loadWorkspace()})
 }
 function renderAds(){const cs=data.campaigns||[],acts=data.ad_actions||[];$('#panel').innerHTML=`<div class="connectionBanner">إنشاء الحملة ممكن كـDraft الآن، لكن أي Create/Resume/Budget/Targeting/Spend Action يمر عبر Approval Gate قبل التنفيذ الفعلي.</div><div class="panelGrid"><div class="card"><h3>Campaign draft</h3><div class="formGrid"><label class="full">الاسم<input id="adName"></label><label>Platform<select id="adPlatform"><option>META</option><option>INSTAGRAM</option><option>TIKTOK</option></select></label><label>Objective<select id="adObjective"><option>LEADS</option><option>MESSAGES</option><option>SALES</option><option>AWARENESS</option></select></label><label>Daily budget<input id="adBudget" type="number" min="0" step="0.01"></label><label>Currency<input id="adCurrency" value="USD"></label><button id="createCampaign" class="smallBtn primary">Create draft</button></div></div><div class="card"><h3>Recent ad actions</h3>${acts.slice(0,12).map(x=>line(`${x.action_type} #${x.id}`,x.status)).join('')||'<p class="muted">No actions yet.</p>'}</div></div><div class="section"><div class="sectionHead"><h3>Campaigns</h3><span>${cs.length}</span></div><div class="tableWrap"><table class="table"><thead><tr><th>Name</th><th>Objective</th><th>Budget</th><th>Status</th><th></th></tr></thead><tbody>${cs.map(x=>`<tr><td>${esc(x.campaign_name)}</td><td>${esc(x.objective)}</td><td>${esc(x.daily_budget??'—')} ${esc(x.currency||'')}</td><td>${esc(x.status)}</td><td><button class="smallBtn" data-launch="${x.id}" data-budget="${x.daily_budget||0}">طلب تشغيل</button></td></tr>`).join('')}</tbody></table></div></div>`;$('#createCampaign').onclick=async()=>{const name=$('#adName').value.trim();if(!name)return toast('أدخل اسم الحملة');await api('create_campaign',{method:'POST',body:{workspace_id:data.workspace.id,platform:$('#adPlatform').value,campaign_name:name,objective:$('#adObjective').value,daily_budget:Number($('#adBudget').value||0),currency:$('#adCurrency').value}});toast('تم إنشاء Draft');await loadWorkspace()};$$('[data-launch]').forEach(b=>b.onclick=async()=>{await api('ad_action',{method:'POST',body:{workspace_id:data.workspace.id,campaign_id:Number(b.dataset.launch),action_type:'CREATE_CAMPAIGN',payload:{requested_status:'ACTIVE'},spend_delta:Number(b.dataset.budget||0),risk_level:'HIGH'}});toast('تم إنشاء Approval لتشغيل الحملة');await loadWorkspace()})}
+function renderReports(){
+  const reports=data.performance_reports||[];
+  const rows=reports.map(r=>{
+    const growth=(r.followers_start!=null&&r.followers_end!=null)?Number(r.followers_end)-Number(r.followers_start):null;
+    return '<tr><td>'+esc(r.period_start)+' → '+esc(r.period_end)+'</td><td>'+esc(r.platform||'ALL')+'</td><td>'+esc(r.reach??'—')+'</td><td>'+esc(r.impressions??'—')+'</td><td>'+esc(r.engagements??'—')+'</td><td>'+esc(growth==null?'—':growth)+'</td><td>'+esc(r.messages??'—')+'</td><td>'+esc(r.leads??'—')+'</td><td>'+esc(r.spend??'—')+'</td></tr>';
+  }).join('');
+  $('#panel').innerHTML=
+    '<div class="connectionBanner">التقارير هنا تعتمد على بيانات فعلية من الحسابات المتصلة. إذا ماكو Connection أو مزامنة، ما راح نعرض أرقام مصطنعة.</div>'+
+    '<div class="section"><div class="sectionHead"><h3>Performance reports</h3><span>'+reports.length+'</span></div>'+
+    (reports.length?'<div class="tableWrap"><table class="table"><thead><tr><th>Period</th><th>Platform</th><th>Reach</th><th>Impressions</th><th>Engagements</th><th>Follower Δ</th><th>Messages</th><th>Leads</th><th>Spend</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<div class="emptyMini"><b>لا توجد تقارير فعلية بعد.</b><span>تبدأ بعد ربط حساب العميل ومزامنة البيانات.</span></div>')+
+    '</div>'
+}
 function renderActivity(){
   const ops=data.operation_log||[],jobs=data.execution_jobs||[],failed=jobs.filter(x=>['FAILED','BLOCKED_CONNECTION'].includes(x.status));
   const attention=failed.slice(0,12).map(x=>'<div class="statusLine"><b>'+esc(x.job_type)+' #'+x.id+'<small>'+esc(x.last_error||'')+'</small></b><span><span class="pill2 bad">'+esc(x.status)+'</span> <button class="smallBtn" data-retry="'+x.id+'">Retry</button></span></div>').join('')||'<p class="muted">No failed jobs.</p>';
