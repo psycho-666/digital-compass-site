@@ -14,47 +14,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin.css">
-<link rel="stylesheet" href="./admin-extra.css">
-<link rel="stylesheet" href="./social.css">
-<link rel="stylesheet" href="./assistant-ui.css">
-<link rel="stylesheet" href="./pwa.css">
+<link rel="stylesheet" href="./admin.css"><link rel="stylesheet" href="./admin-extra.css"><link rel="stylesheet" href="./social.css"><link rel="stylesheet" href="./assistant-ui.css"><link rel="stylesheet" href="./pwa.css">
 </head>
 <body>
-<div id="socialApp" class="appView hidden">
-  <aside class="sidebar">
-    <div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>CONTROL CENTER</span></div>
-    <nav>
-      <a class="navItem active" href="./"><b>01</b><span>نظرة عامة</span></a>
-      <a class="navItem" href="./social.html"><b>02</b><span>اكتشاف وتدقيق السوشيال</span></a>
-      <a class="navItem" href="./social-management.html"><b>03</b><span>إدارة حسابات العملاء</span></a>
-      <a class="navItem" href="./?view=outreach"><b>04</b><span>التواصل</span></a>
-      <a class="navItem" href="./?view=automation"><b>05</b><span>الأتمتة</span></a>
-      <a class="navItem" href="./?view=settings"><b>06</b><span>الإعدادات</span></a>
-      <a class="navItem" href="./users.html"><b>07</b><span>المستخدمون والصلاحيات</span></a>
-    </nav>
-    <div class="sidebarFoot"><div class="liveDot"><i></i><span>Social engine online</span></div><button id="logoutBtn">تسجيل الخروج</button></div>
-  </aside>
-  <main class="main">
-    <header class="topbar"><div><span class="eyebrow">DIGITAL COMPASS / SOCIAL MEDIA OPS</span><h1>نظرة عامة</h1></div><div class="topActions"><div class="language"><button data-lang="ar" class="active">العربية</button><button data-lang="en">EN</button></div><button id="refreshBtn" class="iconBtn" title="Refresh" aria-label="Refresh">↻</button></div></header>
-    <section class="content">
-      <div class="socialHero">
-        <div><span class="eyebrow">SOCIAL GROWTH & MANAGEMENT ENGINE</span><h2 id="heroTitle">محرك نمو وإدارة السوشيال ميديا</h2><p id="heroText">نكتشف الحسابات والصفحات، ندقق حضورها، نحدد فرص الإدارة، ثم ندير المحتوى والإعلانات والرسائل والتقارير من مكان واحد.</p></div>
-        <div class="socialActions"><button class="runFull" id="discoverBtn">اكتشاف معلنين بالعراق</button><button class="stageBtn" id="queueBtn">تجهيز Audit اليوم</button><button class="stageBtn" id="auditBtn">تشغيل Social Audit</button><button class="stageBtn" id="qualifyBtn">تأهيل فرص الإدارة</button></div>
-      </div>
-      <div id="metrics" class="metrics"></div>
-      <div class="scopeNotice"><b>Public vs Authorized</b><span>قبل التعاقد: نعتمد على البيانات العامة من الصفحات ومكتبات الإعلانات. بعد ربط حساب العميل المصرّح به: نضيف بيانات Ads Manager الفعلية وننتقل إلى إدارة المحتوى والإعلانات والرسائل والتقارير.</span></div>
-      <div class="section"><div class="sectionHead"><h3>آخر المعلنين المكتشفين</h3><span id="discoveryCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>المعلن / الصفحة</th><th>المنصة</th><th>المدينة</th><th>القطاع</th><th>إعلان نشط</th><th>الحالة</th></tr></thead><tbody id="discoveryRows"></tbody></table></div></div>
-      <div class="section"><div class="sectionHead"><h3>Social Management Pipeline</h3><span id="rowCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>الشركة</th><th>المنصة</th><th>Audit</th><th>Social Health</th><th>Management Need</th><th>الإعلانات</th><th>الخطوة التالية</th></tr></thead><tbody id="socialRows"></tbody></table></div></div>
-    </section>
-  </main>
-</div>
-<div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer aria-label="Close">×</button><div id="drawerContent"></div></div></div>
-<div id="toast" class="toast"></div>
-<script type="module" src="./social-dashboard.js"></script>
-<script type="module" src="./assistant-ui.js"></script>
-<script type="module" src="./push-ui.js"></script>
-<script type="module" src="./permissions-ui.js"></script>
-<script type="module" src="./pwa.js"></script>
-</body>
-</html>
+<div id="socialApp" class="appView hidden"><aside class="sidebar"><div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>CONTROL CENTER</span></div><nav>
+<a class="navItem active" href="./"><b>01</b><span>نظرة عامة</span></a><a class="navItem" href="./social.html"><b>02</b><span>اكتشاف وتدقيق السوشيال</span></a><a class="navItem" href="./social-management.html"><b>03</b><span>إدارة حسابات العملاء</span></a><a class="navItem" href="./social-ops.html?view=outreach"><b>04</b><span>التواصل</span></a><a class="navItem" href="./social-ops.html?view=automation"><b>05</b><span>الأتمتة</span></a><a class="navItem" href="./social-ops.html?view=settings"><b>06</b><span>الإعدادات</span></a><a class="navItem" href="./users.html"><b>07</b><span>المستخدمون والصلاحيات</span></a>
+</nav><div class="sidebarFoot"><div class="liveDot"><i></i><span>Social engine online</span></div><button id="logoutBtn">تسجيل الخروج</button></div></aside>
+<main class="main"><header class="topbar"><div><span class="eyebrow">DIGITAL COMPASS / SOCIAL MEDIA OPS</span><h1>نظرة عامة</h1></div><div class="topActions"><div class="language"><button data-lang="ar" class="active">العربية</button><button data-lang="en">EN</button></div><button id="refreshBtn" class="iconBtn" title="Refresh" aria-label="Refresh">↻</button></div></header>
+<section class="content"><div class="socialHero"><div><span class="eyebrow">SOCIAL GROWTH & MANAGEMENT ENGINE</span><h2 id="heroTitle">محرك نمو وإدارة السوشيال ميديا</h2><p id="heroText">نكتشف الحسابات والصفحات، ندقق حضورها، نحدد فرص الإدارة، ثم ندير المحتوى والإعلانات والرسائل والتقارير من مكان واحد.</p></div><div class="socialActions"><button class="runFull" id="discoverBtn">اكتشاف معلنين بالعراق</button><button class="stageBtn" id="queueBtn">تجهيز Audit اليوم</button><button class="stageBtn" id="auditBtn">تشغيل Social Audit</button><button class="stageBtn" id="qualifyBtn">تأهيل فرص الإدارة</button></div></div>
+<div id="metrics" class="metrics"></div><div class="scopeNotice"><b>Public vs Authorized</b><span>قبل التعاقد: نعتمد على البيانات العامة من الصفحات ومكتبات الإعلانات. بعد ربط حساب العميل المصرّح به: نضيف بيانات Ads Manager الفعلية وننتقل إلى إدارة المحتوى والإعلانات والرسائل والتقارير.</span></div>
+<div class="section"><div class="sectionHead"><h3>آخر المعلنين المكتشفين</h3><span id="discoveryCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>المعلن / الصفحة</th><th>المنصة</th><th>المدينة</th><th>القطاع</th><th>إعلان نشط</th><th>الحالة</th></tr></thead><tbody id="discoveryRows"></tbody></table></div></div>
+<div class="section"><div class="sectionHead"><h3>Social Management Pipeline</h3><span id="rowCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>الشركة</th><th>المنصة</th><th>Audit</th><th>Social Health</th><th>Management Need</th><th>الإعلانات</th><th>الخطوة التالية</th></tr></thead><tbody id="socialRows"></tbody></table></div></div></section></main></div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer aria-label="Close">×</button><div id="drawerContent"></div></div></div><div id="toast" class="toast"></div>
+<script type="module" src="./social-dashboard.js"></script><script type="module" src="./assistant-ui.js"></script><script type="module" src="./push-ui.js"></script><script type="module" src="./permissions-ui.js"></script><script type="module" src="./pwa.js"></script>
+</body></html>
