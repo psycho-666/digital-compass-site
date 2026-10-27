@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Digital Compass Control Center",
-  "short_name": "Digital Compass",
-  "description": "Digital Compass business operating system and control center.",
+  "name": "Digital Compass Social Control Center",
+  "short_name": "Digital Compass Social",
+  "description": "Digital Compass social media discovery, audit, management, content, ads, inbox and reporting control center.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./",
@@ -12,13 +12,11 @@
   "background_color": "#100b16",
   "theme_color": "#251834",
   "orientation": "any",
-  "categories": ["business", "productivity"],
-  "icons": [
-    {
-      "src": "../assets/digital-compass-logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
-  ]
+  "categories": ["business", "productivity", "social"],
+  "icons": [{
+    "src": "../assets/digital-compass-logo.svg",
+    "sizes": "any",
+    "type": "image/svg+xml",
+    "purpose": "any"
+  }]
 }
