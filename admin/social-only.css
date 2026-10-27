@@ -1,0 +1,2 @@
+/* Digital Compass is social-only. Keep the shared assistant UI, but remove the retired generic/full-pipeline shortcut from its quick actions. */
+.dcQuick button:last-child{display:none!important}
