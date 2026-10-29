@@ -68,7 +68,7 @@ async function checkViewport(browser,task,width,height,label){
   return {label,url,title:result.title,text_length:result.textLength,scroll_width:result.scrollWidth,client_width:result.clientWidth,errors};
 }
 
-const browser=await chromium.launch({headless:true}); const results=[];
+const browser=await chromium.launch({headless:true}); const results=[]; let completionFailures=0;
 try{
   for(const task of tasks){
     let desktop={label:'desktop',errors:[]},mobile={label:'mobile',errors:[]},errors=[];
@@ -79,13 +79,13 @@ try{
       await bridge({action:'complete_prototype_qa',qa_run_id:task.qa_run_id,site_id:task.site_id,status,desktop_result:desktop,mobile_result:mobile,errors});
       results.push({site_id:task.site_id,slug:task.slug,status,errors:errors.slice(0,8)});
     }catch(e){
-      failures++;
+      completionFailures++;
       results.push({site_id:task.site_id,slug:task.slug,status:'COMPLETION_ERROR',errors:[...errors,String(e).slice(0,500)].slice(0,8)});
       console.error('QA completion failed for site',task.site_id,String(e).slice(0,500));
     }
   }
 }finally{await browser.close()}
-const failures=results.filter(r=>r.status==='FAILED').length;
+const failures=results.filter(r=>r.status==='FAILED').length+completionFailures;
 console.log(JSON.stringify({processed:tasks.length,failures,results}));
 output('processed',tasks.length);output('failures',failures);
 if(failures) throw new Error('One or more prototypes failed browser QA');
