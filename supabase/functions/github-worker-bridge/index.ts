@@ -9,7 +9,7 @@ const JWKS = createRemoteJWKSet(new URL("https://token.actions.githubusercontent
 const PROJECT_URL = Deno.env.get("SUPABASE_URL")!;
 const SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
 const SECRET_KEY = SECRET_KEYS["default"];
-const SITE_BASE = "https://psycho-666.github.io/digital-compass-site/";
+const SITE_BASE = "https://psycho-666.github.io/digital-compass-site/website/";
 
 const SECTOR_DIRECTIONS: Record<string, any> = {
   health:{primary:'#16324F',secondary:'#EAF4F4',accent:'#2A9D8F',bg:'#F8FBFB',text:'#10212E',style:'calm clinical editorial',direction:'Clear trust-first healthcare layout with restrained visual hierarchy, contact-first conversion and evidence-safe service presentation.'},
