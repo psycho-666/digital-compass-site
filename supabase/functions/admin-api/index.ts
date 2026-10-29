@@ -71,6 +71,7 @@ async function leads() {
 async function prototypes() {
   const { data, error } = await db!.from("prototype_sites")
     .select("id,company_id,opportunity_id,prototype_level,slug,generation_status,public_url,generated_at,published_at,version,notes,brand_profile_id,brand_gate_status,visual_approval_status,visual_score,visual_approved_at,visual_approval_notes,quality_standard_version,companies(id,name,country,city,sector),opportunities(id,title,opportunity_type,status,priority)")
+    .neq("generation_status","SUPERSEDED")
     .order("created_at",{ascending:false}).limit(200);
   if (error) throw new Error("prototypes_query_failed");
   return { items:data||[] };
