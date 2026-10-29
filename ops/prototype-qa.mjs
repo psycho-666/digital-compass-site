@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
-const BRIDGE='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge';
+const BRIDGE='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-worker-bridge';
 const TOKEN=process.env.OIDC_TOKEN||'';
 const TASK_FILE=process.env.QA_TASK_FILE||'qa-tasks.json';
 if(!TOKEN) throw new Error('OIDC_TOKEN missing');
