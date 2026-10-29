@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 
-const BRIDGE='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-core-worker-bridge';
+const BRIDGE='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-core-worker-bridge';
 const TOKEN=process.env.OIDC_TOKEN;
 const UA='DigitalCompassAudit/1.0';
 const CTA=['contact us','get a quote','request a quote','book now','call now','whatsapp','تواصل معنا','اتصل بنا','احجز','اطلب الآن','واتساب','احصل على عرض'];
