@@ -9,7 +9,7 @@ const JWKS=createRemoteJWKSet(new URL('https://token.actions.githubusercontent.c
 const PROJECT_URL=Deno.env.get('SUPABASE_URL')!;
 const SECRET_KEYS=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');
 const SECRET_KEY=SECRET_KEYS['default'];
-const RELEASE='2026-07-22.0';
+const RELEASE='2026-10-21.0';
 const SUPPORTED:any={
   'Iraq':{country:'Iraq',country_code:'IQ',bbox:[38.7,29.0,48.8,37.5]},
   'Saudi Arabia':{country:'Saudi Arabia',country_code:'SA',bbox:[34.4,16.3,55.7,32.2]},
@@ -62,6 +62,17 @@ async function recoverStaleCommands(){
   return {ok:true,action:'recover_stale_commands',scanned:rows.length,requeued,failed,dependent_recovery:dependentRecovery};
 }
 
+async function currentOvertureRelease(){
+  try{
+    const response=await fetch('https://stac.overturemaps.org/catalog.json',{headers:{'accept':'application/json'}});
+    if(response.ok){
+      const catalog=await response.json();
+      const release=String(catalog.latest||'').trim();
+      if(/^\\d{4}-\\d{2}-\\d{2}\\.\\d+$/.test(release))return release;
+    }
+  }catch(_){}
+  return RELEASE;
+}
 async function enabledMarkets(){
   const row=await one('app_settings','setting_key=eq.markets&select=setting_value');
   let requested=Array.isArray(row?.setting_value)?row.setting_value.map((x:any)=>ALIASES[String(x).trim()]||String(x).trim()).filter(Boolean):['Iraq'];
@@ -75,9 +86,10 @@ async function claimDiscovery(){
   const requested=Number(command?.payload?.max_per_market||1500);
   const maxPerMarket=Math.min(1500,Math.max(10,Number.isFinite(requested)?requested:1500));
   const markets=await enabledMarkets();
-  const rows=await insert('discovery_runs',{source_name:'overture_places',market:markets.map((x:any)=>x.country).join(', '),status:'RUNNING',started_at:now(),scanned_count:0,inserted_count:0,duplicate_count:0,rejected_count:0,metadata:{release:RELEASE,markets:markets.map((x:any)=>x.country),settings_source:'app_settings.markets',worker:'OIDC_PUBLIC_DISCOVERY_V1',max_per_market:maxPerMarket}})||[];
+  const release=await currentOvertureRelease();
+  const rows=await insert('discovery_runs',{source_name:'overture_places',market:markets.map((x:any)=>x.country).join(', '),status:'RUNNING',started_at:now(),scanned_count:0,inserted_count:0,duplicate_count:0,rejected_count:0,metadata:{release,markets:markets.map((x:any)=>x.country),settings_source:'app_settings.markets',worker:'OIDC_PUBLIC_DISCOVERY_V1',max_per_market:maxPerMarket}})||[];
   const runId=Number(rows[0]?.id||0);if(!runId){await finishCommand(commandId,'DISCOVERY','FAILED',{worker:'OIDC_PUBLIC_DISCOVERY_V1'},'Failed to create discovery run');throw new Error('discovery_run_create_failed')}
-  return {ok:true,action:'claim_discovery',command_id:commandId,task:{run_id:runId,release:RELEASE,markets,max_per_market:maxPerMarket,min_confidence:0.55}};
+  return {ok:true,action:'claim_discovery',command_id:commandId,task:{run_id:runId,release,markets,max_per_market:maxPerMarket,min_confidence:0.55}};
 }
 function cleanCompany(r:any){
   const out:any={};
