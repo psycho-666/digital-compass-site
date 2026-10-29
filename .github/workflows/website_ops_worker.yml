@@ -1,0 +1,187 @@
+name: Digital Compass Website Edition Ops Runner
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/website_ops_worker.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: digital-compass-website-edition-ops
+  cancel-in-progress: false
+
+jobs:
+  website-operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout Website Edition worker code
+        uses: actions/checkout@v4
+        with:
+          ref: website-backend-separation
+          path: website
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install worker dependencies
+        working-directory: website
+        run: |
+          npm install --no-save cheerio@1.0.0 playwright@1.55.0
+          python -m pip install --disable-pip-version-check duckdb requests
+
+      - name: Recover stale Website Edition commands
+        env:
+          CORE_BRIDGE: https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-core-worker-bridge
+        run: |
+          set -euo pipefail
+          TOKEN_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}"
+          if [[ "${TOKEN_URL}" == *"?"* ]]; then TOKEN_URL="${TOKEN_URL}&audience=digital-compass-public-runner"; else TOKEN_URL="${TOKEN_URL}?audience=digital-compass-public-runner"; fi
+          TOKEN_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${TOKEN_URL}")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "${TOKEN_RESPONSE}")"
+          curl --fail-with-body --silent --show-error -X POST "${CORE_BRIDGE}" \
+            -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+            -d '{"action":"recover_stale_commands"}'
+
+      - name: Run public business discovery
+        id: discovery
+        working-directory: website
+        run: python ops/discovery.py
+
+      - name: Run deep website audit
+        id: deep_audit
+        working-directory: website
+        run: node ops/deep-audit.mjs
+
+      - name: Claim prototype research tasks
+        id: claim_research
+        env:
+          WORKER_BRIDGE: https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-worker-bridge
+        run: |
+          set -euo pipefail
+          TOKEN_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}"
+          if [[ "${TOKEN_URL}" == *"?"* ]]; then TOKEN_URL="${TOKEN_URL}&audience=digital-compass-public-runner"; else TOKEN_URL="${TOKEN_URL}?audience=digital-compass-public-runner"; fi
+          TOKEN_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${TOKEN_URL}")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "${TOKEN_RESPONSE}")"
+          curl --fail-with-body --silent --show-error -X POST "${WORKER_BRIDGE}" \
+            -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+            -d '{"action":"claim_prototype_research"}' > website/prototype-research-tasks.json
+          cat website/prototype-research-tasks.json
+          python - <<'PY'
+          import json, os
+          data=json.load(open("website/prototype-research-tasks.json", encoding="utf-8"))
+          tasks=data.get("tasks") or []
+          with open(os.environ["GITHUB_OUTPUT"],"a",encoding="utf-8") as f:
+              f.write(f"has_tasks={'true' if tasks else 'false'}\n")
+              f.write(f"command_id={data.get('command_id') or ''}\n")
+          PY
+
+      - name: Run prototype research
+        id: run_research
+        if: steps.claim_research.outputs.has_tasks == 'true'
+        working-directory: website
+        env:
+          PROTOTYPE_RESEARCH_TASK_FILE: prototype-research-tasks.json
+        run: node ops/prototype-research.mjs
+
+      - name: Finalize prototype research command
+        if: always() && steps.claim_research.outputs.command_id != ''
+        env:
+          WORKER_BRIDGE: https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-worker-bridge
+          COMMAND_ID: ${{ steps.claim_research.outputs.command_id }}
+          HAS_TASKS: ${{ steps.claim_research.outputs.has_tasks }}
+          RESEARCH_OUTCOME: ${{ steps.run_research.outcome }}
+        run: |
+          set -euo pipefail
+          STATUS="SUCCEEDED"
+          if [[ "${HAS_TASKS}" == "true" && "${RESEARCH_OUTCOME}" != "success" ]]; then STATUS="FAILED"; fi
+          TOKEN_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}"
+          if [[ "${TOKEN_URL}" == *"?"* ]]; then TOKEN_URL="${TOKEN_URL}&audience=digital-compass-public-runner"; else TOKEN_URL="${TOKEN_URL}?audience=digital-compass-public-runner"; fi
+          TOKEN_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${TOKEN_URL}")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "${TOKEN_RESPONSE}")"
+          curl --fail-with-body --silent --show-error -X POST "${WORKER_BRIDGE}" \
+            -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+            -d "{\"action\":\"finish_stage_command\",\"command_id\":${COMMAND_ID},\"command_type\":\"PROTOTYPE_RESEARCH\",\"status\":\"${STATUS}\",\"result\":{\"workflow\":\"website_ops_worker\"}}"
+
+      - name: Claim prototype QA tasks
+        id: claim_qa
+        env:
+          WORKER_BRIDGE: https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-worker-bridge
+        run: |
+          set -euo pipefail
+          TOKEN_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}"
+          if [[ "${TOKEN_URL}" == *"?"* ]]; then TOKEN_URL="${TOKEN_URL}&audience=digital-compass-public-runner"; else TOKEN_URL="${TOKEN_URL}?audience=digital-compass-public-runner"; fi
+          TOKEN_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${TOKEN_URL}")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "${TOKEN_RESPONSE}")"
+          curl --fail-with-body --silent --show-error -X POST "${WORKER_BRIDGE}" \
+            -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+            -d '{"action":"claim_prototype_qa"}' > website/qa-tasks.json
+          cat website/qa-tasks.json
+          python - <<'PY'
+          import json, os
+          data=json.load(open("website/qa-tasks.json", encoding="utf-8"))
+          tasks=data.get("tasks") or []
+          with open(os.environ["GITHUB_OUTPUT"],"a",encoding="utf-8") as f:
+              f.write(f"has_tasks={'true' if tasks else 'false'}\n")
+              f.write(f"command_id={data.get('command_id') or ''}\n")
+          PY
+
+      - name: Install Chromium for prototype QA
+        if: steps.claim_qa.outputs.has_tasks == 'true'
+        working-directory: website
+        run: npx playwright install --with-deps chromium
+
+      - name: Run prototype browser QA
+        id: run_qa
+        if: steps.claim_qa.outputs.has_tasks == 'true'
+        working-directory: website
+        env:
+          QA_TASK_FILE: qa-tasks.json
+        run: node ops/prototype-qa.mjs
+
+      - name: Finalize prototype QA command
+        if: always() && steps.claim_qa.outputs.command_id != ''
+        env:
+          WORKER_BRIDGE: https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-worker-bridge
+          COMMAND_ID: ${{ steps.claim_qa.outputs.command_id }}
+          HAS_TASKS: ${{ steps.claim_qa.outputs.has_tasks }}
+          QA_OUTCOME: ${{ steps.run_qa.outcome }}
+        run: |
+          set -euo pipefail
+          STATUS="SUCCEEDED"
+          if [[ "${HAS_TASKS}" == "true" && "${QA_OUTCOME}" != "success" ]]; then STATUS="FAILED"; fi
+          TOKEN_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}"
+          if [[ "${TOKEN_URL}" == *"?"* ]]; then TOKEN_URL="${TOKEN_URL}&audience=digital-compass-public-runner"; else TOKEN_URL="${TOKEN_URL}?audience=digital-compass-public-runner"; fi
+          TOKEN_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${TOKEN_URL}")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "${TOKEN_RESPONSE}")"
+          curl --fail-with-body --silent --show-error -X POST "${WORKER_BRIDGE}" \
+            -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+            -d "{\"action\":\"finish_stage_command\",\"command_id\":${COMMAND_ID},\"command_type\":\"PROTOTYPE_QA\",\"status\":\"${STATUS}\",\"result\":{\"workflow\":\"website_ops_worker\"}}"
+
+      - name: Process queued Website Edition stages
+        if: always()
+        env:
+          CORE_BRIDGE: https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-core-worker-bridge
+        run: |
+          set -euo pipefail
+          TOKEN_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}"
+          if [[ "${TOKEN_URL}" == *"?"* ]]; then TOKEN_URL="${TOKEN_URL}&audience=digital-compass-public-runner"; else TOKEN_URL="${TOKEN_URL}?audience=digital-compass-public-runner"; fi
+          TOKEN_RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${TOKEN_URL}")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "${TOKEN_RESPONSE}")"
+          curl --fail-with-body --silent --show-error -X POST "${CORE_BRIDGE}" \
+            -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+            -d '{"action":"run_queued_stage"}'
