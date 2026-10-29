@@ -171,7 +171,7 @@ async function finishDeepAudit(body:any){
   if(status==='SUCCEEDED'){
     try{
       qualification=await rpc('refresh_qualified_opportunities',{target_date:today()});
-      const requests=await rest('prototype_research_requests?status=eq.QUEUED&select=id&limit=1')||[];
+      const requests=await rest('prototype_research_requests?status=eq.PENDING&select=id&limit=1')||[];
       if(requests.length)researchQueued=await ensureQueuedCommand('PROTOTYPE_RESEARCH',{trigger:'after_qualification',date:today()});
     }catch(e){
       effectiveStatus='FAILED';
@@ -204,7 +204,7 @@ async function runQueuedStage(){
         if(selected.length)output.audit_queued=await ensureQueuedCommand('AUDIT',{trigger:'manual_shortlist_stage',date:today()});
       }
       if(['QUALIFY','BRAND_PREP'].includes(stage.type)){
-        const requests=await rest('prototype_research_requests?status=eq.QUEUED&select=id&limit=1')||[];
+        const requests=await rest('prototype_research_requests?status=eq.PENDING&select=id&limit=1')||[];
         if(requests.length)output.prototype_research_queued=await ensureQueuedCommand('PROTOTYPE_RESEARCH',{trigger:'manual_'+stage.type.toLowerCase(),date:today()});
       }
       if(stage.type==='PROTOTYPES'){
