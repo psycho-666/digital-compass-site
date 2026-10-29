@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { chromium } from "playwright";
 
-const BRIDGE = "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-discovery-bridge";
+const BRIDGE = "https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-social-discovery-bridge";
 const TOKEN = process.env.OIDC_TOKEN;
 const TASK_FILE = process.env.SOCIAL_DISCOVERY_TASK_FILE || "social-discovery-task.json";
 
