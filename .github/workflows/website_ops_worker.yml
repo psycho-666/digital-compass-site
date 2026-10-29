@@ -1,13 +1,8 @@
 name: Digital Compass Website Edition Ops Runner
 
+# Website Edition is deferred; run manually only when explicitly resumed.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/15 * * * *"
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/website_ops_worker.yml"
 
 permissions:
   contents: read
