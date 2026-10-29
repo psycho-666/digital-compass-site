@@ -8,12 +8,25 @@ import duckdb
 import requests
 
 BRIDGE = "https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-core-worker-bridge"
-TOKEN = os.environ["OIDC_TOKEN"]
-HEADERS = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
+def oidc_token():
+    request_url = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_URL", "")
+    request_token = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
+    if request_url and request_token:
+        separator = "&" if "?" in request_url else "?"
+        response = requests.get(f"{request_url}{separator}audience=digital-compass-public-runner", headers={"Authorization": f"bearer {request_token}"}, timeout=20)
+        response.raise_for_status()
+        value = response.json().get("value")
+        if value:
+            return value
+    token = os.environ.get("OIDC_TOKEN", "")
+    if not token:
+        raise RuntimeError("OIDC token unavailable")
+    return token
 
 
 def bridge(action, **payload):
-    response = requests.post(BRIDGE, headers=HEADERS, json={"action": action, **payload}, timeout=90)
+    headers = {"Authorization": f"Bearer {oidc_token()}", "Content-Type": "application/json"}
+    response = requests.post(BRIDGE, headers=headers, json={"action": action, **payload}, timeout=90)
     response.raise_for_status()
     return response.json()
 
