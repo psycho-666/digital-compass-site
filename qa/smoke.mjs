@@ -183,10 +183,10 @@ try{
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(BASE,{waitUntil:'domcontentloaded',timeout:30000});
-    await page.waitForSelector('#dc-method',{timeout:15000});
+    await page.waitForSelector('#services',{timeout:15000});
     await noHorizontalOverflow(page,`Digital Compass/${label}`);
     const before=page.url();
-    await page.locator('a[href="#dc-method"]').click();
+    await page.locator('a[href="#services"]').first().click();
     await page.waitForTimeout(250);
     ok(page.url()===before,`Digital Compass/${label}: internal navigation changed routing hash`);
     await page.getByRole('button',{name:'EN'}).click();
