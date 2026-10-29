@@ -331,3 +331,31 @@ AS $function$
   );
 $function$
 ;
+
+
+CREATE OR REPLACE FUNCTION public.enforce_prototype_publish_qa()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+begin
+  if new.generation_status='PUBLISHED' and (
+      tg_op='INSERT'
+      or old.generation_status is distinct from new.generation_status
+      or old.public_url is distinct from new.public_url
+    ) then
+    if new.id is null or not exists (
+      select 1 from public.prototype_qa_runs q
+      where q.prototype_site_id=new.id and q.status='PASSED'
+    ) then
+      raise exception 'Prototype publication blocked: successful browser QA is required';
+    end if;
+    if new.public_url is null or new.public_url not like 'https://psycho-666.github.io/digital-compass-site/website/#p-%' then
+      raise exception 'Prototype publication blocked: canonical GitHub Pages URL is required';
+    end if;
+  end if;
+  return new;
+end;
+$function$
+;
