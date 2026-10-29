@@ -167,7 +167,7 @@ BEGIN
       o.id AS opportunity_id,
       o.prototype_level,
       cbp.id AS brand_profile_id,
-      'p-' || substr(md5(random()::text || clock_timestamp()::text || o.id::text), 1, 12) AS slug,
+      'p-' || substr(md5(random()::text || clock_timestamp()::text || o.id::text), 1, 24) AS slug,
       coalesce((SELECT max(ps2.version) + 1 FROM public.prototype_sites ps2
                 WHERE ps2.company_id=c.id AND ps2.opportunity_id=o.id), 1) AS next_version
     FROM public.opportunities o
@@ -205,7 +205,7 @@ BEGIN
         SELECT 1 FROM public.prototype_sites ps
         WHERE ps.company_id=c.id AND ps.opportunity_id=o.id
           AND ps.generation_status IN ('QA_PENDING','PUBLISHED')
-          AND ps.brand_gate_status='PASSED'
+          AND ps.brand_gate_status IN ('READY','PROPOSED_ONLY')
       )
   )
   INSERT INTO public.prototype_sites (
