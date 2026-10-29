@@ -4,7 +4,7 @@ const ISSUER = "https://token.actions.githubusercontent.com";
 const AUDIENCE = "digital-compass-public-runner";
 const ALLOWED_REPOSITORY = "psycho-666/digital-compass-site";
 const ALLOWED_REF = "refs/heads/main";
-const ALLOWED_WORKFLOW = "psycho-666/digital-compass-site/.github/workflows/ops_worker.yml@refs/heads/main";
+const ALLOWED_WORKFLOW = "psycho-666/digital-compass-site/.github/workflows/website_ops_worker.yml@refs/heads/main";
 const JWKS = createRemoteJWKSet(new URL("https://token.actions.githubusercontent.com/.well-known/jwks"));
 const PROJECT_URL = Deno.env.get("SUPABASE_URL")!;
 const SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
@@ -77,11 +77,30 @@ async function claimStageCommand(type:string){
   const updated=await patch('automation_commands',`id=eq.${c.id}&status=eq.QUEUED`,{status:'RUNNING',started_at:now(),error_message:null,attempt_count:attempt,lease_expires_at:leaseUntil(),last_heartbeat_at:now()},'return=representation')||[];
   return updated.length?Number(c.id):null;
 }
+async function ensureQueuedCommand(commandType:string,payload:any={}){
+  const pending=await rest(`automation_commands?command_type=eq.${encodeURIComponent(commandType)}&status=in.(QUEUED,RUNNING)&select=id&limit=1`)||[];
+  if(pending.length)return false;
+  await insert('automation_commands',{command_type:commandType,status:'QUEUED',payload,requested_at:now(),attempt_count:0,max_attempts:3});
+  return true;
+}
+
 async function finishStageCommand(id:number,type:string,status:string,result:any,error_message:any=null){
   if(!Number.isInteger(id)||!['SUCCEEDED','FAILED'].includes(status)) throw new Error('invalid_command_completion');
   const rows=await rest(`automation_commands?id=eq.${id}&command_type=eq.${encodeURIComponent(type)}&status=eq.RUNNING&select=id&limit=1`)||[];
   if(!rows.length) throw new Error('command_not_claimed');
-  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:boundedObject(result),error_message:error_message?safeText(error_message,4000):null,lease_expires_at:null,last_heartbeat_at:now()});
+  const finalResult:any={...(result&&typeof result==='object'?result:{})};
+  if(type==='PROTOTYPE_RESEARCH'){
+    const pendingSites=await rest("prototype_sites?generation_status=eq.QA_PENDING&select=id&limit=1")||[];
+    if(pendingSites.length)finalResult.prototype_qa_queued=await ensureQueuedCommand('PROTOTYPE_QA',{trigger:'after_prototype_research'});
+  }
+  if(type==='PROTOTYPE_QA'){
+    try{
+      finalResult.outreach_drafts_refresh=await rpc('refresh_outreach_drafts',{p_date:new Date().toISOString().slice(0,10)});
+    }catch(e){
+      finalResult.outreach_drafts_refresh_error=safeText(String(e),800);
+    }
+  }
+  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:boundedObject(finalResult),error_message:error_message?safeText(error_message,4000):null,lease_expires_at:null,last_heartbeat_at:now()});
 }
 
 function boundedObject(value:unknown){ if(!value||typeof value!=='object') return {}; const raw=JSON.stringify(value); if(raw.length>30000) throw new Error('result_too_large'); return value; }
