@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 
 const TASK_FILE=process.env.PROTOTYPE_RESEARCH_TASK_FILE||'prototype-research-tasks.json';
 const OIDC_TOKEN=process.env.OIDC_TOKEN;
-const BRIDGE='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge';
+const BRIDGE='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-worker-bridge';
 const UA={'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36','accept':'text/html,application/xhtml+xml','accept-language':'ar,en;q=0.9'};
 const SOCIAL_HOSTS=new Set(['facebook.com','www.facebook.com','instagram.com','www.instagram.com','linkedin.com','www.linkedin.com','tiktok.com','www.tiktok.com','youtube.com','www.youtube.com','x.com','twitter.com']);
 
