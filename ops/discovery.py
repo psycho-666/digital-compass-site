@@ -7,13 +7,26 @@ from urllib.parse import urlparse
 import duckdb
 import requests
 
-BRIDGE = "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-core-worker-bridge"
-TOKEN = os.environ["OIDC_TOKEN"]
-HEADERS = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
+BRIDGE = "https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-core-worker-bridge"
+def oidc_token():
+    request_url = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_URL", "")
+    request_token = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
+    if request_url and request_token:
+        separator = "&" if "?" in request_url else "?"
+        response = requests.get(f"{request_url}{separator}audience=digital-compass-public-runner", headers={"Authorization": f"bearer {request_token}"}, timeout=20)
+        response.raise_for_status()
+        value = response.json().get("value")
+        if value:
+            return value
+    token = os.environ.get("OIDC_TOKEN", "")
+    if not token:
+        raise RuntimeError("OIDC token unavailable")
+    return token
 
 
 def bridge(action, **payload):
-    response = requests.post(BRIDGE, headers=HEADERS, json={"action": action, **payload}, timeout=90)
+    headers = {"Authorization": f"Bearer {oidc_token()}", "Content-Type": "application/json"}
+    response = requests.post(BRIDGE, headers=headers, json={"action": action, **payload}, timeout=90)
     response.raise_for_status()
     return response.json()
 
@@ -71,7 +84,9 @@ def query(con, release, market, limit, confidence):
         AND addresses[1].country = '{market['country_code']}'
         AND (confidence IS NULL OR confidence >= {float(confidence)})
         AND (operating_status IS NULL OR operating_status <> 'permanently_closed')
-        AND names.primary IS NOT NULL LIMIT {int(limit)}
+        AND names.primary IS NOT NULL
+      ORDER BY confidence DESC NULLS LAST, names.primary
+      LIMIT {int(limit)}
     """
     cursor = con.execute(sql)
     columns = [d[0] for d in cursor.description]

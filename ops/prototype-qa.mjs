@@ -1,16 +1,27 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
-const BRIDGE='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-worker-bridge';
-const TOKEN=process.env.OIDC_TOKEN||'';
+const BRIDGE='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-worker-bridge';
 const TASK_FILE=process.env.QA_TASK_FILE||'qa-tasks.json';
-if(!TOKEN) throw new Error('OIDC_TOKEN missing');
+if(!process.env.OIDC_TOKEN&&!process.env.ACTIONS_ID_TOKEN_REQUEST_URL) throw new Error('OIDC token unavailable');
 const payload=JSON.parse(fs.readFileSync(TASK_FILE,'utf8'));
 const tasks=Array.isArray(payload.tasks)?payload.tasks:[];
 const output=(name,value)=>{if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,`${name}=${value}\n`)};
 
+async function oidcToken(){
+  const requestUrl=process.env.ACTIONS_ID_TOKEN_REQUEST_URL,requestToken=process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+  if(requestUrl&&requestToken){
+    const u=requestUrl+(requestUrl.includes('?')?'&':'?')+'audience=digital-compass-public-runner';
+    const r=await fetch(u,{headers:{authorization:`bearer ${requestToken}`}});
+    if(!r.ok)throw new Error('oidc_token_request_failed');
+    const d=await r.json();if(d.value)return d.value;
+  }
+  if(process.env.OIDC_TOKEN)return process.env.OIDC_TOKEN;
+  throw new Error('OIDC token unavailable');
+}
 async function bridge(body){
-  const r=await fetch(BRIDGE,{method:'POST',headers:{Authorization:`Bearer ${TOKEN}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const token=await oidcToken();
+  const r=await fetch(BRIDGE,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
   const text=await r.text(); let data={}; try{data=JSON.parse(text)}catch{}
   if(!r.ok) throw new Error(`Bridge HTTP ${r.status}: ${text.slice(0,500)}`);
   return data;
@@ -57,18 +68,24 @@ async function checkViewport(browser,task,width,height,label){
   return {label,url,title:result.title,text_length:result.textLength,scroll_width:result.scrollWidth,client_width:result.clientWidth,errors};
 }
 
-const browser=await chromium.launch({headless:true}); const results=[];
+const browser=await chromium.launch({headless:true}); const results=[]; let completionFailures=0;
 try{
   for(const task of tasks){
     let desktop={label:'desktop',errors:[]},mobile={label:'mobile',errors:[]},errors=[];
     try{desktop=await checkViewport(browser,task,1440,1000,'desktop');mobile=await checkViewport(browser,task,390,844,'mobile');errors=[...desktop.errors,...mobile.errors]}
     catch(e){errors=[String(e).slice(0,1500)];desktop={label:'desktop',errors};mobile={label:'mobile',errors:[]}}
     const status=errors.length?'FAILED':'PASSED';
-    await bridge({action:'complete_prototype_qa',qa_run_id:task.qa_run_id,site_id:task.site_id,status,desktop_result:desktop,mobile_result:mobile,errors});
-    results.push({site_id:task.site_id,slug:task.slug,status,errors:errors.slice(0,8)});
+    try{
+      await bridge({action:'complete_prototype_qa',qa_run_id:task.qa_run_id,site_id:task.site_id,status,desktop_result:desktop,mobile_result:mobile,errors});
+      results.push({site_id:task.site_id,slug:task.slug,status,errors:errors.slice(0,8)});
+    }catch(e){
+      completionFailures++;
+      results.push({site_id:task.site_id,slug:task.slug,status:'COMPLETION_ERROR',errors:[...errors,String(e).slice(0,500)].slice(0,8)});
+      console.error('QA completion failed for site',task.site_id,String(e).slice(0,500));
+    }
   }
 }finally{await browser.close()}
-const failures=results.filter(r=>r.status==='FAILED').length;
+const failures=results.filter(r=>r.status==='FAILED').length+completionFailures;
 console.log(JSON.stringify({processed:tasks.length,failures,results}));
 output('processed',tasks.length);output('failures',failures);
 if(failures) throw new Error('One or more prototypes failed browser QA');

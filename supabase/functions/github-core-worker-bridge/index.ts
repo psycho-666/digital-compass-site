@@ -4,12 +4,12 @@ const ISSUER='https://token.actions.githubusercontent.com';
 const AUDIENCE='digital-compass-public-runner';
 const REPOSITORY='psycho-666/digital-compass-site';
 const REF='refs/heads/main';
-const WORKFLOW='psycho-666/digital-compass-site/.github/workflows/ops_worker.yml@refs/heads/main';
+const WORKFLOW='psycho-666/digital-compass-site/.github/workflows/website_ops_worker.yml@refs/heads/main';
 const JWKS=createRemoteJWKSet(new URL('https://token.actions.githubusercontent.com/.well-known/jwks'));
 const PROJECT_URL=Deno.env.get('SUPABASE_URL')!;
 const SECRET_KEYS=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');
 const SECRET_KEY=SECRET_KEYS['default'];
-const RELEASE='2026-07-22.0';
+const RELEASE='2026-10-21.0';
 const SUPPORTED:any={
   'Iraq':{country:'Iraq',country_code:'IQ',bbox:[38.7,29.0,48.8,37.5]},
   'Saudi Arabia':{country:'Saudi Arabia',country_code:'SA',bbox:[34.4,16.3,55.7,32.2]},
@@ -62,6 +62,17 @@ async function recoverStaleCommands(){
   return {ok:true,action:'recover_stale_commands',scanned:rows.length,requeued,failed,dependent_recovery:dependentRecovery};
 }
 
+async function currentOvertureRelease(){
+  try{
+    const response=await fetch('https://stac.overturemaps.org/catalog.json',{headers:{'accept':'application/json'}});
+    if(response.ok){
+      const catalog=await response.json();
+      const release=String(catalog.latest||'').trim();
+      if(/^\d{4}-\d{2}-\d{2}\.\d+$/.test(release))return release;
+    }
+  }catch(_){}
+  return RELEASE;
+}
 async function enabledMarkets(){
   const row=await one('app_settings','setting_key=eq.markets&select=setting_value');
   let requested=Array.isArray(row?.setting_value)?row.setting_value.map((x:any)=>ALIASES[String(x).trim()]||String(x).trim()).filter(Boolean):['Iraq'];
@@ -71,10 +82,14 @@ async function enabledMarkets(){
 }
 async function claimDiscovery(){
   const commandId=await claimCommand('DISCOVERY');if(!commandId)return {ok:true,action:'claim_discovery',command_id:null,task:null};
+  const command=await one('automation_commands',`id=eq.${commandId}&select=payload`);
+  const requested=Number(command?.payload?.max_per_market||1500);
+  const maxPerMarket=Math.min(1500,Math.max(10,Number.isFinite(requested)?requested:1500));
   const markets=await enabledMarkets();
-  const rows=await insert('discovery_runs',{source_name:'overture_places',market:markets.map((x:any)=>x.country).join(', '),status:'RUNNING',started_at:now(),scanned_count:0,inserted_count:0,duplicate_count:0,rejected_count:0,metadata:{release:RELEASE,markets:markets.map((x:any)=>x.country),settings_source:'app_settings.markets',worker:'OIDC_PUBLIC_DISCOVERY_V1'}})||[];
+  const release=await currentOvertureRelease();
+  const rows=await insert('discovery_runs',{source_name:'overture_places',market:markets.map((x:any)=>x.country).join(', '),status:'RUNNING',started_at:now(),scanned_count:0,inserted_count:0,duplicate_count:0,rejected_count:0,metadata:{release,markets:markets.map((x:any)=>x.country),settings_source:'app_settings.markets',worker:'OIDC_PUBLIC_DISCOVERY_V1',max_per_market:maxPerMarket}})||[];
   const runId=Number(rows[0]?.id||0);if(!runId){await finishCommand(commandId,'DISCOVERY','FAILED',{worker:'OIDC_PUBLIC_DISCOVERY_V1'},'Failed to create discovery run');throw new Error('discovery_run_create_failed')}
-  return {ok:true,action:'claim_discovery',command_id:commandId,task:{run_id:runId,release:RELEASE,markets,max_per_market:1500,min_confidence:0.55}};
+  return {ok:true,action:'claim_discovery',command_id:commandId,task:{run_id:runId,release,markets,max_per_market:maxPerMarket,min_confidence:0.55}};
 }
 function cleanCompany(r:any){
   const out:any={};
@@ -94,12 +109,32 @@ async function submitDiscoveryBatch(body:any){
   await insert('companies',rows,'resolution=merge-duplicates,return=minimal','on_conflict=fingerprint');
   return {ok:true,accepted:rows.length};
 }
+async function ensureQueuedCommand(commandType:string,payload:any={}){
+  const pending=await rest(`automation_commands?command_type=eq.${encodeURIComponent(commandType)}&status=in.(QUEUED,RUNNING)&select=id&limit=1`)||[];
+  if(pending.length)return false;
+  await insert('automation_commands',{command_type:commandType,status:'QUEUED',payload,requested_at:now(),attempt_count:0,max_attempts:3},'return=minimal');
+  return true;
+}
+
 async function finishDiscovery(body:any){
-  const commandId=Number(body.command_id),runId=Number(body.run_id),status=String(body.status||'SUCCEEDED');if(!['SUCCEEDED','FAILED'].includes(status))throw new Error('bad_status');
-  const scanned=Math.max(0,Number(body.scanned||0)),upserted=Math.max(0,Number(body.upserted||0));const meta=bounded(body.metadata||{});
-  await patch('discovery_runs',`id=eq.${runId}&status=eq.RUNNING`,{status,finished_at:now(),scanned_count:scanned,inserted_count:upserted,error_message:body.error_message?text(body.error_message,4000):null,metadata:{...meta,worker:'OIDC_PUBLIC_DISCOVERY_V1'}});
-  await finishCommand(commandId,'DISCOVERY',status,{scanned,upserted,run_id:runId,worker:'OIDC_PUBLIC_DISCOVERY_V1',metadata:meta},body.error_message||null);
-  return {ok:true,status,scanned,upserted,run_id:runId};
+  const commandId=Number(body.command_id),runId=Number(body.run_id),status=String(body.status||'SUCCEEDED');
+  if(!['SUCCEEDED','FAILED'].includes(status))throw new Error('bad_status');
+  const scanned=Math.max(0,Number(body.scanned||0)),upserted=Math.max(0,Number(body.upserted||0));
+  const meta=bounded(body.metadata||{});
+  let effectiveStatus=status, shortlistRefresh:any=null, auditQueued=false, pipelineError:string|null=null;
+  if(status==='SUCCEEDED'){
+    try{
+      shortlistRefresh=await rpc('refresh_daily_shortlist',{p_date:today()});
+      const selected=await rest(`lead_shortlists?shortlist_date=eq.${today()}&status=eq.SELECTED&select=id&limit=1`)||[];
+      if(selected.length)auditQueued=await ensureQueuedCommand('AUDIT',{trigger:'after_discovery',date:today()});
+    }catch(e){
+      effectiveStatus='FAILED';
+      pipelineError=String(e).slice(0,1200);
+    }
+  }
+  await patch('discovery_runs',`id=eq.${runId}&status=eq.RUNNING`,{status:effectiveStatus,finished_at:now(),scanned_count:scanned,inserted_count:upserted,error_message:pipelineError||(body.error_message?text(body.error_message,4000):null),metadata:{...meta,worker:'OIDC_PUBLIC_DISCOVERY_V1',shortlist_refresh:shortlistRefresh,audit_queued:auditQueued}});
+  await finishCommand(commandId,'DISCOVERY',effectiveStatus,{scanned,upserted,run_id:runId,worker:'OIDC_PUBLIC_DISCOVERY_V1',metadata:meta,shortlist_refresh:shortlistRefresh,audit_queued:auditQueued},pipelineError||body.error_message||null);
+  return {ok:true,status:effectiveStatus,scanned,upserted,run_id:runId,shortlist_refresh:shortlistRefresh,audit_queued:auditQueued};
 }
 
 async function claimDeepAudit(){
@@ -129,9 +164,62 @@ async function completeDeepAudit(body:any){
   return {ok:true,company_id:a.company_id,status:a.status,audit_score:a.audit_score??null};
 }
 async function finishDeepAudit(body:any){
-  const commandId=Number(body.command_id),status=String(body.status||'SUCCEEDED');if(!['SUCCEEDED','FAILED'].includes(status))throw new Error('bad_status');
-  const result={processed:Math.max(0,Number(body.processed||0)),completed:Math.max(0,Number(body.completed||0)),non_completed:Math.max(0,Number(body.non_completed||0)),failures:Math.max(0,Number(body.failures||0)),worker:'OIDC_PUBLIC_DEEP_AUDIT_V1'};
-  await finishCommand(commandId,'AUDIT',status,result,body.error_message||null);return {ok:true,status,...result};
+  const commandId=Number(body.command_id),status=String(body.status||'SUCCEEDED');
+  if(!['SUCCEEDED','FAILED'].includes(status))throw new Error('bad_status');
+  const result:any={processed:Math.max(0,Number(body.processed||0)),completed:Math.max(0,Number(body.completed||0)),non_completed:Math.max(0,Number(body.non_completed||0)),failures:Math.max(0,Number(body.failures||0)),worker:'OIDC_PUBLIC_DEEP_AUDIT_V1'};
+  let effectiveStatus=status, qualification:any=null, researchQueued=false, pipelineError:string|null=null;
+  if(status==='SUCCEEDED'){
+    try{
+      qualification=await rpc('refresh_qualified_opportunities',{target_date:today()});
+      const requests=await rest('prototype_research_requests?status=eq.PENDING&select=id&limit=1')||[];
+      if(requests.length)researchQueued=await ensureQueuedCommand('PROTOTYPE_RESEARCH',{trigger:'after_qualification',date:today()});
+    }catch(e){
+      effectiveStatus='FAILED';
+      pipelineError=String(e).slice(0,1200);
+    }
+  }
+  result.qualification_refresh=qualification;
+  result.prototype_research_queued=researchQueued;
+  await finishCommand(commandId,'AUDIT',effectiveStatus,result,pipelineError||body.error_message||null);
+  return {ok:true,status:effectiveStatus,...result};
+}
+
+async function runQueuedStage(){
+  const stages=[
+    {type:'SHORTLIST',calls:[['refresh_daily_shortlist',{p_date:today()}]]},
+    {type:'QUALIFY',calls:[['refresh_qualified_opportunities',{target_date:today()}]]},
+    {type:'BRAND_PREP',calls:[['prepare_brand_inference',{p_date:today()}],['refresh_prototype_brand_gate',{p_date:today()}]]},
+    {type:'PROTOTYPES',calls:[['refresh_prototype_sites',{}]]},
+    {type:'OUTREACH_DRAFTS',calls:[['refresh_outreach_drafts',{p_date:today()}]]}
+  ];
+  const results:any[]=[];
+  for(const stage of stages){
+    const commandId=await claimCommand(stage.type);
+    if(!commandId)continue;
+    try{
+      const output:any={};
+      for(const [fn,args] of stage.calls)output[fn]=await rpc(fn,args);
+      if(stage.type==='SHORTLIST'){
+        const selected=await rest(`lead_shortlists?shortlist_date=eq.${today()}&status=eq.SELECTED&select=id&limit=1`)||[];
+        if(selected.length)output.audit_queued=await ensureQueuedCommand('AUDIT',{trigger:'manual_shortlist_stage',date:today()});
+      }
+      if(['QUALIFY','BRAND_PREP'].includes(stage.type)){
+        const requests=await rest('prototype_research_requests?status=eq.PENDING&select=id&limit=1')||[];
+        if(requests.length)output.prototype_research_queued=await ensureQueuedCommand('PROTOTYPE_RESEARCH',{trigger:'manual_'+stage.type.toLowerCase(),date:today()});
+      }
+      if(stage.type==='PROTOTYPES'){
+        const queued=await rest('prototype_sites?generation_status=eq.QA_PENDING&select=id&limit=1')||[];
+        if(queued.length)output.prototype_qa_queued=await ensureQueuedCommand('PROTOTYPE_QA',{trigger:'manual_prototype_stage',date:today()});
+      }
+      await finishCommand(commandId,stage.type,'SUCCEEDED',output,null);
+      results.push({command_type:stage.type,status:'SUCCEEDED',output});
+    }catch(e){
+      const error=String(e).slice(0,1200);
+      await finishCommand(commandId,stage.type,'FAILED',{worker:'WEBSITE_STAGE_RUNNER'},error);
+      results.push({command_type:stage.type,status:'FAILED',error});
+    }
+  }
+  return {ok:true,processed:results.length,results};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -139,6 +227,7 @@ Deno.serve(async(req:Request)=>{
   try{const identity=await auth(req);const body=await req.json().catch(()=>({}));const action=String(body.action||'');
     if(action==='probe')return json({ok:true,repository:identity.repository,run_id:identity.run_id});
     if(action==='recover_stale_commands')return json(await recoverStaleCommands());
+    if(action==='run_queued_stage')return json(await runQueuedStage());
     if(action==='claim_discovery')return json(await claimDiscovery());
     if(action==='submit_discovery_batch')return json(await submitDiscoveryBatch(body));
     if(action==='finish_discovery')return json(await finishDiscovery(body));

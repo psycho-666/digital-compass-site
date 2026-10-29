@@ -4,12 +4,12 @@ const ISSUER = "https://token.actions.githubusercontent.com";
 const AUDIENCE = "digital-compass-public-runner";
 const ALLOWED_REPOSITORY = "psycho-666/digital-compass-site";
 const ALLOWED_REF = "refs/heads/main";
-const ALLOWED_WORKFLOW = "psycho-666/digital-compass-site/.github/workflows/ops_worker.yml@refs/heads/main";
+const ALLOWED_WORKFLOW = "psycho-666/digital-compass-site/.github/workflows/website_ops_worker.yml@refs/heads/main";
 const JWKS = createRemoteJWKSet(new URL("https://token.actions.githubusercontent.com/.well-known/jwks"));
 const PROJECT_URL = Deno.env.get("SUPABASE_URL")!;
 const SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
 const SECRET_KEY = SECRET_KEYS["default"];
-const SITE_BASE = "https://psycho-666.github.io/digital-compass-site/";
+const SITE_BASE = "https://psycho-666.github.io/digital-compass-site/website/";
 
 const SECTOR_DIRECTIONS: Record<string, any> = {
   health:{primary:'#16324F',secondary:'#EAF4F4',accent:'#2A9D8F',bg:'#F8FBFB',text:'#10212E',style:'calm clinical editorial',direction:'Clear trust-first healthcare layout with restrained visual hierarchy, contact-first conversion and evidence-safe service presentation.'},
@@ -77,13 +77,36 @@ async function claimStageCommand(type:string){
   const updated=await patch('automation_commands',`id=eq.${c.id}&status=eq.QUEUED`,{status:'RUNNING',started_at:now(),error_message:null,attempt_count:attempt,lease_expires_at:leaseUntil(),last_heartbeat_at:now()},'return=representation')||[];
   return updated.length?Number(c.id):null;
 }
+async function ensureQueuedCommand(commandType:string,payload:any={}){
+  const pending=await rest(`automation_commands?command_type=eq.${encodeURIComponent(commandType)}&status=in.(QUEUED,RUNNING)&select=id&limit=1`)||[];
+  if(pending.length)return false;
+  await insert('automation_commands',{command_type:commandType,status:'QUEUED',payload,requested_at:now(),attempt_count:0,max_attempts:3});
+  return true;
+}
+
 async function finishStageCommand(id:number,type:string,status:string,result:any,error_message:any=null){
   if(!Number.isInteger(id)||!['SUCCEEDED','FAILED'].includes(status)) throw new Error('invalid_command_completion');
   const rows=await rest(`automation_commands?id=eq.${id}&command_type=eq.${encodeURIComponent(type)}&status=eq.RUNNING&select=id&limit=1`)||[];
   if(!rows.length) throw new Error('command_not_claimed');
-  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:boundedObject(result),error_message:error_message?safeText(error_message,4000):null,lease_expires_at:null,last_heartbeat_at:now()});
+  const finalResult:any={...(result&&typeof result==='object'?result:{})};
+  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:boundedObject(finalResult),error_message:error_message?safeText(error_message,4000):null,lease_expires_at:null,last_heartbeat_at:now()});
+  if(type==='PROTOTYPE_RESEARCH'){
+    const pendingRequests=await rest("prototype_research_requests?status=eq.PENDING&select=id&limit=1")||[];
+    if(pendingRequests.length)finalResult.prototype_research_requeued=await ensureQueuedCommand('PROTOTYPE_RESEARCH',{trigger:'continue_pending_research'});
+    const pendingSites=await rest("prototype_sites?generation_status=eq.QA_PENDING&select=id&limit=1")||[];
+    if(pendingSites.length)finalResult.prototype_qa_queued=await ensureQueuedCommand('PROTOTYPE_QA',{trigger:'after_prototype_research'});
+  }
+  if(type==='PROTOTYPE_QA'){
+    try{
+      finalResult.outreach_drafts_refresh=await rpc('refresh_outreach_drafts',{p_date:new Date().toISOString().slice(0,10)});
+    }catch(e){
+      finalResult.outreach_drafts_refresh_error=safeText(String(e),800);
+    }
+    const pendingSites=await rest("prototype_sites?generation_status=eq.QA_PENDING&select=id&limit=1")||[];
+    if(pendingSites.length)finalResult.prototype_qa_requeued=await ensureQueuedCommand('PROTOTYPE_QA',{trigger:'continue_pending_qa'});
+  }
+  await patch('automation_commands',`id=eq.${id}`,{result:boundedObject(finalResult)});
 }
-
 function boundedObject(value:unknown){ if(!value||typeof value!=='object') return {}; const raw=JSON.stringify(value); if(raw.length>30000) throw new Error('result_too_large'); return value; }
 
 async function claimPrototypeQa(identity:any){
@@ -122,7 +145,7 @@ async function completePrototypeQa(body:any){
 async function claimPrototypeResearch(){
   const commandId=await claimStageCommand('PROTOTYPE_RESEARCH');
   if(!commandId) return {ok:true,action:'claim_prototype_research',tasks:[],command_id:null};
-  const reqs=await rpc('claim_prototype_research_requests',{p_limit:3})||[];
+  const reqs=await rpc('claim_prototype_research_requests',{p_limit:10})||[];
   const tasks=[];
   for(const req of reqs){
     const company=await one('companies',`id=eq.${req.company_id}&select=*`); const opportunity=await one('opportunities',`id=eq.${req.opportunity_id}&select=*`);
@@ -152,7 +175,7 @@ async function completePrototypeResearch(body:any){
   const req=await one('prototype_research_requests',`id=eq.${requestId}&status=eq.RUNNING&select=*`); if(!req) throw new Error('research_request_not_claimed');
   const company=await one('companies',`id=eq.${req.company_id}&select=*`); const opp=await one('opportunities',`id=eq.${req.opportunity_id}&select=*`); if(!company||!opp) throw new Error('company_or_opportunity_missing');
   const score=Math.max(0,Math.min(100,Number(body.validation_score||0))); const required=opp.prototype_level==='PROTOTYPE'?3:2; const sources=uniq((Array.isArray(body.sources)?body.sources:[]).map(safeUrl).filter(Boolean)).slice(0,8); const refs=sanitizeRefs(body.references); const mode=SECTOR_DIRECTIONS[String(body.mode||'')]?String(body.mode):sectorMode(company.sector);
-  if(body.error || score<required || refs.length<2){ const reason=safeText(body.error || (score<required?'Insufficient public evidence for safe client-facing prototype generation.':'Fewer than two usable design references were found; publication is blocked by the reference gate.'),1200); await patch('prototype_research_requests',`id=eq.${requestId}`,{status:'PARTIAL',completed_at:now(),updated_at:now(),result:{validation_score:score,required,mode,sources,references:refs.map((r:any)=>r.url)},error_message:reason}); return {ok:true,status:'PARTIAL',request_id:requestId,error:reason}; }
+  if(body.error || score<required || refs.length<required){ const reason=safeText(body.error || (score<required?'Insufficient public evidence for safe client-facing prototype generation.':'Fewer than '+required+' usable design references were found; publication is blocked by the reference gate.'),1200); await patch('prototype_research_requests',`id=eq.${requestId}`,{status:'PARTIAL',completed_at:now(),updated_at:now(),result:{validation_score:score,required,mode,sources,references:refs.map((r:any)=>r.url)},error_message:reason}); return {ok:true,status:'PARTIAL',request_id:requestId,error:reason}; }
   const summaryAr=`${company.name} — نشاط مُدرج علنًا ضمن قطاع ${company.sector||'business'} في ${company.country||''}.`; const summaryEn=`${company.name} — a publicly listed ${String(company.sector||'business').replaceAll('_',' ')} business in ${company.country||''}.`;
   const address=[company.city,company.country].filter(Boolean).join(' / ');
   const context={company_id:company.id,opportunity_id:opp.id,validated_summary:JSON.stringify({ar:summaryAr,en:summaryEn}),services:[],address_text:JSON.stringify({ar:address,en:address}),contact_phone:company.phone||null,contact_email:company.general_email||null,instagram_url:company.instagram_url||null,facebook_url:company.facebook_url||null,source_urls:sources,validation_status:'VALIDATED',validated_at:now(),updated_at:now()};

@@ -29,24 +29,35 @@
 
   <section id="finishStep" class="step hidden">
     <p class="ok">✓ تم التحقق من البريد بنجاح.</p>
-    <label for="password">كلمة مرور جديدة</label>
-    <input id="password" type="password" minlength="12" autocomplete="new-password" placeholder="12 حرفًا على الأقل">
-    <label for="confirmPassword">تأكيد كلمة المرور</label>
-    <input id="confirmPassword" type="password" minlength="12" autocomplete="new-password">
-    <button id="finish" type="button">إنشاء حساب المالك والدخول</button>
+    <p>سنفعّل حساب المالك أولاً، ثم نكمل إعداد اسم المستخدم وكلمة المرور في الخطوة التالية.</p>
+    <button id="finish" type="button">تفعيل حساب المالك والمتابعة</button>
   </section>
   <div id="message" class="msg"></div>
 </main>
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-const PROJECT_URL='https://xnoalyxxrjyovivdeojo.supabase.co';
-const PUBLISHABLE_KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../assets/supabase-config.js';
+const PROJECT_URL=SUPABASE_URL;
+const PUBLISHABLE_KEY=SUPABASE_PUBLISHABLE_KEY;
 const BOOTSTRAP=`${PROJECT_URL}/functions/v1/admin-bootstrap`;
 const supabase=createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=s=>document.querySelector(s);const msg=(t,c='')=>{$('#message').textContent=t;$('#message').className='msg '+c};
 async function refresh(){const {data}=await supabase.auth.getSession();const session=data.session;if(session){$('#requestStep').classList.add('hidden');$('#finishStep').classList.remove('hidden');msg(`تم التحقق من ${session.user.email}`,'ok')}else{$('#requestStep').classList.remove('hidden');$('#finishStep').classList.add('hidden')}}
 $('#sendLink').onclick=async()=>{const email=$('#email').value.trim();if(!/^\S+@\S+\.\S+$/.test(email)){msg('أدخل بريدًا صحيحًا.','bad');return}const b=$('#sendLink');b.disabled=true;msg('جاري إرسال رابط التحقق…');try{const redirect=`${location.origin}${location.pathname}`;const {error}=await supabase.auth.signInWithOtp({email,options:{emailRedirectTo:redirect,shouldCreateUser:true}});if(error)throw error;msg('تم إرسال رابط التحقق. افتح بريدك واضغط الرابط.','ok')}catch(e){msg('تعذر إرسال رابط التحقق الآن. حاول مرة أخرى.','bad')}finally{b.disabled=false}};
-$('#finish').onclick=async()=>{const p=$('#password').value,c=$('#confirmPassword').value;if(p.length<12){msg('كلمة المرور يجب أن تكون 12 حرفًا على الأقل.','bad');return}if(p!==c){msg('كلمتا المرور غير متطابقتين.','bad');return}const {data}=await supabase.auth.getSession();const session=data.session;if(!session){msg('جلسة التحقق غير موجودة. أرسل رابط تحقق جديد.','bad');await refresh();return}const b=$('#finish');b.disabled=true;msg('جاري إنشاء حساب المالك…');try{const r=await fetch(BOOTSTRAP,{method:'POST',headers:{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({action:'finalize_owner',password:p})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`HTTP_${r.status}`);msg('تم إنشاء حساب المالك. جاري فتح Control Center…','ok');setTimeout(()=>location.replace('./'),900)}catch(e){const m={already_initialized:'تم إعداد حساب المالك مسبقًا. استخدم تسجيل الدخول.',email_not_authorized:'هذا البريد غير مخول كمالك.',invalid_input:'كلمة المرور غير صالحة.',session_invalid:'جلسة التحقق غير صالحة أو انتهت.'};msg(m[e.message]||'تعذر إكمال إنشاء الحساب.','bad')}finally{b.disabled=false}};
+$('#finish').onclick=async()=>{
+  const {data}=await supabase.auth.getSession();const session=data.session;
+  if(!session){msg('جلسة التحقق غير موجودة. أرسل رابط تحقق جديد.','bad');await refresh();return}
+  const b=$('#finish');b.disabled=true;msg('جاري تفعيل حساب المالك…');
+  try{
+    const r=await fetch(BOOTSTRAP,{method:'POST',headers:{apikey:PUBLISHABLE_KEY,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({action:'finalize_owner'})});
+    const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`HTTP_${r.status}`);
+    msg('تم تفعيل حساب المالك. ننتقل لإعداد اسم المستخدم وكلمة المرور…','ok');
+    setTimeout(()=>location.replace('./credentials.html'),900);
+  }catch(e){
+    const m={already_initialized:'تم إعداد حساب المالك مسبقًا. انتقل لإعداد بيانات الدخول.',email_not_authorized:'هذا البريد غير مخول كمالك.',email_not_verified:'لازم تتحقق من البريد أولاً.',session_invalid:'جلسة التحقق غير صالحة أو انتهت.'};
+    msg(m[e.message]||'تعذر إكمال تفعيل حساب المالك.','bad');
+  }finally{b.disabled=false}
+};
 await refresh();supabase.auth.onAuthStateChange(()=>refresh());
 </script>
 </body>

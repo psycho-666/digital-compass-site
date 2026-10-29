@@ -1,7 +1,8 @@
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../assets/supabase-config.js';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const PROJECT_URL='https://xnoalyxxrjyovivdeojo.supabase.co';
-const PUBLISHABLE_KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
+const PROJECT_URL=SUPABASE_URL;
+const PUBLISHABLE_KEY=SUPABASE_PUBLISHABLE_KEY;
 const EDGE=`${PROJECT_URL}/functions/v1/admin-browser-api`;
 const supabase=createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=s=>document.querySelector(s);
