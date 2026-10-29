@@ -75,8 +75,14 @@ try{
     try{desktop=await checkViewport(browser,task,1440,1000,'desktop');mobile=await checkViewport(browser,task,390,844,'mobile');errors=[...desktop.errors,...mobile.errors]}
     catch(e){errors=[String(e).slice(0,1500)];desktop={label:'desktop',errors};mobile={label:'mobile',errors:[]}}
     const status=errors.length?'FAILED':'PASSED';
-    await bridge({action:'complete_prototype_qa',qa_run_id:task.qa_run_id,site_id:task.site_id,status,desktop_result:desktop,mobile_result:mobile,errors});
-    results.push({site_id:task.site_id,slug:task.slug,status,errors:errors.slice(0,8)});
+    try{
+      await bridge({action:'complete_prototype_qa',qa_run_id:task.qa_run_id,site_id:task.site_id,status,desktop_result:desktop,mobile_result:mobile,errors});
+      results.push({site_id:task.site_id,slug:task.slug,status,errors:errors.slice(0,8)});
+    }catch(e){
+      failures++;
+      results.push({site_id:task.site_id,slug:task.slug,status:'COMPLETION_ERROR',errors:[...errors,String(e).slice(0,500)].slice(0,8)});
+      console.error('QA completion failed for site',task.site_id,String(e).slice(0,500));
+    }
   }
 }finally{await browser.close()}
 const failures=results.filter(r=>r.status==='FAILED').length;
