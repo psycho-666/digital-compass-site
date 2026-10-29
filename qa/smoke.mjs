@@ -171,10 +171,8 @@ async function auditSocialAuthGate(browser,viewport,label){
 
 const browser=await chromium.launch({headless:true});
 try{
-  for(const tc of cases){
-    await auditPrototype(browser,tc,{width:1440,height:1000},'desktop');
-    await auditPrototype(browser,tc,{width:390,height:844},'mobile');
-  }
+  // Website Edition prototype checks are intentionally paused while that edition is deferred.
+  // Social Edition smoke checks below remain active.
 
   for(const [label,viewport] of [
     ['desktop',{width:1440,height:1000}],
