@@ -89,7 +89,10 @@ async function finishStageCommand(id:number,type:string,status:string,result:any
   const rows=await rest(`automation_commands?id=eq.${id}&command_type=eq.${encodeURIComponent(type)}&status=eq.RUNNING&select=id&limit=1`)||[];
   if(!rows.length) throw new Error('command_not_claimed');
   const finalResult:any={...(result&&typeof result==='object'?result:{})};
+  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:boundedObject(finalResult),error_message:error_message?safeText(error_message,4000):null,lease_expires_at:null,last_heartbeat_at:now()});
   if(type==='PROTOTYPE_RESEARCH'){
+    const pendingRequests=await rest("prototype_research_requests?status=eq.PENDING&select=id&limit=1")||[];
+    if(pendingRequests.length)finalResult.prototype_research_requeued=await ensureQueuedCommand('PROTOTYPE_RESEARCH',{trigger:'continue_pending_research'});
     const pendingSites=await rest("prototype_sites?generation_status=eq.QA_PENDING&select=id&limit=1")||[];
     if(pendingSites.length)finalResult.prototype_qa_queued=await ensureQueuedCommand('PROTOTYPE_QA',{trigger:'after_prototype_research'});
   }
@@ -99,10 +102,11 @@ async function finishStageCommand(id:number,type:string,status:string,result:any
     }catch(e){
       finalResult.outreach_drafts_refresh_error=safeText(String(e),800);
     }
+    const pendingSites=await rest("prototype_sites?generation_status=eq.QA_PENDING&select=id&limit=1")||[];
+    if(pendingSites.length)finalResult.prototype_qa_requeued=await ensureQueuedCommand('PROTOTYPE_QA',{trigger:'continue_pending_qa'});
   }
-  await patch('automation_commands',`id=eq.${id}`,{status,completed_at:now(),result:boundedObject(finalResult),error_message:error_message?safeText(error_message,4000):null,lease_expires_at:null,last_heartbeat_at:now()});
+  await patch('automation_commands',`id=eq.${id}`,{result:boundedObject(finalResult)});
 }
-
 function boundedObject(value:unknown){ if(!value||typeof value!=='object') return {}; const raw=JSON.stringify(value); if(raw.length>30000) throw new Error('result_too_large'); return value; }
 
 async function claimPrototypeQa(identity:any){
