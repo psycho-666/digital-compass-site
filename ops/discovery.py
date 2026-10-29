@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import duckdb
 import requests
 
-BRIDGE = "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-core-worker-bridge"
+BRIDGE = "https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-core-worker-bridge"
 TOKEN = os.environ["OIDC_TOKEN"]
 HEADERS = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
 
