@@ -141,7 +141,7 @@ async function completePrototypeQa(body:any){
 async function claimPrototypeResearch(){
   const commandId=await claimStageCommand('PROTOTYPE_RESEARCH');
   if(!commandId) return {ok:true,action:'claim_prototype_research',tasks:[],command_id:null};
-  const reqs=await rpc('claim_prototype_research_requests',{p_limit:3})||[];
+  const reqs=await rpc('claim_prototype_research_requests',{p_limit:10})||[];
   const tasks=[];
   for(const req of reqs){
     const company=await one('companies',`id=eq.${req.company_id}&select=*`); const opportunity=await one('opportunities',`id=eq.${req.opportunity_id}&select=*`);
@@ -171,7 +171,7 @@ async function completePrototypeResearch(body:any){
   const req=await one('prototype_research_requests',`id=eq.${requestId}&status=eq.RUNNING&select=*`); if(!req) throw new Error('research_request_not_claimed');
   const company=await one('companies',`id=eq.${req.company_id}&select=*`); const opp=await one('opportunities',`id=eq.${req.opportunity_id}&select=*`); if(!company||!opp) throw new Error('company_or_opportunity_missing');
   const score=Math.max(0,Math.min(100,Number(body.validation_score||0))); const required=opp.prototype_level==='PROTOTYPE'?3:2; const sources=uniq((Array.isArray(body.sources)?body.sources:[]).map(safeUrl).filter(Boolean)).slice(0,8); const refs=sanitizeRefs(body.references); const mode=SECTOR_DIRECTIONS[String(body.mode||'')]?String(body.mode):sectorMode(company.sector);
-  if(body.error || score<required || refs.length<2){ const reason=safeText(body.error || (score<required?'Insufficient public evidence for safe client-facing prototype generation.':'Fewer than two usable design references were found; publication is blocked by the reference gate.'),1200); await patch('prototype_research_requests',`id=eq.${requestId}`,{status:'PARTIAL',completed_at:now(),updated_at:now(),result:{validation_score:score,required,mode,sources,references:refs.map((r:any)=>r.url)},error_message:reason}); return {ok:true,status:'PARTIAL',request_id:requestId,error:reason}; }
+  if(body.error || score<required || refs.length<required){ const reason=safeText(body.error || (score<required?'Insufficient public evidence for safe client-facing prototype generation.':'Fewer than '+required+' usable design references were found; publication is blocked by the reference gate.'),1200); await patch('prototype_research_requests',`id=eq.${requestId}`,{status:'PARTIAL',completed_at:now(),updated_at:now(),result:{validation_score:score,required,mode,sources,references:refs.map((r:any)=>r.url)},error_message:reason}); return {ok:true,status:'PARTIAL',request_id:requestId,error:reason}; }
   const summaryAr=`${company.name} — نشاط مُدرج علنًا ضمن قطاع ${company.sector||'business'} في ${company.country||''}.`; const summaryEn=`${company.name} — a publicly listed ${String(company.sector||'business').replaceAll('_',' ')} business in ${company.country||''}.`;
   const address=[company.city,company.country].filter(Boolean).join(' / ');
   const context={company_id:company.id,opportunity_id:opp.id,validated_summary:JSON.stringify({ar:summaryAr,en:summaryEn}),services:[],address_text:JSON.stringify({ar:address,en:address}),contact_phone:company.phone||null,contact_email:company.general_email||null,instagram_url:company.instagram_url||null,facebook_url:company.facebook_url||null,source_urls:sources,validation_status:'VALIDATED',validated_at:now(),updated_at:now()};
