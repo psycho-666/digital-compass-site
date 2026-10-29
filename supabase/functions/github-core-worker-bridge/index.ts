@@ -71,10 +71,13 @@ async function enabledMarkets(){
 }
 async function claimDiscovery(){
   const commandId=await claimCommand('DISCOVERY');if(!commandId)return {ok:true,action:'claim_discovery',command_id:null,task:null};
+  const command=await one('automation_commands',`id=eq.${commandId}&select=payload`);
+  const requested=Number(command?.payload?.max_per_market||1500);
+  const maxPerMarket=Math.min(1500,Math.max(10,Number.isFinite(requested)?requested:1500));
   const markets=await enabledMarkets();
-  const rows=await insert('discovery_runs',{source_name:'overture_places',market:markets.map((x:any)=>x.country).join(', '),status:'RUNNING',started_at:now(),scanned_count:0,inserted_count:0,duplicate_count:0,rejected_count:0,metadata:{release:RELEASE,markets:markets.map((x:any)=>x.country),settings_source:'app_settings.markets',worker:'OIDC_PUBLIC_DISCOVERY_V1'}})||[];
+  const rows=await insert('discovery_runs',{source_name:'overture_places',market:markets.map((x:any)=>x.country).join(', '),status:'RUNNING',started_at:now(),scanned_count:0,inserted_count:0,duplicate_count:0,rejected_count:0,metadata:{release:RELEASE,markets:markets.map((x:any)=>x.country),settings_source:'app_settings.markets',worker:'OIDC_PUBLIC_DISCOVERY_V1',max_per_market:maxPerMarket}})||[];
   const runId=Number(rows[0]?.id||0);if(!runId){await finishCommand(commandId,'DISCOVERY','FAILED',{worker:'OIDC_PUBLIC_DISCOVERY_V1'},'Failed to create discovery run');throw new Error('discovery_run_create_failed')}
-  return {ok:true,action:'claim_discovery',command_id:commandId,task:{run_id:runId,release:RELEASE,markets,max_per_market:1500,min_confidence:0.55}};
+  return {ok:true,action:'claim_discovery',command_id:commandId,task:{run_id:runId,release:RELEASE,markets,max_per_market:maxPerMarket,min_confidence:0.55}};
 }
 function cleanCompany(r:any){
   const out:any={};
