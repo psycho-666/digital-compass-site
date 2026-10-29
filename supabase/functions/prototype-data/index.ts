@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
     .select("id,company_id,opportunity_id,prototype_level,slug,generation_status,brand_gate_status,brand_profile_id")
     .eq("slug", slug)
     .in("generation_status", ["QA_PENDING", "PUBLISHED"])
-    .eq("brand_gate_status", "PASSED")
+    .in("brand_gate_status", ["READY", "PROPOSED_ONLY"])
     .maybeSingle();
   if (siteError || !site) return json({ error: "preview_not_found" }, 404);
 
