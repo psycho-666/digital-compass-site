@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "Digital Compass Control Center",
+  "short_name": "Digital Compass",
+  "description": "Digital Compass business operating system and control center.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#100b16",
+  "theme_color": "#251834",
+  "orientation": "any",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "../assets/digital-compass-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

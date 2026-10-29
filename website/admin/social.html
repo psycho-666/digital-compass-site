@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#251834">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Digital Compass">
+<title>Digital Compass — Iraq Social Management</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="../assets/digital-compass-logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/digital-compass-logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./admin.css">
+<link rel="stylesheet" href="./admin-extra.css">
+<link rel="stylesheet" href="./social.css">
+<link rel="stylesheet" href="./assistant-ui.css">
+<link rel="stylesheet" href="./pwa.css">
+</head>
+<body>
+<div id="socialApp" class="appView hidden">
+  <aside class="sidebar">
+    <div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>CONTROL CENTER</span></div>
+    <nav>
+      <a class="navItem" href="./"><b>01</b><span>نظرة عامة</span></a>
+      <a class="navItem" href="./?view=leads"><b>02</b><span>الفرص والعملاء</span></a>
+      <a class="navItem active" href="./social.html"><b>03</b><span>السوشيال — العراق</span></a>
+      <a class="navItem" href="./social-management.html"><b>04</b><span>إدارة حسابات العملاء</span></a>
+      <a class="navItem" href="./?view=prototypes"><b>05</b><span>النماذج</span></a>
+      <a class="navItem" href="./?view=outreach"><b>06</b><span>التواصل</span></a>
+      <a class="navItem" href="./?view=automation"><b>07</b><span>الأتمتة</span></a>
+      <a class="navItem" href="./?view=settings"><b>08</b><span>الإعدادات</span></a>
+      <a class="navItem" href="./users.html"><b>09</b><span>المستخدمون والصلاحيات</span></a>
+    </nav>
+    <div class="sidebarFoot"><div class="liveDot"><i></i><span>Social engine online</span></div><button id="logoutBtn">تسجيل الخروج</button></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><span class="eyebrow">DIGITAL COMPASS / IRAQ SOCIAL OPS</span><h1>إدارة السوشيال — العراق</h1></div><div class="topActions"><a class="stageBtn" href="./social-management.html">إدارة حسابات العملاء</a><button id="refreshBtn" class="iconBtn" title="Refresh">↻</button></div></header>
+    <section class="content">
+      <div class="socialHero">
+        <div><span class="eyebrow">SOCIAL GROWTH & MANAGEMENT ENGINE</span><h2>من الإعلان والصفحة إلى إدارة كاملة من الألف إلى الياء.</h2><p>الاكتشاف هنا مستقل عن قاعدة الشركات: نبحث عن المعلنين والصفحات النشطة بالإعلانات داخل العراق، نربطهم أو ننشئ Prospect جديد، ثم ندقق المحتوى والتحويل والهوية والتفاعل ونحدد من يحتاج إدارة فعلية.</p></div>
+        <div class="socialActions"><button class="runFull" id="discoverAdvertisersBtn">اكتشاف معلنين بالعراق</button><button class="stageBtn" data-command="SOCIAL_QUEUE">تجهيز Audit اليوم</button><button class="stageBtn" data-command="SOCIAL_AUDIT">تشغيل Social Audit</button><button class="stageBtn" data-command="SOCIAL_QUALIFY">تأهيل فرص الإدارة</button></div>
+      </div>
+      <div id="metrics" class="metrics"></div>
+      <div class="scopeNotice"><b>Public vs Authorized</b><span>قبل التعاقد: بيانات عامة فقط من مكتبات الإعلانات والحسابات العامة. بعد ربط حساب العميل المصرّح به: نضيف بيانات Ads Manager الفعلية مثل Spend / CTR / CPC / CPA / Frequency / ROAS.</span></div>
+      <div class="section manualSection"><div class="sectionHead"><h3>إضافة حساب يدوي للإدارة أو الـAudit</h3><span>MANUAL</span></div><form id="manualSocialForm" class="manualSocialForm"><label class="wide">رابط الحساب<input id="manualUrl" type="url" placeholder="https://instagram.com/..." required></label><label>اسم النشاط<input id="manualName" type="text" placeholder="اختياري"></label><label>المنصة<select id="manualPlatform"><option value="">تلقائي</option><option>INSTAGRAM</option><option>FACEBOOK</option><option>TIKTOK</option><option>LINKEDIN</option><option>YOUTUBE</option><option>X</option><option>OTHER</option></select></label><label>الوضع<select id="manualMode"><option value="AUDIT_AND_MANAGE">Audit + إدارة</option><option value="AUDIT_ONLY">Audit فقط</option><option value="MANAGE_ONLY">إدارة فقط</option></select></label><label>المدينة<input id="manualCity" type="text" placeholder="مثال: بغداد"></label><label>القطاع<input id="manualSector" type="text" placeholder="مثال: restaurant"></label><label>الهاتف<input id="manualPhone" type="text"></label><label>WhatsApp<input id="manualWhatsapp" type="text"></label><label>البريد<input id="manualEmail" type="email"></label><button class="saveSocial wide" type="submit">إضافة الحساب إلى النظام</button></form></div>
+      <div class="section"><div class="sectionHead"><h3>آخر المعلنين المكتشفين</h3><span id="discoveryCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>المعلن / الصفحة</th><th>المنصة</th><th>المدينة</th><th>القطاع</th><th>إعلان نشط</th><th>الحالة</th></tr></thead><tbody id="discoveryRows"></tbody></table></div></div>
+      <div class="section"><div class="sectionHead"><h3>Social Management Pipeline</h3><span id="rowCount">0</span></div><div class="tableWrap"><table class="table"><thead><tr><th>الشركة</th><th>المنصة</th><th>Audit</th><th>Social Health</th><th>Management Need</th><th>الإعلانات</th><th>الخطوة التالية</th></tr></thead><tbody id="socialRows"></tbody></table></div></div>
+      <div class="section settingsSection"><div class="sectionHead"><h3>إعدادات Social Iraq</h3><span>LIVE</span></div><div id="settingsBox"></div></div>
+    </section>
+  </main>
+</div>
+<div id="drawer" class="drawer hidden" aria-hidden="true"><div class="drawerBackdrop" data-close-drawer></div><div class="drawerPanel"><button class="drawerClose" data-close-drawer>×</button><div id="drawerContent"></div></div></div>
+<div id="toast" class="toast"></div>
+<script type="module" src="./social.js"></script>
+<script type="module" src="./social-prequalifications-v2.js"></script>
+<script type="module" src="./assistant-ui.js"></script>
+<script type="module" src="./push-ui.js"></script>
+<script type="module" src="./permissions-ui.js"></script>
+<script type="module" src="./pwa.js"></script>
+</body>
+</html>

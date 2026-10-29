@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Digital Compass Social Cards</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{--ink:#150d1e;--panel:#251834;--violet:#8c72bd;--lavender:#d7c3f0;--gold:#e8bd69;--paper:#f7f2fb;--muted:#b9acc8}
+    body{margin:0;background:#0d0812;color:#fff;font-family:"DejaVu Sans",Arial,sans-serif}
+    .card{width:1080px;height:1080px;position:relative;overflow:hidden;background:var(--ink);padding:76px;display:flex;flex-direction:column;justify-content:space-between;isolation:isolate}
+    .card::before{content:"";position:absolute;width:720px;height:720px;border:1px solid #ffffff18;border-radius:50%;left:-300px;top:-310px;z-index:-1}
+    .card::after{content:"";position:absolute;width:360px;height:360px;border:1px solid #e8bd6944;border-radius:50%;left:-100px;top:-110px;z-index:-1}
+    .brand{display:flex;align-items:center;justify-content:space-between;direction:ltr}
+    .brand img{width:184px;height:auto;filter:drop-shadow(0 10px 26px #0008)}
+    .brand span{font-size:20px;letter-spacing:.16em;color:var(--gold);font-weight:700}
+    .eyebrow{color:var(--gold);font-size:22px;font-weight:700;letter-spacing:.04em;margin-bottom:24px}
+    h1{font-size:78px;line-height:1.35;margin:0;letter-spacing:-.035em;max-width:900px}
+    h2{font-size:46px;line-height:1.45;margin:0}
+    p{font-size:28px;line-height:1.85;margin:0;color:#e6ddef}
+    .footer{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:20px;border-top:1px solid #ffffff1c;padding-top:24px}
+    .footer b{color:#fff}
+    .method{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:52px}
+    .method div{min-height:155px;border:1px solid #ffffff1c;background:#ffffff0a;border-radius:24px;padding:27px;display:flex;align-items:flex-end;justify-content:space-between}
+    .method b{font-size:38px}.method i{font-style:normal;color:var(--gold);font:700 30px Arial}
+    .question-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px}
+    .question{border-radius:24px;background:var(--paper);color:var(--panel);padding:28px;min-height:154px;font-size:29px;line-height:1.55;font-weight:700;display:flex;align-items:center}
+    .route{height:330px;position:relative;margin:20px 0 10px}
+    .route .line{position:absolute;top:152px;right:20px;left:20px;height:4px;background:linear-gradient(90deg,var(--gold),var(--violet));box-shadow:0 0 30px #8c72bd88}
+    .route .dot{position:absolute;top:119px;width:70px;height:70px;border-radius:50%;background:var(--panel);border:3px solid var(--gold);display:grid;place-items:center;font-weight:800;font-size:20px}
+    .route .dot:nth-child(2){right:25px}.route .dot:nth-child(3){right:225px}.route .dot:nth-child(4){right:425px}.route .dot:nth-child(5){right:625px}.route .dot:nth-child(6){right:825px}
+    .route .leak{position:absolute;top:205px;font-size:24px;color:#d9cde4;transform:translateX(34px);white-space:nowrap}
+    .route .dot:nth-child(2) .leak{right:0}.route .dot:nth-child(3) .leak{right:0}.route .dot:nth-child(4) .leak{right:0}.route .dot:nth-child(5) .leak{right:0}.route .dot:nth-child(6) .leak{right:0}
+    .flow{display:flex;align-items:stretch;gap:12px;direction:rtl;margin-top:52px}
+    .flow div{flex:1;min-height:210px;border:1px solid #ffffff1c;border-radius:24px;padding:24px;background:#ffffff09;display:flex;flex-direction:column;justify-content:space-between}
+    .flow b{font-size:25px;line-height:1.5}.flow span{font:700 32px Arial;color:var(--gold)}
+    .flow .human{background:var(--gold);color:var(--ink);border-color:var(--gold)}.flow .human span{color:var(--ink)}
+    .checklist{margin-top:48px;display:grid;gap:15px}
+    .check{display:flex;align-items:center;gap:22px;border-bottom:1px solid #ffffff1c;padding:0 0 15px;font-size:29px;font-weight:700}
+    .check i{width:48px;height:48px;flex:0 0 48px;border-radius:50%;background:var(--gold);color:var(--ink);display:grid;place-items:center;font-style:normal;font-weight:900}
+    .accent{color:var(--gold)}
+    .bigmark{position:absolute;left:60px;bottom:160px;font:800 240px/1 Arial;color:#ffffff08;z-index:-1;transform:rotate(-12deg)}
+  </style>
+</head>
+<body>
+  <section class="card" data-card="01-growth-method">
+    <div class="brand"><img src="../digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS / 01</span></div>
+    <main><div class="eyebrow">THE METHOD</div><h1>اكتشف. شخّص.<br><span class="accent">ابنِ. قِس.</span></h1><div class="method"><div><b>اكتشف الفرصة</b><i>01</i></div><div><b>شخّص المشكلة</b><i>02</i></div><div><b>ابنِ الحل</b><i>03</i></div><div><b>قِس التحسّن</b><i>04</i></div></div></main>
+    <div class="footer"><b>بوصلتك نحو النمو الرقمي</b><span>digital-compass-site</span></div>
+  </section>
+
+  <section class="card" data-card="02-social-vs-website">
+    <div class="brand"><img src="../digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS / 02</span></div>
+    <main><div class="eyebrow">DIGITAL PRESENCE</div><h1>هل السوشيال<br><span class="accent">وحده يكفي؟</span></h1><div class="question-grid"><div class="question">ماذا تقدم بوضوح؟</div><div class="question">لماذا يثق بك العميل؟</div><div class="question">كيف يتواصل أو يطلب؟</div><div class="question">أين يجد معلوماتك الرسمية؟</div></div></main>
+    <div class="footer"><b>الموقع نقطة تجمع للثقة والتحويل</b><span>البوصلة الرقمية</span></div>
+  </section>
+
+  <section class="card" data-card="03-growth-leaks">
+    <div class="brand"><img src="../digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS / 03</span></div>
+    <main><div class="eyebrow">DIGITAL AUDIT</div><h1>أين تضيع<br><span class="accent">فرص النمو؟</span></h1><div class="route"><div class="line"></div><div class="dot">01<span class="leak">الوضوح</span></div><div class="dot">02<span class="leak">الثقة</span></div><div class="dot">03<span class="leak">التواصل</span></div><div class="dot">04<span class="leak">السرعة</span></div><div class="dot">05<span class="leak">المتابعة</span></div></div><p>التدقيق الحقيقي يبحث عن نقاط تسريب العميل، لا عن العيوب الشكلية فقط.</p></main>
+    <div class="footer"><b>اكتب «تدقيق» في رسالة</b><span>البوصلة الرقمية</span></div>
+  </section>
+
+  <section class="card" data-card="04-controlled-ai">
+    <div class="brand"><img src="../digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS / 04</span></div>
+    <main><div class="eyebrow">AI BUSINESS AGENTS</div><h1>ذكاء اصطناعي<br><span class="accent">تحت السيطرة.</span></h1><div class="flow"><div><span>01</span><b>رسالة واردة</b></div><div><span>02</span><b>تصنيف النية</b></div><div><span>03</span><b>مسودة رد</b></div><div class="human"><span>04</span><b>بوابة بشرية</b></div></div><p style="margin-top:34px">أتمتة ضمن قواعد واضحة، وتحوّل إلى إنسان عندما يصبح القرار حساسًا.</p></main>
+    <div class="footer"><b>الأتمتة المفيدة تبدأ من سير العمل</b><span>البوصلة الرقمية</span></div>
+  </section>
+
+  <section class="card" data-card="05-before-ads">
+    <div class="brand"><img src="../digital-compass-logo.svg" alt="Digital Compass"><span>DIGITAL COMPASS / 05</span></div>
+    <main><div class="eyebrow">BEFORE YOU SCALE</div><h1>قبل الإعلان…<br><span class="accent">أصلح المسار.</span></h1><div class="checklist"><div class="check"><i>✓</i>العرض واضح</div><div class="check"><i>✓</i>زر التواصل يعمل</div><div class="check"><i>✓</i>الرد سريع ومنظم</div><div class="check"><i>✓</i>يوجد دليل ثقة</div><div class="check"><i>✓</i>يمكن متابعة مصدر العميل</div></div></main>
+    <div class="footer"><b>أصلح التسريب، ثم وسّع الوصول</b><span>البوصلة الرقمية</span></div>
+    <div class="bigmark">↗</div>
+  </section>
+</body>
+</html>

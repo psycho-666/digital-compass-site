@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#251834">
+<title>Digital Compass — المستخدمون والصلاحيات</title>
+<link rel="icon" href="../assets/digital-compass-logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./admin.css">
+<link rel="stylesheet" href="./admin-extra.css">
+<link rel="stylesheet" href="./users.css">
+</head>
+<body>
+<div id="app" class="appView hidden">
+  <aside class="sidebar">
+    <div class="brand"><img src="../assets/digital-compass-logo.svg" alt="Digital Compass"><span>CONTROL CENTER</span></div>
+    <nav>
+      <a class="navItem" href="./"><b>01</b><span>نظرة عامة</span></a>
+      <a class="navItem" href="./?view=leads"><b>02</b><span>الفرص والعملاء</span></a>
+      <a class="navItem" href="./social.html"><b>03</b><span>السوشيال — العراق</span></a>
+      <a class="navItem" href="./social-management.html"><b>04</b><span>إدارة حسابات العملاء</span></a>
+      <a class="navItem" href="./?view=prototypes"><b>05</b><span>النماذج</span></a>
+      <a class="navItem" href="./?view=outreach"><b>06</b><span>التواصل</span></a>
+      <a class="navItem" href="./?view=automation"><b>07</b><span>الأتمتة</span></a>
+      <a class="navItem" href="./?view=settings"><b>08</b><span>الإعدادات</span></a>
+      <a class="navItem active" href="./users.html"><b>09</b><span>المستخدمون والصلاحيات</span></a>
+    </nav>
+    <div class="sidebarFoot"><div class="liveDot"><i></i><span>Access control</span></div><button id="logoutBtn">تسجيل الخروج</button></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><span class="eyebrow">DIGITAL COMPASS / ACCESS CONTROL</span><h1>المستخدمون والصلاحيات</h1></div><div class="topActions"><button id="newUserBtn" class="primaryTop">+ مستخدم جديد</button><button id="refreshBtn" class="iconBtn">↻</button></div></header>
+    <section class="content">
+      <div class="accessHero"><div><span class="eyebrow">ROLE BASED ACCESS</span><h2>كل مستخدم يشوف ويعمل فقط اللي تسمحله فيه.</h2><p>كلمات المرور محفوظة داخل Supabase Auth، والصلاحيات تُطبّق على مستوى الـAPI وليس مجرد إخفاء أزرار.</p></div><div class="heroStats"><div><b id="usersCount">0</b><span>مستخدم</span></div><div><b id="activeCount">0</b><span>نشط</span></div><div><b id="adminsCount">0</b><span>Admin / Owner</span></div></div></div>
+      <div class="section"><div class="sectionHead"><div><h3>المستخدمون</h3><p class="sectionHint">اضغط على أي مستخدم لتعديل اليوزر، الاسم، الدور والصلاحيات أو تغيير كلمة المرور.</p></div><span id="tableCount">0</span></div><div id="usersGrid" class="usersGrid"></div></div>
+    </section>
+  </main>
+</div>
+<div id="modal" class="userModal hidden" aria-hidden="true"><div class="modalBack" data-close></div><div class="modalCard"><button class="modalClose" data-close>×</button><div id="modalBody"></div></div></div>
+<div id="toast" class="toast"></div>
+<script type="module" src="./users.js"></script>
+<script type="module" src="./permissions-ui.js"></script>
+</body>
+</html>
