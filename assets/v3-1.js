@@ -1,4 +1,4 @@
-const API='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/prototype-data';
+const API='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/prototype-data';
 const DC_LOGO='assets/digital-compass-logo.svg';
 let CURRENT=null,LANG='ar';
 const app=document.getElementById('app');
