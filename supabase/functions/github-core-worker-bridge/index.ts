@@ -68,7 +68,7 @@ async function currentOvertureRelease(){
     if(response.ok){
       const catalog=await response.json();
       const release=String(catalog.latest||'').trim();
-      if(/^\\d{4}-\\d{2}-\\d{2}\\.\\d+$/.test(release))return release;
+      if(/^\d{4}-\d{2}-\d{2}\.\d+$/.test(release))return release;
     }
   }catch(_){}
   return RELEASE;
