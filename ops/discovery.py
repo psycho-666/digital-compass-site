@@ -84,7 +84,9 @@ def query(con, release, market, limit, confidence):
         AND addresses[1].country = '{market['country_code']}'
         AND (confidence IS NULL OR confidence >= {float(confidence)})
         AND (operating_status IS NULL OR operating_status <> 'permanently_closed')
-        AND names.primary IS NOT NULL LIMIT {int(limit)}
+        AND names.primary IS NOT NULL
+      ORDER BY confidence DESC NULLS LAST, names.primary
+      LIMIT {int(limit)}
     """
     cursor = con.execute(sql)
     columns = [d[0] for d in cursor.description]
