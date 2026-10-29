@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 
 const FILE=process.env.SOCIAL_ENRICH_TASK_FILE||'social-enrichment-tasks.json';
 const TOKEN=process.env.OIDC_TOKEN||'';
-const BRIDGE='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-worker-bridge';
+const BRIDGE='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-social-worker-bridge';
 const UA={'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36','accept':'text/html,application/xhtml+xml','accept-language':'ar,en;q=0.9'};
 const IRAQ_TERMS=[['iraq','Iraq'],['العراق','Iraq'],['baghdad','Baghdad'],['بغداد','Baghdad'],['basra','Basra'],['البصرة','Basra'],['najaf','Najaf'],['النجف','Najaf'],['karbala','Karbala'],['كربلاء','Karbala'],['erbil','Erbil'],['أربيل','Erbil'],['اربيل','Erbil'],['mosul','Mosul'],['الموصل','Mosul'],['sulaymaniyah','Sulaymaniyah'],['السليمانية','Sulaymaniyah'],['kirkuk','Kirkuk'],['كركوك','Kirkuk'],['diwaniyah','Diwaniyah'],['الديوانية','Diwaniyah'],['maysan','Maysan'],['ميسان','Maysan'],['nasiriyah','Nasiriyah'],['الناصرية','Nasiriyah']];
 const BLOCKED=new Set(['facebook.com','www.facebook.com','instagram.com','www.instagram.com','linkedin.com','www.linkedin.com','tiktok.com','www.tiktok.com','youtube.com','www.youtube.com','x.com','twitter.com']);
