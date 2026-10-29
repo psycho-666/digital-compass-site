@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 
 const FILE=process.env.SOCIAL_AUDIT_TASK_FILE||'social-audit-tasks.json';
 const TOKEN=process.env.OIDC_TOKEN||'';
-const BRIDGE='https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-worker-bridge';
+const BRIDGE='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-social-worker-bridge';
 const IRAQ=['iraq','العراق','baghdad','بغداد','basra','البصرة','najaf','النجف','karbala','كربلاء','erbil','أربيل','اربيل','mosul','الموصل','sulaymaniyah','السليمانية','kirkuk','كركوك'];
 const out=(n,v)=>{if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,`${n}=${v}\n`)};
 function uniq(xs){return[...new Set(xs.filter(Boolean))]}
