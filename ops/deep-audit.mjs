@@ -1,13 +1,13 @@
 import * as cheerio from 'cheerio';
 
 const BRIDGE='https://gaqjrbvhyuylqecwfaoq.supabase.co/functions/v1/github-core-worker-bridge';
-const TOKEN=process.env.OIDC_TOKEN;
 const UA='DigitalCompassAudit/1.0';
 const CTA=['contact us','get a quote','request a quote','book now','call now','whatsapp','تواصل معنا','اتصل بنا','احجز','اطلب الآن','واتساب','احصل على عرض'];
 const BOOKING=['book','booking','appointment','reserve','reservation','schedule','حجز','احجز','موعد'];
 const PROOF=['testimonial','reviews','our clients','partners','trusted by','case study','آراء العملاء','تقييمات','عملاؤنا','شركاؤنا','قصص نجاح'];
 
-async function bridge(body){const r=await fetch(BRIDGE,{method:'POST',headers:{authorization:`Bearer ${TOKEN}`,'content-type':'application/json'},body:JSON.stringify(body)});const t=await r.text();if(!r.ok)throw new Error(`bridge_${r.status}_${t.slice(0,500)}`);return JSON.parse(t)}
+async function oidcToken(){const requestUrl=process.env.ACTIONS_ID_TOKEN_REQUEST_URL,requestToken=process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;if(requestUrl&&requestToken){const u=requestUrl+(requestUrl.includes('?')?'&':'?')+'audience=digital-compass-public-runner';const r=await fetch(u,{headers:{authorization:`bearer ${requestToken}`}});if(!r.ok)throw new Error('oidc_token_request_failed');const d=await r.json();if(d.value)return d.value}if(process.env.OIDC_TOKEN)return process.env.OIDC_TOKEN;throw new Error('OIDC_TOKEN missing')}
+async function bridge(body){const token=await oidcToken();const r=await fetch(BRIDGE,{method:'POST',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},body:JSON.stringify(body)});const t=await r.text();if(!r.ok)throw new Error(`bridge_${r.status}_${t.slice(0,500)}`);return JSON.parse(t)}
 const now=()=>new Date().toISOString();
 const socialCount=c=>['instagram_url','facebook_url','linkedin_url'].filter(k=>c[k]).length;
 function normalize(raw){if(!raw)return null;try{return new URL(/^https?:\/\//i.test(raw)?raw:`https://${raw}`).href}catch{return null}}
