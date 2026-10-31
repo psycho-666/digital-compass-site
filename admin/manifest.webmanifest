@@ -14,7 +14,7 @@
   "orientation": "any",
   "categories": ["business", "productivity", "social"],
   "icons": [{
-    "src": "../assets/digital-compass-app-icon.svg?v=20261031",
+    "src": "../assets/digital-compass-app-icon.svg?v=20261031b",
     "sizes": "any",
     "type": "image/svg+xml",
     "purpose": "any"
