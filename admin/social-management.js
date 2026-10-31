@@ -17,6 +17,12 @@ function renderOverview(){
   const connected=conns.filter(x=>x.connection_status==='CONNECTED'&&x.authorized_by_client);
   const permConn=permissions?.connections?.find(x=>String(x.platform).toUpperCase()==='FACEBOOK')||permissions?.connections?.[0]||null;
   const caps=permConn?.capabilities||{};
+  const accountCards=conns.length?conns.map(c=>{
+    const label=c.display_name||c.page_name||c.account_name||'';
+    const identifier=c.external_account_id?('معرّف الصفحة: '+c.external_account_id):'لا يوجد معرّف ظاهر';
+    const sync=c.last_sync_at?('آخر مزامنة: '+new Date(c.last_sync_at).toLocaleString('ar-IQ')):'لم تتم مزامنة البيانات بعد';
+    return '<div class="statusLine"><b>'+esc(label||String(c.platform||'حساب اجتماعي'))+'<small>'+esc(identifier)+' · '+esc(sync)+'</small></b><span class="pill2 '+(c.connection_status==='CONNECTED'?'good':'warn')+'">'+esc(c.connection_status||'UNKNOWN')+'</span></div>';
+  }).join(''):'<p class="muted">لا توجد حسابات مضافة لهذا العميل.</p>';
   const capLine=(label,key)=>line(label,caps[key]?.ready?'READY':'MISSING');
   const failed=jobs.filter(x=>x.status==='FAILED').length,blocked=jobs.filter(x=>x.status==='BLOCKED_CONNECTION').length;
   let connectionHtml=conns.length?conns.map(x=>line(x.platform,String(x.connection_status||'')+' · '+String(x.sync_status||'NO SYNC'))).join(''):line('الحسابات','NOT CONNECTED');
@@ -30,7 +36,8 @@ function renderOverview(){
         line('Client approval',w.client_approval_required?'REQUIRED':'OPTIONAL')+
         line('Response SLA',w.response_sla_minutes?String(w.response_sla_minutes)+' min':'NOT SET')+
         '<div class="readinessList"><span class="'+(connected.length?'ready':'notReady')+'">1. ربط الحسابات الرسمية</span><span class="'+(w.strategy_status==='APPROVED'?'ready':'notReady')+'">2. اعتماد الاستراتيجية</span><span class="'+((p.smart_memory_enabled||p.approved_library_enabled)?'ready':'notReady')+'">3. سياسة الردود</span><span class="'+(connected.length&&w.strategy_status==='APPROVED'?'ready':'notReady')+'">4. جاهز للتشغيل</span></div></div>'+
-      '<div class="card"><h3>Connection health</h3>'+connectionHtml+'<div class="actionRow"><span class="muted">التوكنات والصلاحيات تبقى بالخلفية ولا تظهر بالواجهة.</span></div></div>'+      '<div class="card"><h3>Meta permission readiness</h3>'+
+      '<div class="card"><h3>حالة الاتصالات</h3>'+connectionHtml+'<div class="actionRow"><span class="muted">بيانات الربط السرية لا تظهر بالواجهة.</span></div></div>'+
+      '<div class="card"><h3>الحسابات والصفحات المضافة ('+conns.length+')</h3>'+accountCards+'<div class="actionRow"><span class="muted">إذا ظهر المعرّف بدل اسم الصفحة فهذا لأن Meta لم يزوّدنا باسمها في سجل الحساب بعد.</span></div></div>'+      '<div class="card"><h3>Meta permission readiness</h3>'+
         capLine('Messenger reply','messenger_reply')+
         capLine('Comment reply','comments_reply')+
         capLine('Publishing','publishing')+
