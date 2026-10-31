@@ -1,9 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="112" fill="#6D28D9"/>
-  <circle cx="256" cy="218" r="132" fill="none" stroke="#FFFFFF" stroke-width="18" opacity=".95"/>
-  <path d="M307 137 278 239 205 299 234 197Z" fill="#FFFFFF"/>
-  <path d="m307 137-29 102-73 60 29-102Z" fill="#E9D5FF"/>
-  <circle cx="256" cy="218" r="15" fill="#FFFFFF"/>
-  <path d="M256 62v26M256 348v26M100 218h26M386 218h26" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity=".85"/>
-  <text x="256" y="432" text-anchor="middle" fill="#FFFFFF" font-family="Arial,sans-serif" font-size="58" font-weight="800" letter-spacing="3">DC</text>
+  <image href="digital-compass-logo.svg" x="22" y="150" width="468" height="212" preserveAspectRatio="xMidYMid meet"/>
 </svg>
