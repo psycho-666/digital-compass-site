@@ -38,5 +38,5 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-close-drawer]')
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
 
 applyLanguage();
-if(await getSession()){await loadAll()}else{location.href='./access.html'}
+if(await getSession()){$('#socialApp').classList.remove('hidden');await loadAll()}else{location.href='./access.html'}
 supabase.auth.onAuthStateChange((_event,s)=>{session=s||null;if(s)loadAll()});
