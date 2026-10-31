@@ -1,6 +1,6 @@
-const CACHE='dc-admin-shell-v5';
-const SHELL=['./','./admin.css','./admin-extra.css','./assistant-ui.css','./pwa.css','../assets/digital-compass-logo.svg','./manifest.webmanifest'];
-const FRESH_ASSETS=new Set(['social-dashboard.js','admin.js','assistant-ui.js','push-ui.js','pwa.js','permissions-ui.js','social-management.js','social-oauth-ui.js','social-budget-ui.js','social-management.css','admin.css','admin-extra.css','assistant-ui.css','pwa.css']);
+const CACHE='dc-admin-shell-v6';
+const SHELL=['./','./admin.css','./admin-extra.css','./assistant-ui.css','./pwa.css','../assets/digital-compass-app-icon.svg','./manifest.webmanifest','../assets/digital-compass-app-icon.svg'];
+const FRESH_ASSETS=new Set(['social-dashboard.js','admin.js','assistant-ui.js','push-ui.js','pwa.js','permissions-ui.js','social-management.js','social-oauth-ui.js','social-budget-ui.js','social-management.css','admin.css','admin-extra.css','social.css','assistant-ui.css','pwa.css']);
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
