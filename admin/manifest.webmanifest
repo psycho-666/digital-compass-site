@@ -9,12 +9,12 @@
   "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
-  "background_color": "#100b16",
-  "theme_color": "#251834",
+  "background_color": "#6D28D9",
+  "theme_color": "#6D28D9",
   "orientation": "any",
   "categories": ["business", "productivity", "social"],
   "icons": [{
-    "src": "../assets/digital-compass-logo.svg",
+    "src": "../assets/digital-compass-app-icon.svg",
     "sizes": "any",
     "type": "image/svg+xml",
     "purpose": "any"
