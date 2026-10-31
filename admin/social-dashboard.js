@@ -9,7 +9,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 let LANG=localStorage.getItem('dc_admin_lang')||'ar';
 let session=null;
 const tr=(ar,en)=>LANG==='ar'?ar:en;
-const fmt=n=>new Intl.NumberFormat(LANG==='ar'?'ar-IQ':'en-US').format(Number(n||0));
+const fmt=n=>new Intl.NumberFormat('en-US',{useGrouping:true,maximumFractionDigits:2}).format(Number(n||0));
 
 function toast(msg){const e=$('#toast');if(!e)return;e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800)}
 function score(v){if(v===null||v===undefined||v==='')return '<span class="pill">—</span>';const n=Math.max(0,Math.min(100,Number(v)||0));const c=n>=75?'good':n>=50?'warn':'bad';return `<span class="scoreGauge ${c}"><strong>${fmt(n)}</strong><span class="scoreBar"><i style="width:${n}%"></i></span></span>`}
