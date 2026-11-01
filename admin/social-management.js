@@ -17,8 +17,8 @@ function renderOverview(){
   const connected=conns.filter(x=>x.connection_status==='CONNECTED'&&x.authorized_by_client);
   const permConn=permissions?.connections?.find(x=>String(x.platform).toUpperCase()==='FACEBOOK')||permissions?.connections?.[0]||null;
   const caps=permConn?.capabilities||{};
-  const accountCards=conns.length?conns.map(c=>{
-    const label=c.display_name||c.page_name||c.account_name||'';
+  const accountCards=conns.length?conns.map((c,index)=>{
+    const label=c.display_name||c.page_name||c.account_name||((String(c.platform||'').toUpperCase()==='FACEBOOK'?'صفحة Facebook':'حساب '+String(c.platform||'اجتماعي'))+' #'+(index+1));
     const identifier=c.external_account_id?('معرّف الصفحة: '+c.external_account_id):'لا يوجد معرّف ظاهر';
     const sync=c.last_sync_at?('آخر مزامنة: '+new Date(c.last_sync_at).toLocaleString('ar-IQ')):'لم تتم مزامنة البيانات بعد';
     return '<div class="statusLine"><b>'+esc(label||String(c.platform||'حساب اجتماعي'))+'<small>'+esc(identifier)+' · '+esc(sync)+'</small></b><span class="pill2 '+(c.connection_status==='CONNECTED'?'good':'warn')+'">'+esc(c.connection_status||'UNKNOWN')+'</span></div>';
