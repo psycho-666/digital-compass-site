@@ -126,6 +126,34 @@ async function showManagementTokenConnect(){
     }finally{btn.disabled=false}
   }
 }
+async function activateAllPageWebhooks(){
+  const wid=Number($('#workspaceSelect')?.value);
+  if(!wid){modal('<div class="dcOauthNotice">اختر العميل أولاً من القائمة أعلى الصفحة.</div>');return}
+  const btn=$('#dcActivateWebhooksBtn');
+  if(btn)btn.disabled=true;
+  modal('<div class="dcOauthNotice">جاري فحص صفحات Facebook المرتبطة وتفعيل Webhooks لكل صفحة. لن يتم إعادة ربط Meta أو تغيير التوكنات.</div><div id="dcWebhookResults" class="dcOauthStatus">جاري الفحص…</div>');
+  const out=$('#dcWebhookResults');
+  try{
+    const s=await session();
+    const r=await fetch(`${PROJECT_URL}/functions/v1/social-management-api?action=workspace&id=${encodeURIComponent(wid)}`,{headers:{apikey:KEY,Authorization:`Bearer ${s.access_token}`},cache:'no-store'});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.error||`WORKSPACE_HTTP_${r.status}`);
+    const conns=(d.connections||[]).filter(x=>String(x.platform||'').toUpperCase()==='FACEBOOK'&&String(x.connection_status||x.status||'').toUpperCase()==='CONNECTED');
+    if(!conns.length){out.textContent='لم يتم العثور على اتصالات Facebook فعّالة لهذا العميل.';return}
+    const results=[];
+    for(const c of conns){
+      const name=c.display_name||c.page_name||('Facebook Page '+c.external_account_id);
+      try{
+        const x=await api('subscribe_page_webhooks',{method:'POST',body:{workspace_id:wid,connection_id:c.id}});
+        results.push({name,ok:!!x.subscription?.ok,fields:x.subscription?.fields||[],error:x.error||''});
+      }catch(e){results.push({name,ok:false,error:e.message||'UNKNOWN'})}
+      out.innerHTML=results.map(x=>'<div style="margin:8px 0;color:'+(x.ok?'#9de7bb':'#ffb3b3')+'">'+(x.ok?'✓ ':'✕ ')+esc(x.name)+(x.ok?' — '+esc(x.fields.join(', ')):' — '+esc(x.error))+'</div>').join('');
+    }
+    const ok=results.filter(x=>x.ok).length;
+    out.innerHTML='<b>'+ok+' من '+results.length+' صفحات تم تفعيلها</b><br>'+out.innerHTML;
+  }catch(e){out.textContent='تعذر تفعيل Webhooks: '+(e.message||'UNKNOWN')}
+  finally{if(btn)btn.disabled=false}
+}
 async function startConnect(){const wid=Number($('#workspaceSelect')?.value);if(!wid){modal('<div class="dcOauthNotice">اختر العميل أولاً من القائمة أعلى الصفحة.</div>');return}const btn=$('#dcMetaConnectBtn');if(btn)btn.disabled=true;try{const s=await api('status');if(!s.ready||!s.webhook_ready){await showSetup();return}const d=await api('start',{method:'POST',body:{workspace_id:wid}});if(!d.authorization_url)throw new Error('missing_authorization_url');location.href=d.authorization_url}catch(e){if(e.message==='meta_not_configured')await showSetup();else modal(`<div class="dcOauthNotice">تعذر بدء ربط Meta: ${esc(e.message)}</div>`)}finally{if(btn)btn.disabled=false}}
 async function showAssets(state){
   modal('<div class="dcOauthNotice dcOauthGood">✓ تمت موافقة Meta. حدّد كل الصفحات والحسابات التي تريد إضافتها لهذا العميل.</div><div id="dcAssets"><p class="muted">جاري تحميل الصفحات المسموح بها…</p></div><div class="dcOauthActions"><button class="primary" id="dcConnectSelected" disabled>إضافة المحدد</button><button id="dcSelectAll">تحديد الكل</button><button id="dcClearAll">إلغاء التحديد</button></div><div id="dcAssetStatus" class="dcOauthStatus"></div>');
@@ -156,5 +184,5 @@ async function showAssets(state){
   }catch(e){box.innerHTML=`<div class="dcOauthNotice">تعذر تحميل صفحات Meta: ${esc(e.message)}</div>`}
 }
 async function handleReturn(){const u=new URL(location.href),mode=u.searchParams.get('oauth'),state=u.searchParams.get('state');if(mode==='select'&&state){await showAssets(state);return}if(mode==='error'){modal(`<div class="dcOauthNotice">Meta OAuth لم يكتمل. السبب: ${esc(u.searchParams.get('reason')||'unknown')}</div>`);u.searchParams.delete('oauth');u.searchParams.delete('reason');history.replaceState(null,'',u)}}
-async function inject(){styles();for(let i=0;i<50&&!$('#workspaceSelect');i++)await new Promise(r=>setTimeout(r,100));const actions=document.querySelector('.topActions');if(actions&&!$('#dcMetaConnectBtn'))actions.insertAdjacentHTML('afterbegin','<button id="dcManagementTokenBtn" class="dcOauthBtn" type="button">ربط صلاحيات الإدارة</button><button id="dcUatTokenBtn" class="dcOauthBtn" type="button">ربط صفحة اختبار (UAT)</button><button id="dcMetaConnectBtn" class="dcOauthBtn" type="button">ربط Facebook / Instagram</button>');$('#dcMetaConnectBtn')?.addEventListener('click',startConnect);$('#dcUatTokenBtn')?.addEventListener('click',showUatTokenConnect);$('#dcManagementTokenBtn')?.addEventListener('click',showManagementTokenConnect);await handleReturn()}
+async function inject(){styles();for(let i=0;i<50&&!$('#workspaceSelect');i++)await new Promise(r=>setTimeout(r,100));const actions=document.querySelector('.topActions');if(actions&&!$('#dcMetaConnectBtn'))actions.insertAdjacentHTML('afterbegin','<button id="dcActivateWebhooksBtn" class="dcOauthBtn" type="button">تفعيل Webhooks للصفحات</button><button id="dcManagementTokenBtn" class="dcOauthBtn" type="button">ربط صلاحيات الإدارة</button><button id="dcUatTokenBtn" class="dcOauthBtn" type="button">ربط صفحة اختبار (UAT)</button><button id="dcMetaConnectBtn" class="dcOauthBtn" type="button">ربط Facebook / Instagram</button>');$('#dcActivateWebhooksBtn')?.addEventListener('click',activateAllPageWebhooks);$('#dcMetaConnectBtn')?.addEventListener('click',startConnect);$('#dcUatTokenBtn')?.addEventListener('click',showUatTokenConnect);$('#dcManagementTokenBtn')?.addEventListener('click',showManagementTokenConnect);await handleReturn()}
 supabase.auth.onAuthStateChange((_e,s)=>{currentSession=s||null});inject().catch(console.error);
