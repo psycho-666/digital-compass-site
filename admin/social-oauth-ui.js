@@ -126,6 +126,34 @@ async function showManagementTokenConnect(){
     }finally{btn.disabled=false}
   }
 }
+async function diagnoseWebhookSubscriptions(){
+  const wid=Number($('#workspaceSelect')?.value);
+  if(!wid){modal('<div class="dcOauthNotice">اختر العميل أولاً من القائمة أعلى الصفحة.</div>');return}
+  const btn=$('#dcDiagnoseWebhooksBtn');if(btn)btn.disabled=true;
+  modal('<div class="dcOauthNotice">فحص مباشر لاشتراك تطبيق Meta وصفحات Facebook. قراءة فقط؛ لن يتم تغيير أي إعداد أو توكن.</div><div id="dcWebhookDiagnosis" class="dcOauthStatus">جاري الاتصال بـ Meta…</div>');
+  const out=$('#dcWebhookDiagnosis');
+  try{
+    const r=await api('diagnose_webhook_subscriptions',{method:'POST',body:{workspace_id:wid}});
+    const app=r.app||{};
+    let html='<b>اشتراك التطبيق (App-level)</b><br>';
+    if(!app.checked)html+='لم يتم الفحص.';
+    else if(app.readable===false)html+='تعذرت قراءته: '+esc(app.error||'UNKNOWN');
+    else{
+      const feed=(app.subscriptions||[]).find(x=>String(x.object).toLowerCase()==='page');
+      html+=feed?('Page fields: '+esc(feed.fields.join(', '))+'<br>feed: '+(feed.fields.includes('feed')?'موجود':'غير موجود')):'لم يرجع Meta اشتراك Page.';
+    }
+    html+='<hr style="border-color:#ffffff22;margin:12px 0"><b>اشتراك الصفحات (Page-level)</b>';
+    for(const p of r.pages||[]){
+      html+='<div style="margin:10px 0;padding:10px;border:1px solid #ffffff20;border-radius:10px">';
+      html+='<b>Page ID: '+esc(p.page_id)+'</b><br>';
+      if(!p.readable)html+='تعذرت القراءة: '+esc(p.error||p.reason||'UNKNOWN');
+      else html+='التطبيق مشترك: '+(p.app_subscribed?'نعم':'لا')+'<br>Fields: '+esc((p.subscribed_fields||[]).join(', '))+'<br>feed: '+((p.subscribed_fields||[]).includes('feed')?'موجود':'غير موجود');
+      html+='</div>';
+    }
+    out.innerHTML=html;
+  }catch(e){out.textContent='فشل الفحص: '+(e.message||'UNKNOWN')}
+  finally{if(btn)btn.disabled=false}
+}
 async function activateAllPageWebhooks(){
   const wid=Number($('#workspaceSelect')?.value);
   if(!wid){modal('<div class="dcOauthNotice">اختر العميل أولاً من القائمة أعلى الصفحة.</div>');return}
@@ -184,5 +212,5 @@ async function showAssets(state){
   }catch(e){box.innerHTML=`<div class="dcOauthNotice">تعذر تحميل صفحات Meta: ${esc(e.message)}</div>`}
 }
 async function handleReturn(){const u=new URL(location.href),mode=u.searchParams.get('oauth'),state=u.searchParams.get('state');if(mode==='select'&&state){await showAssets(state);return}if(mode==='error'){modal(`<div class="dcOauthNotice">Meta OAuth لم يكتمل. السبب: ${esc(u.searchParams.get('reason')||'unknown')}</div>`);u.searchParams.delete('oauth');u.searchParams.delete('reason');history.replaceState(null,'',u)}}
-async function inject(){styles();for(let i=0;i<50&&!$('#workspaceSelect');i++)await new Promise(r=>setTimeout(r,100));const actions=document.querySelector('.topActions');if(actions&&!$('#dcMetaConnectBtn'))actions.insertAdjacentHTML('afterbegin','<button id="dcActivateWebhooksBtn" class="dcOauthBtn" type="button">تفعيل Webhooks للصفحات</button><button id="dcManagementTokenBtn" class="dcOauthBtn" type="button">ربط صلاحيات الإدارة</button><button id="dcUatTokenBtn" class="dcOauthBtn" type="button">ربط صفحة اختبار (UAT)</button><button id="dcMetaConnectBtn" class="dcOauthBtn" type="button">ربط Facebook / Instagram</button>');$('#dcActivateWebhooksBtn')?.addEventListener('click',activateAllPageWebhooks);$('#dcMetaConnectBtn')?.addEventListener('click',startConnect);$('#dcUatTokenBtn')?.addEventListener('click',showUatTokenConnect);$('#dcManagementTokenBtn')?.addEventListener('click',showManagementTokenConnect);await handleReturn()}
+async function inject(){styles();for(let i=0;i<50&&!$('#workspaceSelect');i++)await new Promise(r=>setTimeout(r,100));const actions=document.querySelector('.topActions');if(actions&&!$('#dcMetaConnectBtn'))actions.insertAdjacentHTML('afterbegin','<button id="dcDiagnoseWebhooksBtn" class="dcOauthBtn" type="button">تشخيص Webhooks</button><button id="dcActivateWebhooksBtn" class="dcOauthBtn" type="button">تفعيل Webhooks للصفحات</button><button id="dcManagementTokenBtn" class="dcOauthBtn" type="button">ربط صلاحيات الإدارة</button><button id="dcUatTokenBtn" class="dcOauthBtn" type="button">ربط صفحة اختبار (UAT)</button><button id="dcMetaConnectBtn" class="dcOauthBtn" type="button">ربط Facebook / Instagram</button>');$('#dcDiagnoseWebhooksBtn')?.addEventListener('click',diagnoseWebhookSubscriptions);$('#dcActivateWebhooksBtn')?.addEventListener('click',activateAllPageWebhooks);$('#dcMetaConnectBtn')?.addEventListener('click',startConnect);$('#dcUatTokenBtn')?.addEventListener('click',showUatTokenConnect);$('#dcManagementTokenBtn')?.addEventListener('click',showManagementTokenConnect);await handleReturn()}
 supabase.auth.onAuthStateChange((_e,s)=>{currentSession=s||null});inject().catch(console.error);
