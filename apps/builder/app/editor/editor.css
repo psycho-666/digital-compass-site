@@ -47,3 +47,10 @@ html[dir="ltr"] .editorbar .savebutton{margin-inline-start:auto}
 .new-page input{width:100%;min-width:0;background:#1a2230;color:#eef2fa;border:1px solid #354056;border-radius:8px;padding:9px;font:inherit;font-size:12px}
 .new-page button{font-size:12px;margin:0!important}
 @media(max-width:700px){.editorbar input[aria-label="Page title"],.editorbar input[aria-label="عنوان الصفحة"]{width:130px}}
+
+
+.page-row{display:flex;align-items:center;gap:4px;margin:5px 0}
+.page-row>button{flex:1;min-width:0;margin:0!important;text-align:start}
+.page-row>span{display:flex;gap:2px}
+.page-row>span button{width:27px;padding:5px 3px;margin:0;font-size:12px}
+.page-row button:disabled{opacity:.3;cursor:not-allowed}
