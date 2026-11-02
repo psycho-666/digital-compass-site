@@ -23,3 +23,8 @@ html[dir="ltr"] .properties{border-inline-start:1px solid #283142;border-inline-
 .move-controls{display:flex;gap:2px}
 .move-controls button{padding:5px 8px;margin:0;font-size:12px}
 .move-controls button:disabled{opacity:.25;cursor:not-allowed}
+
+
+.preview-image{display:block;max-width:min(100%,680px);max-height:340px;object-fit:cover;border-radius:12px;margin:22px auto}
+.property-image{display:block;width:100%;max-height:180px;object-fit:contain;background:#0d121c;border:1px solid #354056;border-radius:9px;margin-top:10px}
+.properties input[type=file]{font-size:12px;padding:8px}
