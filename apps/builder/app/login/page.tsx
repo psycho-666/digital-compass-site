@@ -1,0 +1,9 @@
+"use client";
+import {useState} from "react";
+import {useRouter} from "next/navigation";
+import {createClient} from "@/lib/supabase/client";
+export default function LoginPage(){
+ const router=useRouter();const [mode,setMode]=useState<"login"|"signup">("login");const [email,setEmail]=useState("");const [password,setPassword]=useState("");const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");
+ async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setMessage("");try{const supabase=createClient();const result=mode==="login"?await supabase.auth.signInWithPassword({email,password}):await supabase.auth.signUp({email,password});if(result.error)throw result.error;if(mode==="signup"&&!result.data.session){setMessage("تم إنشاء الحساب. افحص بريدك لتأكيد التسجيل ثم سجّل الدخول.");return;}router.push("/editor");router.refresh();}catch(err){setMessage(err instanceof Error?err.message:"تعذر إكمال العملية.");}finally{setBusy(false);}}
+ return <main className="authshell"><form className="authcard" onSubmit={submit}><a href="/" className="authbrand">◈ Digital Compass</a><h1>{mode==="login"?"تسجيل الدخول":"إنشاء حساب جديد"}</h1><p>احفظ مواقعك وأدرها من مكان واحد.</p><label>البريد الإلكتروني</label><input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email"/><label>كلمة المرور</label><input type="password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} autoComplete={mode==="login"?"current-password":"new-password"}/><button disabled={busy}>{busy?"يرجى الانتظار…":mode==="login"?"دخول":"إنشاء الحساب"}</button>{message&&<p role="status">{message}</p>}<button type="button" className="switchmode" onClick={()=>{setMode(mode==="login"?"signup":"login");setMessage("");}}>{mode==="login"?"ليس لديك حساب؟ أنشئ حساباً":"لديك حساب؟ سجّل الدخول"}</button></form></main>;
+}
