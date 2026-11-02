@@ -39,3 +39,11 @@ html[dir="ltr"] .editorbar .savebutton{margin-inline-start:auto}
 
 
 .editorbar .unpublishbutton{background:#3a202b!important;color:#ffb3c0!important;border:1px solid #77404f!important;margin-inline-start:0}
+
+
+.editorbar input[aria-label="Page title"],.editorbar input[aria-label="عنوان الصفحة"]{width:170px}
+.page-list button{font-size:12px;padding:8px 10px}
+.new-page{display:grid;gap:7px;margin-top:10px}
+.new-page input{width:100%;min-width:0;background:#1a2230;color:#eef2fa;border:1px solid #354056;border-radius:8px;padding:9px;font:inherit;font-size:12px}
+.new-page button{font-size:12px;margin:0!important}
+@media(max-width:700px){.editorbar input[aria-label="Page title"],.editorbar input[aria-label="عنوان الصفحة"]{width:130px}}
