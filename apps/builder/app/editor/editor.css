@@ -9,3 +9,8 @@ html[dir="ltr"] .properties{border-inline-start:1px solid #283142;border-inline-
 .sitepreview[dir="ltr"] nav,.sitepreview[dir="ltr"] .previewsection{text-align:left}
 .sitepreview[dir="ltr"] footer{justify-content:center}
 @media(max-width:560px){.editorbar .language-switch{padding:7px 9px;min-width:45px}}
+
+
+.template-description{display:block;color:#9ba6ba;font-size:11px;font-weight:400;line-height:1.6;margin-top:4px}
+.tools button strong{font-size:13px}
+.tools button:focus-visible,.language-switch:focus-visible,.editorbar button:focus-visible{outline:2px solid #b69aff;outline-offset:2px}
