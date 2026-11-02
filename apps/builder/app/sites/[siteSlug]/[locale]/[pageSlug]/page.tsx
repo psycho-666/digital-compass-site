@@ -5,6 +5,20 @@ import "./published.css";
 
 export const dynamic="force-dynamic";
 
+export async function generateMetadata({params}:{params:Promise<{siteSlug:string;locale:string;pageSlug:string}>}){
+ const {siteSlug,locale,pageSlug}=await params;
+ if(locale!=="ar"&&locale!=="en")return {robots:{index:false,follow:false}};
+ const supabase=await createClient();
+ const {data:site}=await supabase.from("builder_sites").select("id,name").eq("slug",siteSlug).maybeSingle();
+ if(!site)return {robots:{index:false,follow:false}};
+ const {data:page}=await supabase.from("builder_pages").select("id").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();
+ if(!page)return {robots:{index:false,follow:false}};
+ const {data:version}=await supabase.from("builder_page_versions").select("document").eq("page_id",page.id).eq("status","published").order("version_no",{ascending:false}).limit(1).maybeSingle();
+ if(!version||!validateBuilderDocument(version.document))return {robots:{index:false,follow:false}};
+ const description=version.document.blocks.find(block=>block.props.body)?.props.body.slice(0,160)||site.name;
+ return {title:version.document.title,description,openGraph:{title:version.document.title,description,type:"website",locale:locale==="ar"?"ar_IQ":"en_US"}};
+}
+
 export default async function PublishedPage({params}:{params:Promise<{siteSlug:string;locale:string;pageSlug:string}>}){
  const {siteSlug,locale,pageSlug}=await params;
  if(locale!=="ar"&&locale!=="en")notFound();
