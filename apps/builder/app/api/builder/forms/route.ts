@@ -6,9 +6,9 @@ export const runtime="nodejs";
 
 export async function POST(request:NextRequest){
   try{
-    const contentLength=Number(request.headers.get("content-length")??0);
-    if(contentLength>16_384)return NextResponse.json({error:"Request is too large."},{status:413});
-    const body=await request.json();
+    const rawBody=await request.text();
+    if(rawBody.length>16_384)return NextResponse.json({error:"Request is too large."},{status:413});
+    const body=JSON.parse(rawBody);
     const text=(value:unknown,max:number)=>typeof value==="string"?value.trim().slice(0,max):"";
     const siteSlug=text(body.siteSlug,100),pageSlug=text(body.pageSlug,100),locale=text(body.locale,2),formKind=text(body.formKind,20);
     const name=text(body.name,120),email=text(body.email,254),phone=text(body.phone,40),message=text(body.message,4000);
