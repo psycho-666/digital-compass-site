@@ -54,3 +54,8 @@ html[dir="ltr"] .editorbar .savebutton{margin-inline-start:auto}
 .page-row>span{display:flex;gap:2px}
 .page-row>span button{width:27px;padding:5px 3px;margin:0;font-size:12px}
 .page-row button:disabled{opacity:.3;cursor:not-allowed}
+
+
+.properties input[type=color]{display:block;width:100%;height:38px;padding:3px;background:#1a2230;border:1px solid #354056;border-radius:8px;cursor:pointer}
+.properties select{width:100%;background:#1a2230;color:#eef2fa;border:1px solid #354056;border-radius:8px;padding:10px;font:inherit}
+.sitepreview .previewsection button{border:0;color:#fff;border-radius:8px;padding:11px 20px}
