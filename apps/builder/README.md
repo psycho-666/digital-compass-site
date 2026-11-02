@@ -1,22 +1,26 @@
-# Digital Compass Builder (foundation)
+# Digital Compass Builder
 
-Independent Next.js app scaffold; existing root website, GitHub Pages workflow, and social-media automation are intentionally untouched.
+Independent Next.js application for the website-builder product. Existing root website and social-media workflows remain separate.
 
-## Local development
+## Run locally
 ```bash
 cd apps/builder
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 Open http://localhost:3000.
 
-## Current state
-- Arabic-first RTL landing screen and responsive base styling.
-- Placeholder controls are intentionally disabled.
-- No editor, authentication, database writes, publishing, billing, or customer-site hosting is implemented yet.
+## Supabase setup
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`. Never place a service-role or secret key in a `NEXT_PUBLIC_` variable.
 
-## Environment
-Copy `.env.example` to `.env.local` only when Supabase integration is introduced. Keep service-role secrets server-side; never expose them to the browser.
+The builder schema uses five dedicated tables: `builder_workspaces`, `builder_workspace_members`, `builder_sites`, `builder_pages`, and `builder_page_versions`. All five tables have RLS enabled. Access is restricted to authenticated workspace members; draft versions are append-only. SQL migrations are in `../../supabase/migrations/`.
 
-## Architecture direction
-Keep builder data isolated from existing social workflows. Implement tenant/workspace authorization and RLS policies before connecting persistence. Draft editing and published snapshots must be separate.
+## Current implementation
+- Arabic-first RTL editor with section insertion, editing, deletion, and desktop/mobile preview.
+- Email/password signup and login using Supabase Auth.
+- Save creates/reuses the user's default workspace, site and home page, then stores a new immutable draft version.
+- Templates, media storage, publishing, custom domains, billing, and English UI are not implemented yet.
+
+## Important
+The editor currently saves one starter site (`my-first-site`) and one Arabic home page. It is an initial persistence vertical slice, not a production-ready website-builder yet. Run a full local build and end-to-end auth/save tests before deployment.
