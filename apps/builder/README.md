@@ -25,6 +25,7 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 - Private `builder-media` Storage bucket (10 MB per file; JPEG, PNG, WebP, GIF only) with workspace-member read access and owner/admin/editor write access.
 - Section image uploads stored under workspace/site paths; editor previews use one-hour signed URLs. Save the site once before uploading its first image.
 - Desktop/mobile page preview.
+- Site-wide theme controls for accent, background, and text colors plus modern/classic typography; theme settings are validated and saved with each page version.
 - Multi-page site management: create, switch, reorder, and delete pages; published pages appear in the public navigation.
 - Save-then-publish flow backed by an atomic, invoker-secured database operation; only the newest selected version remains published while a new draft is edited.
 - Public website routes at `/sites/<site-slug>` (default locale home) and `/sites/<site-slug>/<locale>/<page-slug>`; anonymous reads are limited by RLS to published pages and published versions only.
