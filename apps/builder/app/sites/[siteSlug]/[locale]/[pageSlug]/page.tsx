@@ -1,6 +1,6 @@
 import {notFound} from "next/navigation";
 import {createClient} from "@/lib/supabase/server";
-import {validateBuilderDocument} from "@/lib/builder/schema";
+import {validateBuilderDocument,defaultBuilderTheme} from "@/lib/builder/schema";
 import "./published.css";
 
 export const dynamic="force-dynamic";
@@ -36,13 +36,13 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
   const {data}=await supabase.storage.from("builder-media").createSignedUrl(path,600);
   if(data?.signedUrl)imageUrls[path]=data.signedUrl;
  }));
- const ar=locale==="ar";
- return <main className="published-site" dir={ar?"rtl":"ltr"} lang={locale}>
+ const ar=locale==="ar";const theme=version.document.theme??defaultBuilderTheme;
+ return <main className="published-site" style={{backgroundColor:theme.backgroundColor,color:theme.textColor,fontFamily:theme.fontFamily==="serif"?"Georgia,serif":"Arial,sans-serif"}} dir={ar?"rtl":"ltr"} lang={locale}>
   <header className="published-header"><a href={"/sites/"+siteSlug+"/"+locale+"/home"}>{site.name}</a><nav>{(navigationPages||[]).map(item=><a key={item.slug} href={"/sites/"+siteSlug+"/"+locale+"/"+item.slug}>{item.title}</a>)}</nav></header>
   {version.document.blocks.map(block=><section className={"published-block published-"+block.type} key={block.id}>
-   <h1>{block.props.title}</h1><p>{block.props.body}</p>
+   <h1 style={{color:theme.accentColor}}>{block.props.title}</h1><p style={{color:theme.textColor}}>{block.props.body}</p>
    {block.props.imagePath&&imageUrls[block.props.imagePath]&&<img src={imageUrls[block.props.imagePath]} alt={block.props.title}/>}
-   {block.type==="hero"&&<a className="published-cta" href="#contact">{ar?"تواصل معنا":"Get in touch"}</a>}
+   {block.type==="hero"&&<a className="published-cta" style={{backgroundColor:theme.accentColor}} href="#contact">{ar?"تواصل معنا":"Get in touch"}</a>}
   </section>)}
   <footer id="contact" className="published-footer">© {new Date().getFullYear()} {site.name}</footer>
  </main>;
