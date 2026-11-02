@@ -36,3 +36,6 @@ html[dir="ltr"] .properties{border-inline-start:1px solid #283142;border-inline-
 .published-link{display:inline-block;margin-inline-start:12px;color:#b9a1ff;text-decoration:underline}
 html[dir="ltr"] .editorbar .savebutton{margin-inline-start:auto}
 @media(max-width:700px){.editorbar{flex-wrap:wrap;height:auto;min-height:66px;padding:10px}.editorbar .savebutton{margin-inline-start:0}.editorbar .publishbutton{margin-inline-start:0}.editorbar input{flex:1;min-width:100px}}
+
+
+.editorbar .unpublishbutton{background:#3a202b!important;color:#ffb3c0!important;border:1px solid #77404f!important;margin-inline-start:0}
