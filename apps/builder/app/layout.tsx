@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-export const metadata: Metadata = {
-  title: "Digital Compass Builder",
-  description: "منصة البوصلة الرقمية لإنشاء المواقع",
-};
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ar" dir="rtl"><body>{children}</body></html>;
+import {LocaleProvider} from "@/components/locale-provider";
+export const metadata: Metadata = {title:"Digital Compass Builder",description:"Digital Compass website creation platform"};
+export default function RootLayout({children}:{children:React.ReactNode}) {
+ return <html lang="ar" dir="rtl"><body><LocaleProvider>{children}</LocaleProvider></body></html>;
 }
