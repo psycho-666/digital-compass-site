@@ -87,7 +87,7 @@ export default function EditorPage(){
    const {data:site,error:siteError}=await supabase.from("builder_sites").select("id,slug").eq("workspace_id",workspace.id).maybeSingle();if(siteError)throw siteError;if(!site)throw new Error(ar?"الموقع غير موجود.":"Website not found.");
    const {data:page,error:pageError}=await supabase.from("builder_pages").select("id").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();if(pageError)throw pageError;if(!page)throw new Error(ar?"الصفحة غير موجودة.":"Page not found.");
    const {data:latest,error:latestError}=await supabase.from("builder_page_versions").select("id,version_no").eq("page_id",page.id).order("version_no",{ascending:false}).limit(1).maybeSingle();if(latestError)throw latestError;if(!latest)throw new Error(ar?"لا توجد نسخة لحفظها.":"No page version found.");
-   const {error:updateError}=await supabase.from("builder_page_versions").update({status:"published"}).eq("id",latest.id);if(updateError)throw updateError;
+   const {error:retireError}=await supabase.from("builder_page_versions").update({status:"draft"}).eq("page_id",page.id).eq("status","published");if(retireError)throw retireError;const {error:updateError}=await supabase.from("builder_page_versions").update({status:"published"}).eq("id",latest.id);if(updateError)throw updateError;
    const url="/sites/"+site.slug+"/"+locale+"/"+pageSlug;setPublishedUrl(url);setMessage(ar?"تم نشر موقعك بنجاح.":"Your website is now published.");
   }catch(error){setMessage(error instanceof Error?error.message:(ar?"تعذر نشر الموقع.":"Could not publish the website."));}
   finally{setPublishing(false);}
