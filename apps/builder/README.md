@@ -1,6 +1,6 @@
 # Digital Compass Builder
 
-Independent Next.js application for the website-builder product. Existing root website and social-media workflows remain separate.
+Independent Next.js application for the Digital Compass website-builder product. The existing root website and social-media workflows remain separate.
 
 ## Run locally
 ```bash
@@ -14,13 +14,24 @@ Open http://localhost:3000.
 ## Supabase setup
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`. Never place a service-role or secret key in a `NEXT_PUBLIC_` variable.
 
-The builder schema uses five dedicated tables: `builder_workspaces`, `builder_workspace_members`, `builder_sites`, `builder_pages`, and `builder_page_versions`. All five tables have RLS enabled. Access is restricted to authenticated workspace members; draft versions are append-only. SQL migrations are in `../../supabase/migrations/`.
+The builder schema uses five dedicated tables: `builder_workspaces`, `builder_workspace_members`, `builder_sites`, `builder_pages`, and `builder_page_versions`. All five tables have RLS enabled. Anonymous access is explicitly revoked; authenticated access is governed by workspace policies. Draft versions are append-only. SQL migrations are in `../../supabase/migrations/`.
 
-## Current implementation
-- Arabic-first RTL editor with section insertion, editing, deletion, and desktop/mobile preview.
+## Implemented foundation
+- Arabic and English interface switching, with persisted language preference and automatic RTL/LTR direction.
 - Email/password signup and login using Supabase Auth.
-- Save creates/reuses the user's default workspace, site and home page, then stores a new immutable draft version.
-- Templates, media storage, publishing, custom domains, billing, and English UI are not implemented yet.
+- Editor section insertion, editing, deletion, drag-and-drop ordering, and keyboard-accessible up/down controls.
+- Three bilingual starter templates: business/services, portfolio, and restaurant/café.
+- Typed page-document schema with runtime validation before persistence.
+- Desktop/mobile page preview.
+- Save creates/reuses the user's default workspace and site, then stores a new locale-specific immutable draft version.
 
-## Important
-The editor currently saves one starter site (`my-first-site`) and one Arabic home page. It is an initial persistence vertical slice, not a production-ready website-builder yet. Run a full local build and end-to-end auth/save tests before deployment.
+## Not yet production-ready
+- Real browser end-to-end tests for signup, login, save, and reload.
+- Media storage and uploads with dedicated storage policies.
+- Rich block types, visual styling controls, responsive layout editing, and reusable components.
+- Published snapshots, public preview URLs, deployment, and custom domains.
+- Team invitation and complete role-management workflows.
+- Production deployment and operational monitoring.
+
+## Safety and deployment
+The builder is developed on `feature/website-builder-foundation`. Do not deploy it through the root GitHub Pages workflow or merge it into `main` until the separate app deployment and end-to-end checks are complete. Keep all Supabase secrets server-side.
