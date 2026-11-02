@@ -9,6 +9,9 @@ on:
     paths:
       - "apps/builder/**"
       - ".github/workflows/builder-ci.yml"
+concurrency:
+  group: builder-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
