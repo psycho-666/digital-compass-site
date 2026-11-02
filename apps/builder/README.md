@@ -34,7 +34,7 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 - Real browser end-to-end tests for signup, login, save, and reload.
 - End-to-end browser testing of media uploads, signed URL expiry/refresh, and image placement in the final published site.
 - Rich block types, visual styling controls, responsive layout editing, and reusable components.
-- Unpublish controls, public preview URLs, production deployment, and custom domains.
+- Public preview URLs, production deployment, and custom domains.
 - End-to-end verification with a real authenticated account, including publish, anonymous viewing, and draft-isolation tests.
 - Team invitation and complete role-management workflows.
 - Production deployment and operational monitoring.
