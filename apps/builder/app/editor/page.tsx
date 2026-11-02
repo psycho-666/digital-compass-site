@@ -20,9 +20,9 @@ export default function EditorPage(){
    if(!workspace){
     const created=await supabase.from("builder_workspaces").insert({owner_id:user.id,name:"مساحة العمل الرئيسية"}).select("id").single();
     if(created.error)throw created.error;workspace=created.data;
-    const member=await supabase.from("builder_workspace_members").insert({workspace_id:workspace.id,user_id:user.id,role:"owner"});
-    if(member.error)throw member.error;
    }
+   const member=await supabase.from("builder_workspace_members").upsert({workspace_id:workspace.id,user_id:user.id,role:"owner"},{onConflict:"workspace_id,user_id"});
+   if(member.error)throw member.error;
    const slug="my-first-site";
    let {data:site,error:siteError}=await supabase.from("builder_sites").select("id").eq("workspace_id",workspace.id).eq("slug",slug).maybeSingle();
    if(siteError)throw siteError;
