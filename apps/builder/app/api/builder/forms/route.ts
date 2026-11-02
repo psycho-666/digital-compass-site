@@ -21,7 +21,10 @@ export async function POST(request:NextRequest){
     const forwarded=request.headers.get("x-forwarded-for");
     const ip=request.headers.get("cf-connecting-ip")??request.headers.get("x-real-ip")??forwarded?.split(",").at(-1)?.trim()??"";
     if(!ip||isIP(ip)===0)return NextResponse.json({error:"Form submission is temporarily unavailable."},{status:503});
-    const supabaseUrl=process.env.NEXT_PUBLIC_SUPABASE_URL;\n    const serviceRoleKey=process.env.SUPABASE_SERVICE_ROLE_KEY;\n    if(!supabaseUrl||!serviceRoleKey)return NextResponse.json({error:"Form submission is not configured yet."},{status:503});\n    const supabase=createSupabaseClient(supabaseUrl,serviceRoleKey,{auth:{autoRefreshToken:false,persistSession:false}});
+    const supabaseUrl=process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if(!supabaseUrl||!serviceRoleKey)return NextResponse.json({error:"Form submission is not configured yet."},{status:503});
+    const supabase=createSupabaseClient(supabaseUrl,serviceRoleKey,{auth:{autoRefreshToken:false,persistSession:false}});
     const {data,error}=await supabase.rpc("submit_builder_form",{
       p_site_slug:siteSlug,p_page_slug:pageSlug,p_locale:locale,p_form_kind:formKind,
       p_name:name,p_email:email||null,p_phone:phone||null,p_message:message,
