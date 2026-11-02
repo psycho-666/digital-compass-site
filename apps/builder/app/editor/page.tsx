@@ -28,7 +28,7 @@ export default function EditorPage(){
    if(!workspace){const created=await supabase.from("builder_workspaces").insert({owner_id:user.id,name:ar?"مساحة العمل الرئيسية":"Main workspace"}).select("id").single();if(created.error)throw created.error;workspace=created.data;}
    const member=await supabase.from("builder_workspace_members").upsert({workspace_id:workspace.id,user_id:user.id,role:"owner"},{onConflict:"workspace_id,user_id"});if(member.error)throw member.error;
    const slug="site-"+workspace.id.replaceAll("-","").slice(0,24);
-   let {data:site,error:siteError}=await supabase.from("builder_sites").select("id").eq("workspace_id",workspace.id).eq("slug",slug).maybeSingle();if(siteError)throw siteError;
+   let {data:site,error:siteError}=await supabase.from("builder_sites").select("id").eq("workspace_id",workspace.id).maybeSingle();if(siteError)throw siteError;
    if(!site){const created=await supabase.from("builder_sites").insert({workspace_id:workspace.id,name:siteName,slug,default_locale:locale,created_by:user.id}).select("id").single();if(created.error)throw created.error;site=created.data;}
    else {const renamed=await supabase.from("builder_sites").update({name:siteName,default_locale:locale}).eq("id",site.id);if(renamed.error)throw renamed.error;}
    let {data:page,error:pageError}=await supabase.from("builder_pages").select("id").eq("site_id",site.id).eq("slug","home").eq("locale",locale).maybeSingle();if(pageError)throw pageError;
