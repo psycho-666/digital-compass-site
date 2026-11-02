@@ -20,10 +20,11 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 - Arabic and English interface switching, with persisted language preference and automatic RTL/LTR direction.
 - Email/password signup and login using Supabase Auth.
 - Editor section insertion, editing, deletion, drag-and-drop ordering, keyboard-accessible up/down controls, per-section text alignment and background colors, editable hero call-to-action labels and safe destinations, and testimonial sections.
-- Six editable section types (hero, text, services/features, testimonials, image-with-caption, and multi-image gallery) plus three bilingual starter templates: business/services, portfolio, and restaurant/café, each with its own color and typography preset. Testimonial template content is clearly marked as placeholder copy to be replaced with genuine customer feedback.
+- Seven editable section types (hero, text, services/features, testimonials, image-with-caption, multi-image gallery, and contact/reservation forms) plus three bilingual starter templates: business/services, portfolio, and restaurant/café, each with its own color and typography preset. Testimonial template content is clearly marked as placeholder copy to be replaced with genuine customer feedback.
 - Typed page-document schema with runtime validation before persistence.
 - Private `builder-media` Storage bucket (10 MB per file; JPEG, PNG, WebP, GIF only) with workspace-member read access and owner/admin/editor write access.
 - Section and gallery image uploads stored under workspace/site paths; gallery supports up to 30 images per block, multiple-file upload, removal, and reordering. Editor previews use one-hour signed URLs. Save the site once before uploading its first image.
+- Public contact and reservation forms submit through a server route into a private submissions table. Database checks enforce published-form existence, field limits, a honeypot, a 1.5-second minimum completion time, and a limit of five submissions per IP/site per 15 minutes. Only workspace owners and admins can read submissions through authenticated database access.
 - Desktop/mobile page preview.
 - Page-level theme controls for accent, background, and text colors plus modern/classic typography; theme settings are validated and saved with each page version.
 - Multi-page site management: create, switch, reorder, and delete pages; published pages appear in the public navigation, with a language switch when a translated page is also published.
@@ -34,12 +35,12 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 
 ## Not yet production-ready
 - Real browser end-to-end tests for signup, login, save, and reload.
-- End-to-end browser testing of media uploads, signed URL expiry/refresh, and image placement in the final published site.
-- Additional rich blocks such as pricing tables, FAQs, and contact forms; advanced visual styling controls, responsive layout editing, and reusable components.
+- End-to-end browser testing of media uploads, signed URL expiry/refresh, gallery rendering, and contact/reservation submission flow.
+- Additional rich blocks such as pricing tables and FAQs; a submissions inbox/management screen; advanced visual styling controls, responsive layout editing, and reusable components.
 - Public preview URLs, production deployment, and custom domains.
 - End-to-end verification with a real authenticated account, including publish, anonymous viewing, and draft-isolation tests.
 - Team invitation and complete role-management workflows.
-- Production deployment and operational monitoring.
+- Production deployment and operational monitoring. Configure the hosting proxy to overwrite trusted client-IP headers before enabling public forms in production.
 
 ## Safety and deployment
 The builder is developed on `feature/website-builder-foundation`. Do not deploy it through the root GitHub Pages workflow or merge it into `main` until the separate app deployment and end-to-end checks are complete. Keep all Supabase secrets server-side.
