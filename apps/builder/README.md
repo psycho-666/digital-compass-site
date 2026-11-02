@@ -25,15 +25,16 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 - Private `builder-media` Storage bucket (10 MB per file; JPEG, PNG, WebP, GIF only) with workspace-member read access and owner/admin/editor write access.
 - Section image uploads stored under workspace/site paths; editor previews use one-hour signed URLs. Save the site once before uploading its first image.
 - Desktop/mobile page preview.
-- Save-then-publish flow that marks a specific immutable page version as published.
+- Multi-page site management: create pages, switch between page drafts, and show published pages in the public navigation.
+- Save-then-publish flow that marks a specific immutable page version as published; existing published content remains live while a new draft is edited.
 - Public website route at `/sites/<site-slug>/<locale>/<page-slug>`; anonymous reads are limited by RLS to published pages and published versions only.
-- Published page images are still stored in the private media bucket; anonymous storage access is allowed only for object paths referenced by a published page version.
+- Published page images are still stored in the private media bucket; anonymous storage access is allowed only for object paths referenced by a published page version. Public image URLs expire after 10 minutes.
 - Save creates/reuses the user's default workspace and site, then stores a new locale-specific immutable draft version.
 
 ## Not yet production-ready
 - Real browser end-to-end tests for signup, login, save, and reload.
 - End-to-end browser testing of media uploads, signed URL expiry/refresh, and image placement in the final published site.
-- Rich block types, visual styling controls, responsive layout editing, and reusable components.
+- Page deletion/reordering, rich block types, visual styling controls, responsive layout editing, and reusable components.
 - Public preview URLs, production deployment, and custom domains.
 - End-to-end verification with a real authenticated account, including publish, anonymous viewing, and draft-isolation tests.
 - Team invitation and complete role-management workflows.
