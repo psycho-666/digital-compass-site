@@ -1,5 +1,7 @@
 export type BuilderLocale = "ar" | "en";
 export type BuilderBlockType = "hero" | "text" | "features";
+export type BuilderTheme = { accentColor:string; backgroundColor:string; textColor:string; fontFamily:"sans"|"serif" };
+export const defaultBuilderTheme:BuilderTheme={accentColor:"#6f4acb",backgroundColor:"#ffffff",textColor:"#202433",fontFamily:"sans"};
 export type BuilderBlock = {
   id: string;
   type: BuilderBlockType;
@@ -10,14 +12,16 @@ export type BuilderDocument = {
   locale: BuilderLocale;
   title: string;
   blocks: BuilderBlock[];
+  theme?: BuilderTheme;
 };
 const isRecord=(value:unknown):value is Record<string,unknown>=>typeof value==="object"&&value!==null&&!Array.isArray(value);
 export function validateBuilderDocument(value:unknown):value is BuilderDocument {
   if(!isRecord(value)||value.schemaVersion!==1||(value.locale!=="ar"&&value.locale!=="en")||typeof value.title!=="string"||!Array.isArray(value.blocks))return false;
-  return value.blocks.every((block)=>isRecord(block)&&typeof block.id==="string"&&(block.type==="hero"||block.type==="text"||block.type==="features")&&isRecord(block.props)&&typeof block.props.title==="string"&&typeof block.props.body==="string"&&(block.props.imagePath===undefined||typeof block.props.imagePath==="string"));
+  const validTheme=value.theme===undefined||(isRecord(value.theme)&&typeof value.theme.accentColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.accentColor)&&typeof value.theme.backgroundColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.backgroundColor)&&typeof value.theme.textColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.textColor)&&(value.theme.fontFamily==="sans"||value.theme.fontFamily==="serif"));
+  return validTheme&&value.blocks.every((block)=>isRecord(block)&&typeof block.id==="string"&&(block.type==="hero"||block.type==="text"||block.type==="features")&&isRecord(block.props)&&typeof block.props.title==="string"&&typeof block.props.body==="string"&&(block.props.imagePath===undefined||typeof block.props.imagePath==="string"));
 }
-export function createBuilderDocument(locale:BuilderLocale,title:string,blocks:BuilderBlock[]):BuilderDocument {
- const document:BuilderDocument={schemaVersion:1,locale,title,blocks};
+export function createBuilderDocument(locale:BuilderLocale,title:string,blocks:BuilderBlock[],theme:BuilderTheme=defaultBuilderTheme):BuilderDocument {
+ const document:BuilderDocument={schemaVersion:1,locale,title,blocks,theme};
  if(!validateBuilderDocument(document))throw new Error("Invalid page content.");
  return document;
 }
