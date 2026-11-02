@@ -54,13 +54,14 @@ export default function EditorPage(){
    let {data:site,error:siteError}=await supabase.from("builder_sites").select("id").eq("workspace_id",workspace.id).maybeSingle();if(siteError)throw siteError;
    if(!site){const created=await supabase.from("builder_sites").insert({workspace_id:workspace.id,name:siteName,slug,default_locale:locale,created_by:user.id}).select("id").single();if(created.error)throw created.error;site=created.data;}
    else {const renamed=await supabase.from("builder_sites").update({name:siteName,default_locale:locale}).eq("id",site.id);if(renamed.error)throw renamed.error;}
-   let {data:page,error:pageError}=await supabase.from("builder_pages").select("id").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();if(pageError)throw pageError;
-   if(!page){const created=await supabase.from("builder_pages").insert({site_id:site.id,title:pageTitle,slug:pageSlug,locale,is_home:pageSlug==="home",sort_order:pages.length}).select("id").single();if(created.error)throw created.error;page=created.data;setPages(current=>[...current,{id:created.data.id,slug:pageSlug,title:pageTitle}]);}
-   else {const renamedPage=await supabase.from("builder_pages").update({title:pageTitle}).eq("id",page.id);if(renamedPage.error)throw renamedPage.error;setPages(current=>current.map(item=>item.id===page.id?{...item,title:pageTitle}:item));}
-   const latest=await supabase.from("builder_page_versions").select("version_no").eq("page_id",page.id).order("version_no",{ascending:false}).limit(1);if(latest.error)throw latest.error;
+   const {data:existingPage,error:pageError}=await supabase.from("builder_pages").select("id").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();if(pageError)throw pageError;
+   let pageId=existingPage?.id;
+   if(!pageId){const created=await supabase.from("builder_pages").insert({site_id:site.id,title:pageTitle,slug:pageSlug,locale,is_home:pageSlug==="home",sort_order:pages.length}).select("id").single();if(created.error)throw created.error;pageId=created.data.id;setPages(current=>[...current,{id:pageId!,slug:pageSlug,title:pageTitle}]);}
+   else {const renamedPage=await supabase.from("builder_pages").update({title:pageTitle}).eq("id",pageId);if(renamedPage.error)throw renamedPage.error;setPages(current=>current.map(item=>item.id===pageId?{...item,title:pageTitle}:item));}
+   const latest=await supabase.from("builder_page_versions").select("version_no").eq("page_id",pageId).order("version_no",{ascending:false}).limit(1);if(latest.error)throw latest.error;
    const version=(latest.data?.[0]?.version_no??0)+1;
    const document=createBuilderDocument(locale,pageTitle,sections.map(({id,type,title,body,imagePath})=>({id:String(id),type,props:{title,body,...(imagePath?{imagePath}:{})}})));
-   const saved=await supabase.from("builder_page_versions").insert({page_id:page.id,version_no:version,status:"draft",document,created_by:user.id});if(saved.error)throw saved.error;
+   const saved=await supabase.from("builder_page_versions").insert({page_id:pageId,version_no:version,status:"draft",document,created_by:user.id});if(saved.error)throw saved.error;
    setMessage(ar?"تم حفظ النسخة رقم "+version+" بنجاح.":"Version "+version+" saved successfully.");return true;
   }catch(err){setMessage(err instanceof Error?err.message:(ar?"تعذر حفظ الموقع.":"Could not save the website."));return false;}
   finally{setSaving(false);}
