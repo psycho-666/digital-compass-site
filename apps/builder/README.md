@@ -12,7 +12,7 @@ npm run dev
 Open http://localhost:3000.
 
 ## Supabase setup
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`. Never place a service-role or secret key in a `NEXT_PUBLIC_` variable.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`. Public form submissions also require `SUPABASE_SERVICE_ROLE_KEY` as a server-only environment variable. Never place a service-role or secret key in a `NEXT_PUBLIC_` variable or commit its value.
 
 The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_workspace_members`, `builder_sites`, `builder_pages`, `builder_page_versions`, `builder_form_submissions`, and `builder_form_rate_limits`. All seven tables have RLS enabled. Anonymous access to builder data and form submissions is explicitly restricted; authenticated access is governed by workspace policies. Draft versions are append-only. SQL migrations are in `../../supabase/migrations/`.
 
@@ -24,7 +24,7 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 - Typed page-document schema with runtime validation before persistence.
 - Private `builder-media` Storage bucket (10 MB per file; JPEG, PNG, WebP, GIF only) with workspace-member read access and owner/admin/editor write access.
 - Section and gallery image uploads stored under workspace/site paths; gallery supports up to 30 images per block, multiple-file upload, removal, and reordering. Editor previews use one-hour signed URLs. Save the site once before uploading its first image.
-- Public contact and reservation forms submit through a server route into a private submissions table. Database checks enforce published-form existence, field limits, a honeypot, a 1.5-second minimum completion time, and a limit of five submissions per IP/site per 15 minutes. Only workspace owners and admins can read submissions through authenticated database access; the editor links to a private inbox showing the latest 100 requests. The rate-limit table has no client privileges and an explicit deny-all RLS policy. Configure the hosting proxy to overwrite trusted client-IP headers before enabling public forms in production.
+- Public contact and reservation forms submit through a server route using a server-only service-role client into a private submissions table. The RPC is restricted to `service_role`; the public browser cannot call it directly. Database checks enforce published-form existence, field limits, a honeypot, a 1.5-second minimum completion time, and a limit of five submissions per IP/site per 15 minutes. Only workspace owners and admins can read submissions through authenticated database access; the editor links to a private inbox showing the latest 100 requests. The rate-limit table has no client privileges and an explicit deny-all RLS policy. Configure the hosting proxy to overwrite trusted client-IP headers before enabling public forms in production.
 - Desktop/mobile page preview.
 - Page-level theme controls for accent, background, and text colors plus modern/classic typography; theme settings are validated and saved with each page version.
 - Multi-page site management: create, switch, reorder, and delete pages; published pages appear in the public navigation, with a language switch when a translated page is also published.
