@@ -28,7 +28,7 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 - Multi-page site management: create, switch, reorder, and delete pages; published pages appear in the public navigation.
 - Save-then-publish flow backed by an atomic, invoker-secured database operation; only the newest selected version remains published while a new draft is edited.
 - Public website routes at `/sites/<site-slug>` (default locale home) and `/sites/<site-slug>/<locale>/<page-slug>`; anonymous reads are limited by RLS to published pages and published versions only.
-- Published page images are still stored in the private media bucket; anonymous storage access is allowed only for object paths referenced by a published page version. Public image URLs expire after 10 minutes.
+- Published page images are still stored in the private media bucket; anonymous storage access is allowed only for object paths referenced by a published page version and matching that page’s owning workspace and site. Public image URLs expire after 10 minutes.
 - Save creates/reuses the user's default workspace and site, then stores a new locale-specific immutable draft version.
 
 ## Not yet production-ready
