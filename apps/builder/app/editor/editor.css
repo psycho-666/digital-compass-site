@@ -74,3 +74,5 @@ html[dir="ltr"] .editorbar .savebutton{margin-inline-start:auto}
 .gallery-actions{display:flex;gap:4px}.gallery-actions button{flex:1;width:auto;color:#e6ddff;background:#25203a;border-color:#51436f}.gallery-actions button:last-child{color:#ffb3c0;background:#351c27;border-color:#653142}.gallery-actions button:disabled{opacity:.25;cursor:not-allowed}
 
 .preview-form-placeholder{max-width:650px;margin:20px auto;padding:28px;border:1px dashed #a88af5;border-radius:14px;background:#f7f4ff;color:#38304a;text-align:start}.preview-form-placeholder strong{display:block;font-size:18px}.preview-form-placeholder p{margin:8px 0}.preview-form-placeholder span{display:block;font-size:12px;color:#746b87}
+
+.editorbar .submissions-link{margin-inline-start:0;color:#c9b4ff;text-decoration:none;font-size:12px;white-space:nowrap}.editorbar .submissions-link:hover{text-decoration:underline}
