@@ -30,7 +30,7 @@ export default function EditorPage(){
  const dropSection=(targetId:number)=>{if(draggingId===null||draggingId===targetId)return;setSections(current=>{const from=current.findIndex(s=>s.id===draggingId),to=current.findIndex(s=>s.id===targetId);if(from<0||to<0)return current;const copy=[...current], [moved]=copy.splice(from,1);copy.splice(from<to?to-1:to,0,moved);return copy;});setDraggingId(null);};
  const applyTemplate=(id:BuilderTemplateId)=>{const chosen=builderTemplates.find(t=>t.id===id);if(!chosen)return;setTemplateId(id);const next=chosen.blocks(locale).map(b=>({id:Number(b.id),type:b.type,title:b.props.title,body:b.props.body}));setSections(next);setMediaUrls({});setSelected(next[0]?.id??0);};
  async function save():Promise<boolean>{
-  setSaving(true);setMessage("");setPublishedUrl("");
+  setSaving(true);setMessage("");
   try{
    const supabase=createClient();const {data:{user},error:authError}=await supabase.auth.getUser();
    if(authError||!user){router.push("/login");return false;}
@@ -43,8 +43,8 @@ export default function EditorPage(){
    if(!site){const created=await supabase.from("builder_sites").insert({workspace_id:workspace.id,name:siteName,slug,default_locale:locale,created_by:user.id}).select("id").single();if(created.error)throw created.error;site=created.data;}
    else {const renamed=await supabase.from("builder_sites").update({name:siteName,default_locale:locale}).eq("id",site.id);if(renamed.error)throw renamed.error;}
    let {data:page,error:pageError}=await supabase.from("builder_pages").select("id").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();if(pageError)throw pageError;
-   if(!page){const created=await supabase.from("builder_pages").insert({site_id:site.id,title:pageTitle,slug:pageSlug,locale,is_home:pageSlug==="home",sort_order:pages.length}).select("id").single();if(created.error)throw created.error;page=created.data;}
-   else {const renamedPage=await supabase.from("builder_pages").update({title:pageTitle}).eq("id",page.id);if(renamedPage.error)throw renamedPage.error;}
+   if(!page){const created=await supabase.from("builder_pages").insert({site_id:site.id,title:pageTitle,slug:pageSlug,locale,is_home:pageSlug==="home",sort_order:pages.length}).select("id").single();if(created.error)throw created.error;page=created.data;setPages(current=>[...current,{id:created.data.id,slug:pageSlug,title:pageTitle}]);}
+   else {const renamedPage=await supabase.from("builder_pages").update({title:pageTitle}).eq("id",page.id);if(renamedPage.error)throw renamedPage.error;setPages(current=>current.map(item=>item.id===page.id?{...item,title:pageTitle}:item));}
    const latest=await supabase.from("builder_page_versions").select("version_no").eq("page_id",page.id).order("version_no",{ascending:false}).limit(1);if(latest.error)throw latest.error;
    const version=(latest.data?.[0]?.version_no??0)+1;
    const document=createBuilderDocument(locale,pageTitle,sections.map(({id,type,title,body,imagePath})=>({id:String(id),type,props:{title,body,...(imagePath?{imagePath}:{})}})));
