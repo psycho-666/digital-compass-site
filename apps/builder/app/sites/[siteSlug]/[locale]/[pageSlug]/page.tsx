@@ -39,7 +39,7 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
  const ar=locale==="ar";const theme=version.document.theme??defaultBuilderTheme;
  return <main className="published-site" style={{backgroundColor:theme.backgroundColor,color:theme.textColor,fontFamily:theme.fontFamily==="serif"?"Georgia,serif":"Arial,sans-serif"}} dir={ar?"rtl":"ltr"} lang={locale}>
   <header className="published-header"><a href={"/sites/"+siteSlug+"/"+locale+"/home"}>{site.name}</a><nav>{(navigationPages||[]).map(item=><a key={item.slug} href={"/sites/"+siteSlug+"/"+locale+"/"+item.slug}>{item.title}</a>)}</nav></header>
-  {version.document.blocks.map(block=><section className={"published-block published-"+block.type} key={block.id}>
+  {version.document.blocks.map(block=><section className={"published-block published-"+block.type} style={{backgroundColor:theme.backgroundColor}} key={block.id}>
    <h1 style={{color:theme.accentColor}}>{block.props.title}</h1><p style={{color:theme.textColor}}>{block.props.body}</p>
    {block.props.imagePath&&imageUrls[block.props.imagePath]&&<img src={imageUrls[block.props.imagePath]} alt={block.props.title}/>}
    {block.type==="hero"&&<a className="published-cta" style={{backgroundColor:theme.accentColor}} href="#contact">{ar?"تواصل معنا":"Get in touch"}</a>}
