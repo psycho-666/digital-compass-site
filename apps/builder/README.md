@@ -23,12 +23,13 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 - Three bilingual starter templates: business/services, portfolio, and restaurant/café.
 - Typed page-document schema with runtime validation before persistence.
 - Private `builder-media` Storage bucket (10 MB per file; JPEG, PNG, WebP, GIF only) with workspace-member read access and owner/admin/editor write access.
+- Section image uploads stored under workspace/site paths; editor previews use one-hour signed URLs. Save the site once before uploading its first image.
 - Desktop/mobile page preview.
 - Save creates/reuses the user's default workspace and site, then stores a new locale-specific immutable draft version.
 
 ## Not yet production-ready
 - Real browser end-to-end tests for signup, login, save, and reload.
-- Browser upload UI, image selection/placement, and signed-URL lifecycle for private media.
+- End-to-end browser testing of media uploads, signed URL expiry/refresh, and image placement in the final published site.
 - Rich block types, visual styling controls, responsive layout editing, and reusable components.
 - Published snapshots, public preview URLs, deployment, and custom domains.
 - Team invitation and complete role-management workflows.
