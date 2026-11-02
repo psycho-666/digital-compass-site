@@ -5,3 +5,5 @@
 .published-testimonial{max-width:780px;margin:28px auto 0;padding:34px;border-inline-start:4px solid #8a6bd1;border-radius:12px;background:color-mix(in srgb,currentColor 5%,transparent);text-align:start}.published-testimonial p{font-size:clamp(17px,2vw,22px);line-height:2;margin:0 0 16px}.published-testimonial strong{font-size:14px;opacity:.8}
 
 .published-image{display:block;width:min(100%,1100px);max-height:680px;object-fit:contain;border-radius:18px;margin:30px auto 0}.published-content-image{display:block;max-width:min(100%,900px);max-height:560px;object-fit:contain;border-radius:14px;margin:32px auto 0}
+
+.published-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;max-width:1100px;margin:32px auto 0}.published-gallery img{width:100%;height:240px;object-fit:cover;border-radius:14px;margin:0;max-height:none}@media(max-width:600px){.published-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.published-gallery img{height:150px}}
