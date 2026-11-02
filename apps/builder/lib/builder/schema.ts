@@ -15,7 +15,7 @@ export type BuilderDocument = {
   theme?: BuilderTheme;
 };
 const isRecord=(value:unknown):value is Record<string,unknown>=>typeof value==="object"&&value!==null&&!Array.isArray(value);
-export function isSafeBuilderLink(value:string):boolean{if(value.length>2048||/[\\\\\\u0000-\\\\\\u0020]/.test(value))return false;return value.startsWith("#")||(value.startsWith("/")&&!value.startsWith("//"))||/^https?:\/\//i.test(value)||/^mailto:/i.test(value)||/^tel:/i.test(value);}
+export function isSafeBuilderLink(value:string):boolean{if(value.length>2048||value.includes("\\")||/[\u0000-\u0020]/.test(value))return false;return value.startsWith("#")||(value.startsWith("/")&&!value.startsWith("//"))||/^https?:\/\//i.test(value)||/^mailto:/i.test(value)||/^tel:/i.test(value);}
 export function validateBuilderDocument(value:unknown):value is BuilderDocument {
   if(!isRecord(value)||value.schemaVersion!==1||(value.locale!=="ar"&&value.locale!=="en")||typeof value.title!=="string"||!Array.isArray(value.blocks))return false;
   const validTheme=value.theme===undefined||(isRecord(value.theme)&&typeof value.theme.accentColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.accentColor)&&typeof value.theme.backgroundColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.backgroundColor)&&typeof value.theme.textColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.textColor)&&(value.theme.fontFamily==="sans"||value.theme.fontFamily==="serif"));
