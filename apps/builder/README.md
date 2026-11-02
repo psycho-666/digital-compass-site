@@ -24,7 +24,7 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 - Typed page-document schema with runtime validation before persistence.
 - Private `builder-media` Storage bucket (10 MB per file; JPEG, PNG, WebP, GIF only) with workspace-member read access and owner/admin/editor write access.
 - Section and gallery image uploads stored under workspace/site paths; gallery supports up to 30 images per block, multiple-file upload, removal, and reordering. Editor previews use one-hour signed URLs. Save the site once before uploading its first image.
-- Public contact and reservation forms submit through a server route into a private submissions table. Database checks enforce published-form existence, field limits, a honeypot, a 1.5-second minimum completion time, and a limit of five submissions per IP/site per 15 minutes. Only workspace owners and admins can read submissions through authenticated database access. The rate-limit table has no client privileges and an explicit deny-all RLS policy. Configure the hosting proxy to overwrite trusted client-IP headers before enabling public forms in production.
+- Public contact and reservation forms submit through a server route into a private submissions table. Database checks enforce published-form existence, field limits, a honeypot, a 1.5-second minimum completion time, and a limit of five submissions per IP/site per 15 minutes. Only workspace owners and admins can read submissions through authenticated database access; the editor links to a private inbox showing the latest 100 requests. The rate-limit table has no client privileges and an explicit deny-all RLS policy. Configure the hosting proxy to overwrite trusted client-IP headers before enabling public forms in production.
 - Desktop/mobile page preview.
 - Page-level theme controls for accent, background, and text colors plus modern/classic typography; theme settings are validated and saved with each page version.
 - Multi-page site management: create, switch, reorder, and delete pages; published pages appear in the public navigation, with a language switch when a translated page is also published.
@@ -36,7 +36,7 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 ## Not yet production-ready
 - Real browser end-to-end tests for signup, login, save, and reload.
 - End-to-end browser testing of media uploads, signed URL expiry/refresh, gallery rendering, and contact/reservation submission flow.
-- Additional rich blocks such as pricing tables and FAQs; a submissions inbox/management screen; advanced visual styling controls, responsive layout editing, and reusable components.
+- Additional rich blocks such as pricing tables and FAQs; advanced visual styling controls, responsive layout editing, and reusable components.
 - Public preview URLs, production deployment, and custom domains.
 - End-to-end verification with a real authenticated account, including publish, anonymous viewing, and draft-isolation tests.
 - Team invitation and complete role-management workflows.
