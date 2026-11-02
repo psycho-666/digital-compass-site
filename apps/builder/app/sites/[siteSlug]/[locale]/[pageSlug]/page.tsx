@@ -42,7 +42,7 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
   {version.document.blocks.map(block=><section className={"published-block published-"+block.type} style={{backgroundColor:block.props.backgroundColor??theme.backgroundColor,textAlign:block.props.align??"center"}} key={block.id}>
    <h1 style={{color:theme.accentColor}}>{block.props.title}</h1><p style={{color:theme.textColor}}>{block.props.body}</p>
    {block.props.imagePath&&imageUrls[block.props.imagePath]&&<img src={imageUrls[block.props.imagePath]} alt={block.props.title}/>}
-   {block.type==="hero"&&<a className="published-cta" style={{backgroundColor:theme.accentColor}} href="#contact">{ar?"تواصل معنا":"Get in touch"}</a>}
+   {block.type==="hero"&&<a className="published-cta" style={{backgroundColor:theme.accentColor}} href={block.props.buttonUrl??"#contact"}>{block.props.buttonText||(ar?"تواصل معنا":"Get in touch")}</a>}
   </section>)}
   <footer id="contact" className="published-footer">© {new Date().getFullYear()} {site.name}</footer>
  </main>;
