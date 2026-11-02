@@ -1,15 +1,15 @@
 "use client";
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "@/lib/supabase/client";
 import {LanguageSwitch,useLocale} from "@/components/locale-provider";
 import {builderTemplates,type BuilderTemplateId} from "@/lib/builder/templates";
 import {createBuilderDocument} from "@/lib/builder/schema";
 type Section={id:number,type:"hero"|"text"|"features",title:string,body:string};
-const starter=(ar:boolean):Section[]=>[{id:1,type:"hero",title:ar?"عنوان موقعك يبدأ هنا":"Your headline starts here",body:ar?"اكتب وصفاً قصيراً لنشاطك واجذب زوارك.":"Describe your business and welcome your visitors."},{id:2,type:"text",title:ar?"من نحن":"About us",body:ar?"عرّف الزوار بخدماتك وقصتك.":"Tell visitors about your story and what you do."},{id:3,type:"features",title:ar?"خدماتنا":"Our services",body:ar?"الخدمة الأولى • الخدمة الثانية • الخدمة الثالثة":"Service one • Service two • Service three"}];
 export default function EditorPage(){
  const router=useRouter(),{locale}=useLocale(),ar=locale==="ar";
- const [sections,setSections]=useState<Section[]>(()=>starter(true)),[selected,setSelected]=useState(1),[siteName,setSiteName]=useState("موقعي الجديد"),[preview,setPreview]=useState("desktop"),[saving,setSaving]=useState(false),[message,setMessage]=useState(""),[templateId,setTemplateId]=useState<BuilderTemplateId>("business"),[draggingId,setDraggingId]=useState<number|null>(null);
+ const [sections,setSections]=useState<Section[]>(()=>builderTemplates[0].blocks("ar").map(b=>({id:Number(b.id),type:b.type,title:b.props.title,body:b.props.body}))),[selected,setSelected]=useState(1),[siteName,setSiteName]=useState("موقعي الجديد"),[preview,setPreview]=useState("desktop"),[saving,setSaving]=useState(false),[message,setMessage]=useState(""),[templateId,setTemplateId]=useState<BuilderTemplateId>("business"),[draggingId,setDraggingId]=useState<number|null>(null);
+ useEffect(()=>{setSiteName(current=>current==="موقعي الجديد"||current==="My new website"?(ar?"موقعي الجديد":"My new website"):current);setSections(current=>{const selectedTemplate=builderTemplates.find(t=>t.id===templateId);if(!selectedTemplate)return current;const arabic=selectedTemplate.blocks("ar");const untouched=current.length===arabic.length&&current.every((section,index)=>section.title===arabic[index].props.title&&section.body===arabic[index].props.body);return untouched?selectedTemplate.blocks(locale).map(block=>({id:Number(block.id),type:block.type,title:block.props.title,body:block.props.body})):current;});},[locale,templateId]);
  const active=sections.find(s=>s.id===selected);
  const update=(key:"title"|"body",value:string)=>setSections(old=>old.map(s=>s.id===selected?{...s,[key]:value}:s));
  const add=(type:Section["type"])=>{const id=Math.max(0,...sections.map(s=>s.id))+1;setSections([...sections,{id,type,title:type==="hero"?(ar?"عنوان رئيسي":"Main headline"):(ar?"قسم جديد":"New section"),body:ar?"اكتب المحتوى هنا...":"Write your content here..."}]);setSelected(id)};
