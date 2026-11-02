@@ -18,7 +18,7 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
  const imageUrls:Record<string,string>={};
  await Promise.all(version.document.blocks.filter(block=>block.props.imagePath).map(async block=>{
   const path=block.props.imagePath!;
-  const {data}=await supabase.storage.from("builder-media").createSignedUrl(path,3600);
+  const {data}=await supabase.storage.from("builder-media").createSignedUrl(path,600);
   if(data?.signedUrl)imageUrls[path]=data.signedUrl;
  }));
  const ar=locale==="ar";
