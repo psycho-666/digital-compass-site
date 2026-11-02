@@ -1,11 +1,11 @@
 export type BuilderLocale = "ar" | "en";
-export type BuilderBlockType = "hero" | "text" | "features" | "testimonial" | "image";
+export type BuilderBlockType = "hero" | "text" | "features" | "testimonial" | "image" | "gallery";
 export type BuilderTheme = { accentColor:string; backgroundColor:string; textColor:string; fontFamily:"sans"|"serif" };
 export const defaultBuilderTheme:BuilderTheme={accentColor:"#6f4acb",backgroundColor:"#ffffff",textColor:"#202433",fontFamily:"sans"};
 export type BuilderBlock = {
   id: string;
   type: BuilderBlockType;
-  props: { title: string; body: string; imagePath?: string; align?:"left"|"center"|"right"; backgroundColor?:string; buttonText?:string; buttonUrl?:string };
+  props: { title: string; body: string; imagePath?: string; imagePaths?: string[]; align?:"left"|"center"|"right"; backgroundColor?:string; buttonText?:string; buttonUrl?:string };
 };
 export type BuilderDocument = {
   schemaVersion: 1;
@@ -19,7 +19,7 @@ export function isSafeBuilderLink(value:string):boolean{if(value.length>2048||va
 export function validateBuilderDocument(value:unknown):value is BuilderDocument {
   if(!isRecord(value)||value.schemaVersion!==1||(value.locale!=="ar"&&value.locale!=="en")||typeof value.title!=="string"||!Array.isArray(value.blocks))return false;
   const validTheme=value.theme===undefined||(isRecord(value.theme)&&typeof value.theme.accentColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.accentColor)&&typeof value.theme.backgroundColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.backgroundColor)&&typeof value.theme.textColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(value.theme.textColor)&&(value.theme.fontFamily==="sans"||value.theme.fontFamily==="serif"));
-  return validTheme&&value.blocks.every((block)=>isRecord(block)&&typeof block.id==="string"&&(block.type==="hero"||block.type==="text"||block.type==="features"||block.type==="testimonial"||block.type==="image")&&isRecord(block.props)&&typeof block.props.title==="string"&&typeof block.props.body==="string"&&(block.props.imagePath===undefined||typeof block.props.imagePath==="string")&&(block.props.align===undefined||block.props.align==="left"||block.props.align==="center"||block.props.align==="right")&&(block.props.backgroundColor===undefined||(typeof block.props.backgroundColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(block.props.backgroundColor)))&&(block.props.buttonText===undefined||(typeof block.props.buttonText==="string"&&block.props.buttonText.length<=160))&&(block.props.buttonUrl===undefined||(typeof block.props.buttonUrl==="string"&&isSafeBuilderLink(block.props.buttonUrl))));
+  return validTheme&&value.blocks.every((block)=>isRecord(block)&&typeof block.id==="string"&&(block.type==="hero"||block.type==="text"||block.type==="features"||block.type==="testimonial"||block.type==="image")&&isRecord(block.props)&&typeof block.props.title==="string"&&typeof block.props.body==="string"&&(block.props.imagePath===undefined||typeof block.props.imagePath==="string")&&(block.props.imagePaths===undefined||(Array.isArray(block.props.imagePaths)&&block.props.imagePaths.length<=30&&block.props.imagePaths.every(path=>typeof path==="string"&&path.length<=512&&!path.startsWith("/")&&!path.includes(".."))))&&(block.props.align===undefined||block.props.align==="left"||block.props.align==="center"||block.props.align==="right")&&(block.props.backgroundColor===undefined||(typeof block.props.backgroundColor==="string"&&/^#[0-9a-fA-F]{6}$/.test(block.props.backgroundColor)))&&(block.props.buttonText===undefined||(typeof block.props.buttonText==="string"&&block.props.buttonText.length<=160))&&(block.props.buttonUrl===undefined||(typeof block.props.buttonUrl==="string"&&isSafeBuilderLink(block.props.buttonUrl))));
 }
 export function createBuilderDocument(locale:BuilderLocale,title:string,blocks:BuilderBlock[],theme:BuilderTheme=defaultBuilderTheme):BuilderDocument {
  const document:BuilderDocument={schemaVersion:1,locale,title,blocks,theme};
