@@ -19,7 +19,7 @@ The builder schema uses five dedicated tables: `builder_workspaces`, `builder_wo
 ## Implemented foundation
 - Arabic and English interface switching, with persisted language preference and automatic RTL/LTR direction.
 - Email/password signup and login using Supabase Auth.
-- Editor section insertion, editing, deletion, drag-and-drop ordering, and keyboard-accessible up/down controls.
+- Editor section insertion, editing, deletion, drag-and-drop ordering, keyboard-accessible up/down controls, per-section text alignment, and background colors.
 - Three bilingual starter templates: business/services, portfolio, and restaurant/café, each with its own color and typography preset.
 - Typed page-document schema with runtime validation before persistence.
 - Private `builder-media` Storage bucket (10 MB per file; JPEG, PNG, WebP, GIF only) with workspace-member read access and owner/admin/editor write access.
