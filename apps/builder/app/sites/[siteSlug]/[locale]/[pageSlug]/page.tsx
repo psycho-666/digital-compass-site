@@ -27,8 +27,8 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
   {version.document.blocks.map(block=><section className={"published-block published-"+block.type} key={block.id}>
    <h1>{block.props.title}</h1><p>{block.props.body}</p>
    {block.props.imagePath&&imageUrls[block.props.imagePath]&&<img src={imageUrls[block.props.imagePath]} alt={block.props.title}/>}
-   {block.type==="hero"&&<a className="published-cta" href="mailto:hello@digitalcompass.example">{ar?"تواصل معنا":"Get in touch"}</a>}
+   {block.type==="hero"&&<a className="published-cta" href="#contact">{ar?"تواصل معنا":"Get in touch"}</a>}
   </section>)}
-  <footer className="published-footer">© {new Date().getFullYear()} {site.name}</footer>
+  <footer id="contact" className="published-footer">© {new Date().getFullYear()} {site.name}</footer>
  </main>;
 }
