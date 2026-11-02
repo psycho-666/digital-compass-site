@@ -28,3 +28,11 @@ html[dir="ltr"] .properties{border-inline-start:1px solid #283142;border-inline-
 .preview-image{display:block;max-width:min(100%,680px);max-height:340px;object-fit:cover;border-radius:12px;margin:22px auto}
 .property-image{display:block;width:100%;max-height:180px;object-fit:contain;background:#0d121c;border:1px solid #354056;border-radius:9px;margin-top:10px}
 .properties input[type=file]{font-size:12px;padding:8px}
+
+
+.editorbar .publishbutton{background:#b69aff!important;color:#191225!important;margin-inline-start:0;font-weight:700}
+.editorbar .savebutton{margin-inline-start:auto}
+.editorbar button:disabled{opacity:.6;cursor:wait}
+.published-link{display:inline-block;margin-inline-start:12px;color:#b9a1ff;text-decoration:underline}
+html[dir="ltr"] .editorbar .savebutton{margin-inline-start:auto}
+@media(max-width:700px){.editorbar{flex-wrap:wrap;height:auto;min-height:66px;padding:10px}.editorbar .savebutton{margin-inline-start:0}.editorbar .publishbutton{margin-inline-start:0}.editorbar input{flex:1;min-width:100px}}
