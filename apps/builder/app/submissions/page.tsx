@@ -7,9 +7,9 @@ export const dynamic="force-dynamic";
 export default async function SubmissionsPage({searchParams}:{searchParams:Promise<{lang?:string}>}){
   const {lang}=await searchParams;const ar=lang!=="en";const supabase=await createClient();
   const {data:{user}}=await supabase.auth.getUser();if(!user)redirect("/login");
-  const {data:workspace,error:workspaceError}=await supabase.from("builder_workspaces").select("id").eq("owner_id",user.id).maybeSingle();
-  if(workspaceError||!workspace)redirect("/editor");
-  const {data:site,error:siteError}=await supabase.from("builder_sites").select("id,name").eq("workspace_id",workspace.id).maybeSingle();
+  const {data:membership,error:membershipError}=await supabase.from("builder_workspace_members").select("workspace_id").eq("user_id",user.id).in("role",["owner","admin"]).limit(1).maybeSingle();
+  if(membershipError||!membership)redirect("/editor");
+  const {data:site,error:siteError}=await supabase.from("builder_sites").select("id,name").eq("workspace_id",membership.workspace_id).maybeSingle();
   if(siteError||!site)redirect("/editor");
   const {data:submissions,error}=await supabase.from("builder_form_submissions").select("id,page_id,form_kind,name,email,phone,message,preferred_date,preferred_time,party_size,created_at").eq("site_id",site.id).order("created_at",{ascending:false}).limit(100);
   const pageIds=[...new Set((submissions??[]).map(item=>item.page_id))];
