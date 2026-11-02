@@ -25,7 +25,8 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
  const supabase=await createClient();
  const {data:site,error:siteError}=await supabase.from("builder_sites").select("id,name,default_locale").eq("slug",siteSlug).maybeSingle();
  if(siteError||!site)notFound();
- const {data:page,error:pageError}=await supabase.from("builder_pages").select("id,title,locale").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();
+ const {data:navigationPages}=await supabase.from("builder_pages").select("title,slug,locale").eq("site_id",site.id).eq("locale",locale).order("sort_order",{ascending:true}).order("created_at",{ascending:true});
+  const {data:page,error:pageError}=await supabase.from("builder_pages").select("id,title,locale").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();
  if(pageError||!page)notFound();
  const {data:version,error:versionError}=await supabase.from("builder_page_versions").select("document,version_no").eq("page_id",page.id).eq("status","published").order("version_no",{ascending:false}).limit(1).maybeSingle();
  if(versionError||!version||!validateBuilderDocument(version.document))notFound();
@@ -37,7 +38,7 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
  }));
  const ar=locale==="ar";
  return <main className="published-site" dir={ar?"rtl":"ltr"} lang={locale}>
-  <header className="published-header"><a href={"/sites/"+siteSlug+"/"+locale+"/home"}>{site.name}</a><nav><a href={"/sites/"+siteSlug+"/"+locale+"/home"}>{ar?"الرئيسية":"Home"}</a></nav></header>
+  <header className="published-header"><a href={"/sites/"+siteSlug+"/"+locale+"/home"}>{site.name}</a><nav>{(navigationPages||[]).map(item=><a key={item.slug} href={"/sites/"+siteSlug+"/"+locale+"/"+item.slug}>{item.title}</a>)}</nav></header>
   {version.document.blocks.map(block=><section className={"published-block published-"+block.type} key={block.id}>
    <h1>{block.props.title}</h1><p>{block.props.body}</p>
    {block.props.imagePath&&imageUrls[block.props.imagePath]&&<img src={imageUrls[block.props.imagePath]} alt={block.props.title}/>}
