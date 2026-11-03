@@ -10,7 +10,7 @@ const field:CSSProperties={width:"100%",boxSizing:"border-box",border:"1px solid
 const panel:CSSProperties={background:"#fff",padding:22,borderRadius:18,boxShadow:"0 8px 28px #21142a0c",display:"grid",gap:12};
 const primary:CSSProperties={border:0,borderRadius:10,padding:13,background:"#5d326b",color:"#fff",fontWeight:700,cursor:"pointer"};
 const secondary:CSSProperties={textDecoration:"none",padding:"9px 12px",borderRadius:9,background:"#f1edf3",color:"#51365c",fontSize:13,fontWeight:700,border:0,cursor:"pointer"};
-const slug=(s:string)=>s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,42)+"-"+crypto.randomUUID().replaceAll("-","").slice(0,8);
+const slug=(s:string)=>{const base=s.toLowerCase().normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,42)||"client";return base+"-"+crypto.randomUUID().replaceAll("-","").slice(0,8);};
 export default function ProjectsPage(){
  const router=useRouter(),{locale}=useLocale(),ar=locale==="ar";
  const [workspace,setWorkspace]=useState(""),[projects,setProjects]=useState<Project[]>([]),[clients,setClients]=useState<Client[]>([]);
