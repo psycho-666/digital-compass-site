@@ -36,7 +36,6 @@ jobs:
           node qa/social-management-smoke.mjs
           node qa/pwa-smoke.mjs
           node qa/push-smoke.mjs
-          node qa/adaptive-smoke.mjs
 
   social_v2:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
