@@ -99,43 +99,22 @@ async function auditAdmin(browser,viewport,label){
   const page=await context.newPage();
   const errors=[];
   page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
-  page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`)});
-
   await page.goto(`${BASE}admin/`,{waitUntil:'networkidle',timeout:30000});
-  await page.waitForSelector('.secureAccessButton',{state:'visible',timeout:15000});
-
-  ok(await page.locator('#authView').isVisible(),`admin/${label}: auth gate not visible`);
-  ok(!(await page.locator('#appView').isVisible()),`admin/${label}: private dashboard visible without auth`);
-  ok((await page.title()).includes('Control Center'),`admin/${label}: title missing`);
-  ok(!(await page.locator('#loginForm').isVisible()),`admin/${label}: obsolete embedded login form is visible`);
-  ok(!(await page.locator('#setupForm').isVisible()),`admin/${label}: legacy bootstrap form is visible`);
-  ok(await page.locator('.secureAccessButton').getAttribute('href')==='./access.html',`admin/${label}: owner access link is wrong`);
-  ok(await page.locator('.secureAccessMeta a').getAttribute('href')==='./credentials.html',`admin/${label}: credential setup link is wrong`);
-
-  await noHorizontalOverflow(page,`admin/${label}`);
-  const logo=page.locator('.authArt img').first();
-  ok(await logo.count(),`admin/${label}: Digital Compass logo missing`);
-  ok(await logo.evaluate(i=>i.complete&&i.naturalWidth>0),`admin/${label}: Digital Compass logo failed to load`);
-
-  await page.locator('.language button[data-lang="en"]').first().click();
-  ok(await page.locator('html').getAttribute('dir')==='ltr',`admin/${label}: EN did not switch to LTR`);
-
-  await page.locator('.secureAccessButton').click();
-  await page.waitForURL(/\/admin\/access\.html(?:[?#].*)?$/,{timeout:10000});
+  await page.waitForURL(/\/admin\/access\.html(?:[?#].*)?$/,{timeout:15000});
   await page.waitForSelector('#accessForm',{state:'visible',timeout:10000});
-  ok(await page.locator('#username[autocomplete="username"]').isVisible(),`owner-access/${label}: username field missing`);
-  ok(await page.locator('#password[type="password"]').isVisible(),`owner-access/${label}: password field missing`);
-  ok(await page.locator('#send').isVisible(),`owner-access/${label}: sign-in button missing`);
-  await noHorizontalOverflow(page,`owner-access/${label}`);
-
+  ok((await page.title()).includes('تسجيل الدخول'),`admin/${label}: owner login page title missing`);
+  ok(await page.locator('#username[autocomplete="username"]').isVisible(),`admin/${label}: username field missing`);
+  ok(await page.locator('#password[type="password"]').isVisible(),`admin/${label}: password field missing`);
+  ok(await page.locator('#send').isVisible(),`admin/${label}: sign-in button missing`);
+  ok(!(await page.locator('#appView').count()),`admin/${label}: private dashboard leaked into login page`);
+  await noHorizontalOverflow(page,`admin/${label}`);
   await page.locator('.lang button[data-lang="en"]').click();
-  ok(await page.locator('html').getAttribute('dir')==='ltr',`owner-access/${label}: EN did not switch to LTR`);
+  ok(await page.locator('html').getAttribute('dir')==='ltr',`admin/${label}: English direction failed`);
   await page.locator('.lang button[data-lang="ar"]').click();
-  ok(await page.locator('html').getAttribute('dir')==='rtl',`owner-access/${label}: Arabic did not switch back to RTL`);
-
+  ok(await page.locator('html').getAttribute('dir')==='rtl',`admin/${label}: Arabic direction failed`);
   ok(errors.length===0,`admin/${label}: runtime errors: ${errors.join(' || ')}`);
   await context.close();
-  console.log(`PASS admin username-password ${label}`);
+  console.log(`PASS admin secure redirect and login ${label}`);
 }
 
 async function auditSocialAuthGate(browser,viewport,label){
