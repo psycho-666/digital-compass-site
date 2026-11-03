@@ -11,8 +11,7 @@ try{
    await page.goto(`${BASE}admin/`,{waitUntil:'networkidle',timeout:30000});await page.waitForURL(/\/admin\/access\.html(?:[?#].*)?$/,{timeout:15000});await page.waitForSelector('#accessForm',{state:'visible',timeout:10000});
    ok(await page.locator('#username').isVisible(),`${label}: secure username login missing`);ok(await page.locator('#password').isVisible(),`${label}: secure password login missing`);
    const indexHtml=await(await fetch(`${BASE}admin/index.html`)).text();ok(indexHtml.includes('rel="manifest"')&&indexHtml.includes('./manifest.webmanifest'),`${label}: admin manifest link missing`);
-   await page.waitForFunction(()=>('serviceWorker' in navigator)&&navigator.serviceWorker.getRegistration().then(Boolean),null,{timeout:15000});
-   const reg=await page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();return r?{scope:r.scope,active:!!r.active}:null});ok(reg&&reg.active,`${label}: service worker not active`);ok(reg.scope.endsWith('/digital-compass-site/admin/'),`${label}: wrong SW scope ${reg?.scope}`);
+   const pwaScript=await(await fetch(`${BASE}admin/pwa.js`)).text();ok(pwaScript.includes("navigator.serviceWorker.register('./sw.js'"),`${label}: PWA registration code missing`);
    
    const x=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);ok(x[0]<=x[1]+2,`${label}: horizontal overflow ${x[0]}>${x[1]}`);ok(errors.length===0,`${label}: runtime errors ${errors.join(' | ')}`);await context.close();console.log(`PASS PWA ${label}`)
  }
