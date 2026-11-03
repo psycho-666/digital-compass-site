@@ -2,6 +2,16 @@
 
 Independent Next.js application for the Digital Compass website-builder product. The existing root website and social-media workflows remain separate.
 
+## Current agreed delivery scope
+- Visual website editor, templates, pages and sections, responsive previews, themes, media galleries, save/publish/unpublish and public navigation.
+- Basic store and product catalog administration with public catalog and product-detail pages.
+- Blog authoring, categories, SEO fields and comment moderation.
+- Booking administration for services, weekly availability and existing booking records.
+- Event administration and public event information pages.
+
+## Explicitly deferred
+Do not implement or treat the following as blockers for the current delivery unless the user requests them later: online payments/cart/checkout/order creation; public booking or event-registration intake and capacity enforcement; product variant/image UI, coupon/shipping/tax administration; custom domains/hosting administration; team invitations and role management; real-user end-to-end acceptance and separate production deployment.
+
 ## Run locally
 ```bash
 cd apps/builder
