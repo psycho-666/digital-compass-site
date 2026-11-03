@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import "./shop.css";
+import "../shop.css";
 
 type Props={params:Promise<{siteSlug:string;productSlug:string}>};
 export default async function PublicProductPage({params}:Props){
