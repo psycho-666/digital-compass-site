@@ -124,28 +124,23 @@ async function auditSocialAuthGate(browser,viewport,label){
   ok(html.includes('id="discoverAdvertisersBtn"'),`social/${label}: advertiser discovery control missing`);
   ok(html.includes('id="manualSocialForm"'),`social/${label}: manual social form missing`);
   ok(html.includes('AUDIT_AND_MANAGE'),`social/${label}: manual management mode missing`);
-
   for(const path of ['admin/social.css','admin/social.js']){
     const r=await fetch(`${BASE}${path}`);
     ok(r.ok,`social/${label}: missing asset ${path}: ${r.status}`);
   }
-
   const context=await browser.newContext({viewport});
   const page=await context.newPage();
   const errors=[];
   page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
-
-  await page.goto(`${BASE}admin/social.html`,{waitUntil:'domcontentloaded',timeout:30000});
-  await page.waitForTimeout(1500);
-  ok(page.url().startsWith(`${BASE}admin/`),`social/${label}: unexpected redirect target ${page.url()}`);
-  ok(!page.url().includes('social.html'),`social/${label}: unauthenticated social dashboard did not redirect to auth gate`);
-  await page.waitForSelector('.secureAccessButton',{state:'visible',timeout:10000});
-  ok(!(await page.locator('#loginForm').isVisible()),`social/${label}: redirect exposed obsolete embedded login`);
+  await page.goto(`${BASE}admin/social.html`,{waitUntil:'networkidle',timeout:30000});
+  await page.waitForURL(/\/admin\/access\.html(?:[?#].*)?$/,{timeout:15000});
+  await page.waitForSelector('#accessForm',{state:'visible',timeout:10000});
+  ok(await page.locator('#username').isVisible(),`social/${label}: secure login username missing`);
+  ok(await page.locator('#password').isVisible(),`social/${label}: secure login password missing`);
   await noHorizontalOverflow(page,`social-auth/${label}`);
   ok(errors.length===0,`social/${label}: runtime errors: ${errors.join(' || ')}`);
-
   await context.close();
-  console.log(`PASS social auth gate ${label}`);
+  console.log(`PASS social auth redirect ${label}`);
 }
 
 const browser=await chromium.launch({headless:true});
