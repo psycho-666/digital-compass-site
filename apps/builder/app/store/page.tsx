@@ -16,7 +16,7 @@ export default function StorePage(){
  const [siteId,setSiteId]=useState(""),[siteSlug,setSiteSlug]=useState(""),[enabled,setEnabled]=useState(false),[currency,setCurrency]=useState("IQD");
  const [products,setProducts]=useState<Product[]>([]),[categories,setCategories]=useState<Category[]>([]),[orders,setOrders]=useState<Order[]>([]);
  const [tab,setTab]=useState<"products"|"orders"|"settings">("products"),[form,setForm]=useState<ProductForm>(empty),[editing,setEditing]=useState<string|null>(null),[categoryName,setCategoryName]=useState(""),[search,setSearch]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
- const t=(a:string,e:string)=>ar?a:e;
+ const t=useCallback((a:string,e:string)=>ar?a:e,[ar]);
  const load=useCallback(async()=>{
   setBusy(true);setMessage("");
   try{
@@ -37,7 +37,7 @@ export default function StorePage(){
    setEnabled(settingsRes.data?.enabled??false);setCurrency(settingsRes.data?.currency??"IQD");setProducts(productsRes.data??[]);setCategories(catsRes.data??[]);setOrders(ordersRes.data??[]);
   }catch(e){setMessage(e instanceof Error?e.message:t("تعذر تحميل بيانات المتجر.","Could not load store data."));}
   finally{setBusy(false);}
- },[router,ar]);
+ },[router,t]);
  useEffect(()=>{void load();},[load]);
  function edit(p:Product){setEditing(p.id);setForm({name:p.name,description:p.description,price:String(p.price),compare_at_price:p.compare_at_price===null?"":String(p.compare_at_price),sku:p.sku??"",category_id:p.category_id??"",inventory_quantity:String(p.inventory_quantity),track_inventory:p.track_inventory,is_digital:p.is_digital,status:p.status});window.scrollTo({top:0,behavior:"smooth"});}
  async function saveProduct(e:FormEvent){e.preventDefault();if(!siteId)return;setBusy(true);setMessage("");try{
