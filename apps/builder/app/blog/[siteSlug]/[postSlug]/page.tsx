@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {createClient} from "@/lib/supabase/server";
-import "./public-blog.css";
+import "../public-blog.css";
 type Props={params:Promise<{siteSlug:string;postSlug:string}>};
 export default async function PublicBlogPost({params}:Props){
  const {siteSlug,postSlug}=await params,db=await createClient();
