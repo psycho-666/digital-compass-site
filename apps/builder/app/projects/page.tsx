@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useEffect,useState,type FormEvent,type CSSProperties} from "react";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
 import {createClient} from "@/lib/supabase/client";
@@ -27,7 +27,7 @@ export default function ProjectsPage(){
   finally{setLoading(false);}
  }
  useEffect(()=>{void load();},[]);
- async function createProject(event:React.FormEvent<HTMLFormElement>){
+ async function createProject(event:FormEvent<HTMLFormElement>){
   event.preventDefault();if(!name.trim())return;setCreating(true);setMessage("");
   try{
    const supabase=createClient();const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user){router.push("/login");return;}
@@ -71,5 +71,5 @@ export default function ProjectsPage(){
   <style>{'@media(max-width:760px){main>div{grid-template-columns:1fr!important} } label{display:grid;gap:6px;font-size:13px;font-weight:600;color:#514658} input,textarea{font:inherit}'}</style>
  </main>;
 }
-const field:React.CSSProperties={width:"100%",boxSizing:"border-box",border:"1px solid #ddd5e2",borderRadius:9,padding:"10px 11px",marginTop:5,background:"#fff",color:"#241b2b"};
+const field:CSSProperties={width:"100%",boxSizing:"border-box",border:"1px solid #ddd5e2",borderRadius:9,padding:"10px 11px",marginTop:5,background:"#fff",color:"#241b2b"};
 const action:React.CSSProperties={textDecoration:"none",padding:"9px 12px",borderRadius:9,background:"#5d326b",color:"#fff",fontSize:13,fontWeight:700};
