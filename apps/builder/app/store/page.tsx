@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -40,7 +40,7 @@ export default function StorePage(){
  },[router,ar]);
  useEffect(()=>{void load();},[load]);
  function edit(p:Product){setEditing(p.id);setForm({name:p.name,description:p.description,price:String(p.price),compare_at_price:p.compare_at_price===null?"":String(p.compare_at_price),sku:p.sku??"",category_id:p.category_id??"",inventory_quantity:String(p.inventory_quantity),track_inventory:p.track_inventory,is_digital:p.is_digital,status:p.status});window.scrollTo({top:0,behavior:"smooth"});}
- async function saveProduct(e:React.FormEvent){e.preventDefault();if(!siteId)return;setBusy(true);setMessage("");try{
+ async function saveProduct(e:FormEvent){e.preventDefault();if(!siteId)return;setBusy(true);setMessage("");try{
   const db=createClient(),price=Number(form.price),compare=form.compare_at_price===""?null:Number(form.compare_at_price);
   if(!form.name.trim()||!Number.isFinite(price)||price<0|| (compare!==null&&(!Number.isFinite(compare)||compare<price)))throw new Error(t("تحقق من الاسم والسعر وسعر المقارنة.","Check the product name, price and compare-at price."));
   const slug=(form.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,90)||"product")+"-"+crypto.randomUUID().slice(0,6);
