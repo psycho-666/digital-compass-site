@@ -48,6 +48,12 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 - Dedicated RLS-protected categories, posts and comments tables. Public readers see published posts and approved comments only; workspace editors manage posts and moderate comments.
 - Public comment creation is not enabled yet; a trusted server endpoint with spam/rate-limit protection is required before accepting comments.
 
+## Bookings and events foundation
+- Booking administration at `/bookings`: service setup, duration and price, weekly availability windows, slot length and capacity, plus booking status management.
+- Event administration at `/events`: create/edit/publish/cancel events, venue, start/end, capacity, ticket price, registration toggle, and registration status management.
+- Dedicated RLS-protected services, availability, bookings, events and registrations tables. Public reads are limited to active services/availability and published upcoming events; booking and attendee records remain private.
+- Public booking/event-registration intake is not enabled yet; secure server endpoints, capacity locking, spam controls and confirmation workflows are required before accepting public submissions.
+
 ## Not yet production-ready
 - Public cart and secure checkout endpoint; no live payment provider is connected.
 - Product image upload UI, product variants/options editor, coupon administration, tax/shipping configuration screens, and inventory adjustment workflows.
