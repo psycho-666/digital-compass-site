@@ -66,5 +66,8 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 - Team invitation and complete role-management workflows.
 - Production deployment and operational monitoring.
 
+## Verification status
+The builder CI runs `npm run build` on pushes to `feature/website-builder-foundation`. Check the latest GitHub Actions result before treating new modules as verified.
+
 ## Safety and deployment
 The builder is developed on `feature/website-builder-foundation`. Do not deploy it through the root GitHub Pages workflow or merge it into `main` until the separate app deployment and end-to-end checks are complete. Keep all Supabase secrets server-side.
