@@ -1,4 +1,5 @@
 name: Builder CI
+# Build verification for the standalone website-builder application.
 on:
   push:
     branches: [feature/website-builder-foundation]
