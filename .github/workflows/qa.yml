@@ -37,3 +37,25 @@ jobs:
           node qa/pwa-smoke.mjs
           node qa/push-smoke.mjs
           node qa/adaptive-smoke.mjs
+
+  social_v2:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout deployed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Test Social V2 independently
+        env:
+          SITE_URL: https://psycho-666.github.io/digital-compass-site/
+        run: node qa/social-v2-smoke.mjs
