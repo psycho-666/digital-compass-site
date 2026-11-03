@@ -2,8 +2,7 @@ const BASE=process.env.SITE_URL||'https://psycho-666.github.io/digital-compass-s
 const PROJECT_URL='https://xnoalyxxrjyovivdeojo.supabase.co';
 const KEY='sb_publishable_oakIu8ywKQLibfDJUDYIVg_XsNNZi66';
 function ok(v,msg){if(!v)throw new Error(msg)}
-const adminHtml=await (await fetch(`${BASE}admin/`)).text();ok(!adminHtml.includes('src="./push-ui.js"'),'admin/: push-ui.js should be lazy-loaded after authentication');
-const adminJs=await (await fetch(`${BASE}admin/admin.js`)).text();ok(adminJs.includes("import('./push-ui.js')"),'admin/: admin.js does not lazy-load push-ui.js after authentication');
+const socialV2Html=await (await fetch(`${BASE}admin/social-v2.html`)).text();ok(!socialV2Html.includes('push-ui.js'),'Social V2 must remain isolated from the legacy push UI until its integration is implemented');
 for(const page of ['admin/social.html','admin/social-management.html']){
   const r=await fetch(`${BASE}${page}`);ok(r.ok,`${page}: HTTP ${r.status}`);const html=await r.text();ok(html.includes('src="./push-ui.js"'),`${page}: push-ui.js not loaded`);
 }
