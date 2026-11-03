@@ -42,6 +42,12 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 - Public catalog reads are restricted to active products/variants/categories when the store is enabled. Customer/order records remain private; service-role access is reserved for future trusted checkout processing.
 - Migration set includes tenant-scoped foreign keys, inventory/order snapshots, catalog indexes, and role-specific grants.
 
+## Blog foundation
+- Blog management at `/blog`: create/edit/delete articles, draft/publish/archive states, author, excerpt, category, SEO title/description, and comment permission.
+- Public blog index at `/blog/<site-slug>` and article pages at `/blog/<site-slug>/<post-slug>`.
+- Dedicated RLS-protected categories, posts and comments tables. Public readers see published posts and approved comments only; workspace editors manage posts and moderate comments.
+- Public comment creation is not enabled yet; a trusted server endpoint with spam/rate-limit protection is required before accepting comments.
+
 ## Not yet production-ready
 - Public cart and secure checkout endpoint; no live payment provider is connected.
 - Product image upload UI, product variants/options editor, coupon administration, tax/shipping configuration screens, and inventory adjustment workflows.
