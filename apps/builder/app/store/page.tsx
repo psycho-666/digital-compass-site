@@ -8,13 +8,14 @@ import "./store.css";
 
 type Product = { id:string; name:string; slug:string; description:string; status:"draft"|"active"|"archived"; price:number; compare_at_price:number|null; sku:string|null; category_id:string|null; track_inventory:boolean; inventory_quantity:number; is_digital:boolean };
 type Category = { id:string; name:string; slug:string };
+type ProductForm = { name:string; description:string; price:string; compare_at_price:string; sku:string; category_id:string; inventory_quantity:string; track_inventory:boolean; is_digital:boolean; status:"draft"|"active"|"archived" };
 type Order = { id:string; order_number:number; status:string; payment_status:string; total:number; currency:string; customer_name:string; created_at:string };
 const empty = { name:"", description:"", price:"", compare_at_price:"", sku:"", category_id:"", inventory_quantity:"0", track_inventory:true, is_digital:false, status:"draft" as const };
 export default function StorePage(){
  const router=useRouter(),{locale}=useLocale(),ar=locale==="ar";
  const [siteId,setSiteId]=useState(""),[siteSlug,setSiteSlug]=useState(""),[enabled,setEnabled]=useState(false),[currency,setCurrency]=useState("IQD");
  const [products,setProducts]=useState<Product[]>([]),[categories,setCategories]=useState<Category[]>([]),[orders,setOrders]=useState<Order[]>([]);
- const [tab,setTab]=useState<"products"|"orders"|"settings">("products"),[form,setForm]=useState(empty),[editing,setEditing]=useState<string|null>(null),[categoryName,setCategoryName]=useState(""),[search,setSearch]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ const [tab,setTab]=useState<"products"|"orders"|"settings">("products"),[form,setForm]=useState<ProductForm>(empty),[editing,setEditing]=useState<string|null>(null),[categoryName,setCategoryName]=useState(""),[search,setSearch]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  const t=(a:string,e:string)=>ar?a:e;
  const load=useCallback(async()=>{
   setBusy(true);setMessage("");
