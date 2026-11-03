@@ -5,7 +5,7 @@ for(const asset of ['admin/social-v2.html','admin/social-v2.css','admin/social-v
  const r=await fetch(BASE+asset);ok(r.ok,'missing '+asset+': '+r.status);
  const body=await r.text();
  if(asset.endsWith('.html'))for(const t of ['مركز إدارة السوشيال ميديا','workspace','social-v2.js','الرسائل والتعليقات'])ok(body.includes(t),'social v2 html missing '+t);
- if(asset.endsWith('.js'))for(const t of ["social-management-api","workspaces","workspace","getSession","inbox","content","suggest_reply","data-suggest","create_content","data-create-draft","library_reply","data-save-faq","faq","set_content_status","data-review"])ok(body.includes(t),'social v2 js missing '+t);
+ if(asset.endsWith('.js'))for(const t of ["social-management-api","workspaces","workspace","getSession","inbox","content","suggest_reply","data-suggest","create_content","data-create-draft","library_reply","data-save-faq","faq","set_content_status","data-review","strategy","brand_voice","moderation_rules"])ok(body.includes(t),'social v2 js missing '+t);
  if(asset.endsWith('.css'))for(const t of ['@media(max-width:850px)','.metrics','.rail'])ok(body.includes(t),'social v2 responsive style missing '+t);
 }
 const browser=await chromium.launch({headless:true});
