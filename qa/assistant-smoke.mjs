@@ -14,7 +14,7 @@ try{
   const context=await browser.newContext({viewport});const page=await context.newPage();const errors=[],requests=[];
   page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/admin/assistant-ui.js'))requests.push(r.url())});
   await page.goto(BASE+'admin/social-v2.html',{waitUntil:'networkidle',timeout:30000});
-  ok(!page.url().includes('social-v2.html'), 'assistant/'+label+': Social V2 did not enforce its auth gate');
+  ok(page.url().includes('/admin/access.html'), 'assistant/'+label+': Social V2 did not route directly to secure login');
   ok(await page.locator('#dcAssistantFab').count()===0,'assistant/'+label+': legacy assistant injected into Social V2');
   ok(requests.length===0,'assistant/'+label+': legacy assistant loaded into Social V2');
   ok(errors.length===0,'assistant/'+label+': runtime errors '+errors.join(' | '));
