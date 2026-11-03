@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LanguageSwitch, useLocale } from "@/components/locale-provider";
+import {BuilderSitePicker,type BuilderSiteOption} from "@/components/builder-site-picker";
 import "./store.css";
 
 type Product = { id:string; name:string; slug:string; description:string; status:"draft"|"active"|"archived"; price:number; compare_at_price:number|null; sku:string|null; category_id:string|null; track_inventory:boolean; inventory_quantity:number; is_digital:boolean };
@@ -13,6 +14,7 @@ type Order = { id:string; order_number:number; status:string; payment_status:str
 const empty = { name:"", description:"", price:"", compare_at_price:"", sku:"", category_id:"", inventory_quantity:"0", track_inventory:true, is_digital:false, status:"draft" as const };
 export default function StorePage(){
  const router=useRouter(),{locale}=useLocale(),ar=locale==="ar";
+ const [sites,setSites]=useState<BuilderSiteOption[]>([]);
  const [siteId,setSiteId]=useState(""),[siteSlug,setSiteSlug]=useState(""),[enabled,setEnabled]=useState(false),[currency,setCurrency]=useState("IQD");
  const [products,setProducts]=useState<Product[]>([]),[categories,setCategories]=useState<Category[]>([]),[orders,setOrders]=useState<Order[]>([]);
  const [tab,setTab]=useState<"products"|"orders"|"settings">("products"),[form,setForm]=useState<ProductForm>(empty),[editing,setEditing]=useState<string|null>(null),[categoryName,setCategoryName]=useState(""),[search,setSearch]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
@@ -24,8 +26,11 @@ export default function StorePage(){
    if(authError||!user){router.push("/login");return;}
    const {data:ws,error:we}=await db.from("builder_workspaces").select("id").eq("owner_id",user.id).maybeSingle();if(we)throw we;
    if(!ws){setMessage(t("أنشئ موقعك أولاً من محرر المواقع.","Create your website first in the website editor."));return;}
-   const {data:site,error:se}=await db.from("builder_sites").select("id,slug").eq("workspace_id",ws.id).maybeSingle();if(se)throw se;
-   if(!site){setMessage(t("احفظ الموقع أولاً من محرر المواقع.","Save your website first in the website editor."));return;}
+   const {data:siteRows,error:se}=await db.from("builder_sites").select("id,name,slug").eq("workspace_id",ws.id).order("created_at",{ascending:false});if(se)throw se;
+   const availableSites=siteRows??[];setSites(availableSites);
+   const requestedSiteId=new URLSearchParams(window.location.search).get("site");
+   const site=availableSites.find(item=>item.id===requestedSiteId)??(availableSites.length===1?availableSites[0]:null);
+   if(!site){setSiteId("");setSiteSlug("");setMessage(availableSites.length?t("اختر الموقع الذي تريد إدارته.","Choose the website you want to manage."):t("احفظ الموقع أولاً من محرر المواقع.","Save your website first in the website editor."));return;}
    setSiteId(site.id);setSiteSlug(site.slug);
    const [settingsRes,productsRes,catsRes,ordersRes]=await Promise.all([
     db.from("builder_store_settings").select("enabled,currency").eq("site_id",site.id).maybeSingle(),
@@ -54,7 +59,7 @@ export default function StorePage(){
  async function updateOrder(id:string,status:string){const db=createClient(),{error}=await db.from("builder_orders").update({status}).eq("id",id);if(error)setMessage(error.message);else await load();}
  const visible=products.filter(p=>(p.name+" "+(p.sku??"")).toLowerCase().includes(search.toLowerCase()));
  return <main className="store-shell" dir={ar?"rtl":"ltr"}>
-  <header className="store-top"><Link href="/" className="store-brand">◈ Digital Compass <small>BUILDER</small></Link><div><Link href="/editor" className="store-back">{t("محرر المواقع","Website editor")}</Link><LanguageSwitch/></div></header>
+  <header className="store-top"><Link href="/" className="store-brand">◈ Digital Compass <small>BUILDER</small></Link><div><Link href="/editor" className="store-back">{t("محرر المواقع","Website editor")}</Link><LanguageSwitch/></div></header><BuilderSitePicker sites={sites} siteId={siteId} locale={locale}/>
   <section className="store-heading"><div><p className="store-kicker">WEBSITE COMMERCE</p><h1>{t("إدارة المتجر","Store management")}</h1><p>{t("منتجاتك ومخزونك وطلبات العملاء من مكان واحد.","Manage products, inventory and customer orders in one place.")}</p></div><span className={enabled?"store-state live":"store-state"}>{enabled?t("المتجر مفعّل","Store enabled"):t("المتجر متوقف","Store disabled")}</span></section>
   <nav className="store-tabs"><button className={tab==="products"?"active":""} onClick={()=>setTab("products")}>{t("المنتجات","Products")} <b>{products.length}</b></button><button className={tab==="orders"?"active":""} onClick={()=>setTab("orders")}>{t("الطلبات","Orders")} <b>{orders.length}</b></button><button className={tab==="settings"?"active":""} onClick={()=>setTab("settings")}>{t("إعدادات المتجر","Store settings")}</button></nav>
   {message&&<p className="store-message" role="status">{message}</p>}
