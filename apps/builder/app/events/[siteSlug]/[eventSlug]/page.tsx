@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {createClient} from "@/lib/supabase/server";
-import "./public-events.css";
+import "../public-events.css";
 type Props={params:Promise<{siteSlug:string;eventSlug:string}>};
 export default async function PublicEventDetail({params}:Props){
  const {siteSlug,eventSlug}=await params,db=await createClient();const {data:site}=await db.from("builder_sites").select("id,name,slug,default_locale").eq("slug",siteSlug).maybeSingle();if(!site)notFound();
