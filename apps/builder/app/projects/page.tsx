@@ -31,8 +31,8 @@ export default function ProjectsPage(){
   event.preventDefault();if(!name.trim())return;setCreating(true);setMessage("");
   try{
    const supabase=createClient();const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user){router.push("/login");return;}
-   let {data:workspace,error:workspaceError}=await supabase.from("builder_workspaces").select("id").eq("owner_id",user.id).maybeSingle();
-   if(workspaceError)throw workspaceError;
+   const {data:existingWorkspace,error:workspaceError}=await supabase.from("builder_workspaces").select("id").eq("owner_id",user.id).maybeSingle();
+   if(workspaceError)throw workspaceError;let workspace=existingWorkspace;
    if(!workspace){const created=await supabase.from("builder_workspaces").insert({owner_id:user.id,name:ar?"إدارة مواقع العملاء":"Client websites"}).select("id").single();if(created.error)throw created.error;workspace=created.data;}
    const member=await supabase.from("builder_workspace_members").upsert({workspace_id:workspace.id,user_id:user.id,role:"owner"},{onConflict:"workspace_id,user_id"});if(member.error)throw member.error;
    const client=await supabase.from("builder_clients").insert({workspace_id:workspace.id,name:name.trim(),business_type:businessType.trim(),phone:phone.trim(),email:email.trim(),notes:notes.trim()}).select("id").single();
