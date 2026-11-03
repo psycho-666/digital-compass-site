@@ -33,7 +33,19 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 - Published page images are still stored in the private media bucket; anonymous storage access is allowed only for object paths referenced by a published page version and matching that page’s owning workspace and site. Public image URLs expire after 10 minutes.
 - Save creates/reuses the user's default workspace and site, then stores a new locale-specific immutable draft version.
 
+## Ecommerce store foundation
+- Store administration at `/store`, linked from the builder home page.
+- Product catalog management: create, edit, archive, publish, search, and delete products; SKU, base/compare-at pricing, category assignment, inventory quantity and tracking, and digital-product flag.
+- Category creation and store enablement/currency settings (IQD, USD, EUR, SAR, AED).
+- Order inbox with status updates for existing orders.
+- Dedicated RLS-protected tables for store settings, categories, products, variants, inventory movements, coupons, shipping zones/rates, tax rates, orders, and order items.
+- Public catalog reads are restricted to active products/variants/categories when the store is enabled. Customer/order records remain private; service-role access is reserved for future trusted checkout processing.
+- Migration set includes tenant-scoped foreign keys, inventory/order snapshots, catalog indexes, and role-specific grants.
+
 ## Not yet production-ready
+- Public cart and secure checkout endpoint; no live payment provider is connected.
+- Product image upload UI, product variants/options editor, coupon administration, tax/shipping configuration screens, and inventory adjustment workflows.
+- End-to-end checkout, payment, stock reservation, order creation and refund tests.
 - Real browser end-to-end tests for signup, login, save, and reload.
 - End-to-end browser testing of media uploads, signed URL expiry/refresh, gallery rendering, and contact/reservation submission flow.
 - Additional rich blocks such as pricing tables and FAQs; advanced visual styling controls, responsive layout editing, and reusable components.
