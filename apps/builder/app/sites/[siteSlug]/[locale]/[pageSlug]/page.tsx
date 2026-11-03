@@ -28,7 +28,13 @@ export default async function PublishedPage({params}:{params:Promise<{siteSlug:s
  const supabase=await createClient();
  const {data:site,error:siteError}=await supabase.from("builder_sites").select("id,name,default_locale").eq("slug",siteSlug).maybeSingle();
  if(siteError||!site)notFound();
- const {data:navigationPages}=await supabase.from("builder_pages").select("title,slug,locale").eq("site_id",site.id).eq("locale",locale).order("sort_order",{ascending:true}).order("created_at",{ascending:true});
+ const {data:allNavigationPages,error:navigationError}=await supabase.from("builder_pages").select("id,title,slug,locale").eq("site_id",site.id).eq("locale",locale).order("sort_order",{ascending:true}).order("created_at",{ascending:true});
+ if(navigationError)notFound();
+ const navigationIds=(allNavigationPages??[]).map(item=>item.id);
+ const {data:publishedNavigation,error:publishedNavigationError}=navigationIds.length?await supabase.from("builder_page_versions").select("page_id").in("page_id",navigationIds).eq("status","published"):({data:[],error:null});
+ if(publishedNavigationError)notFound();
+ const publishedNavigationIds=new Set((publishedNavigation??[]).map(item=>item.page_id));
+ const navigationPages=(allNavigationPages??[]).filter(item=>publishedNavigationIds.has(item.id));
   const {data:page,error:pageError}=await supabase.from("builder_pages").select("id,title,locale").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",locale).maybeSingle();
  if(pageError||!page)notFound();
  const otherLocale=locale==="ar"?"en":"ar";const {data:alternatePage}=await supabase.from("builder_pages").select("slug").eq("site_id",site.id).eq("slug",pageSlug).eq("locale",otherLocale).maybeSingle();
