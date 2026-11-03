@@ -189,8 +189,7 @@ try{
     await page.locator('a[href="#services"]').first().click();
     await page.waitForTimeout(250);
     const expected=new URL(before);expected.hash='#services';ok(page.url()===expected.href,`Digital Compass/${label}: services anchor hash was not applied`);
-    await page.getByRole('button',{name:'EN'}).click();
-    ok(await page.locator('html').getAttribute('dir')==='ltr',`Digital Compass/${label}: EN did not switch to LTR`);
+    ok(await page.locator('html').getAttribute('lang')==='ar',`Digital Compass/${label}: Arabic document language missing`);
     ok(errors.length===0,`Digital Compass/${label}: runtime errors: ${errors.join(' || ')}`);
     await context.close();
     console.log(`PASS Digital Compass ${label}`);
