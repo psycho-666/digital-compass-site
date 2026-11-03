@@ -14,7 +14,7 @@ const slug=(s:string)=>{const base=s.toLowerCase().normalize("NFKD").replace(/[\
 export default function ProjectsPage(){
  const router=useRouter(),{locale}=useLocale(),ar=locale==="ar";
  const [workspace,setWorkspace]=useState(""),[projects,setProjects]=useState<Project[]>([]),[clients,setClients]=useState<Client[]>([]);
- const [name,setName]=useState(""),[businessType,setBusinessType]=useState(""),[phone,setPhone]=useState(""),[email,setEmail]=useState(""),[notes,setNotes]=useState("");
+ const [name,setName]=useState(""),[businessType,setBusinessType]=useState(""),[contactName,setContactName]=useState(""),[phone,setPhone]=useState(""),[email,setEmail]=useState(""),[notes,setNotes]=useState("");
  const [selectedClient,setSelectedClient]=useState(""),[editing,setEditing]=useState(""),[edit,setEdit]=useState<Client|null>(null);
  const [published,setPublished]=useState<string[]>([]),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  async function load(){
@@ -37,7 +37,7 @@ export default function ProjectsPage(){
   e.preventDefault();if(!name.trim())return;setBusy(true);setMessage("");
   try{const db=createClient(),{data:{user},error:ae}=await db.auth.getUser();if(ae||!user){router.push("/login");return;}
    let wid=workspace;if(!wid){const {data:w,error}=await db.from("builder_workspaces").insert({owner_id:user.id,name:ar?"إدارة مواقع العملاء":"Client websites"}).select("id").single();if(error)throw error;wid=w.id;setWorkspace(wid);const m=await db.from("builder_workspace_members").upsert({workspace_id:wid,user_id:user.id,role:"owner"},{onConflict:"workspace_id,user_id"});if(m.error)throw m.error;}
-   const {data:c,error:ce}=await db.from("builder_clients").insert({workspace_id:wid,name:name.trim(),business_type:businessType.trim(),phone:phone.trim(),email:email.trim(),notes:notes.trim()}).select("id").single();if(ce)throw ce;
+   const {data:c,error:ce}=await db.from("builder_clients").insert({workspace_id:wid,name:name.trim(),business_type:businessType.trim(),contact_name:contactName.trim(),phone:phone.trim(),email:email.trim(),notes:notes.trim()}).select("id").single();if(ce)throw ce;
    const {data:s,error:se}=await db.from("builder_sites").insert({workspace_id:wid,client_id:c.id,name:name.trim(),slug:slug(name),default_locale:locale,created_by:user.id}).select("id").single();
    if(se){await db.from("builder_clients").delete().eq("id",c.id);throw se;}router.push("/editor?site="+s.id);
   }catch(e){setMessage(e instanceof Error?e.message:"Could not create client website.");}finally{setBusy(false);}
@@ -60,6 +60,7 @@ export default function ProjectsPage(){
     <form onSubmit={createProject} style={panel}><h2 style={heading}>{ar?"إضافة زبون وموقع جديد":"Add a client website"}</h2>
      <label>{ar?"اسم الزبون / النشاط التجاري *":"Client / business name *"}<input required maxLength={160} value={name} onChange={e=>setName(e.target.value)} style={field}/></label>
      <label>{ar?"نوع النشاط":"Business type"}<input maxLength={120} value={businessType} onChange={e=>setBusinessType(e.target.value)} style={field}/></label>
+     <label>{ar?"اسم جهة الاتصال":"Contact name"}<input maxLength={160} value={contactName} onChange={e=>setContactName(e.target.value)} style={field}/></label>
      <label>{ar?"الهاتف":"Phone"}<input maxLength={40} value={phone} onChange={e=>setPhone(e.target.value)} style={field}/></label>
      <label>{ar?"البريد الإلكتروني":"Email"}<input type="email" maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} style={field}/></label>
      <label>{ar?"ملاحظات":"Notes"}<textarea maxLength={2000} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} style={field}/></label>
