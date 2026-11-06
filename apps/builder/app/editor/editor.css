@@ -76,3 +76,7 @@ html[dir="ltr"] .editorbar .savebutton{margin-inline-start:auto}
 .preview-form-placeholder{max-width:650px;margin:20px auto;padding:28px;border:1px dashed #a88af5;border-radius:14px;background:#f7f4ff;color:#38304a;text-align:start}.preview-form-placeholder strong{display:block;font-size:18px}.preview-form-placeholder p{margin:8px 0}.preview-form-placeholder span{display:block;font-size:12px;color:#746b87}
 
 .editorbar .submissions-link{margin-inline-start:0;color:#c9b4ff;text-decoration:none;font-size:12px;white-space:nowrap}.editorbar .submissions-link:hover{text-decoration:underline}
+
+
+.preview-faq{max-width:760px;margin:22px auto;text-align:start}.preview-faq details{padding:14px 16px;border:1px solid #dfe2e9;border-radius:10px;margin:8px 0}.preview-faq summary{font-weight:700;cursor:pointer}.preview-faq details p{margin:10px 0 0}
+.preview-pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;max-width:900px;margin:22px auto;text-align:start}.preview-pricing article{padding:18px;border:1px solid #dfe2e9;border-radius:12px}.preview-pricing h2{font-size:18px;margin:0 0 10px}.preview-pricing strong{display:block;font-size:25px;margin-bottom:8px;color:var(--accent-color,#6f4acb)}.preview-pricing p{font-size:14px}
