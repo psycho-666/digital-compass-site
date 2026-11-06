@@ -70,7 +70,7 @@ The builder schema uses seven dedicated tables: `builder_workspaces`, `builder_w
 - End-to-end checkout, payment, stock reservation, order creation and refund tests.
 - Real browser end-to-end tests for signup, login, save, and reload.
 - End-to-end browser testing of media uploads, signed URL expiry/refresh, gallery rendering, and contact/reservation submission flow.
-- Additional rich blocks such as pricing tables and FAQs; advanced visual styling controls, responsive layout editing, and reusable components.
+- Advanced visual styling controls, responsive layout editing, and reusable components.
 - Public preview URLs, production deployment, and custom domains.
 - End-to-end verification with a real authenticated account, including publish, anonymous viewing, and draft-isolation tests.
 - Team invitation and complete role-management workflows.
