@@ -19,6 +19,7 @@ function showLoadError(error,context='تعذر تحميل البيانات'){
   toast(context);
 }
 async function boot(){
+  $('#bootFallback')?.remove();
   $('#app').classList.remove('hidden');
   $('#panel').innerHTML='<div class="emptyState"><h2>جارٍ تهيئة لوحة الإدارة…</h2><p>يتم التحقق من جلسة الدخول وتحميل بيانات الصفحة.</p></div>';
   const s=await Promise.race([supabase.auth.getSession(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_SESSION_TIMEOUT')),12000))]);session=s.data.session;
