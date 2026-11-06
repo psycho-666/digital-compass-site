@@ -13,3 +13,8 @@
 
 .published-faq{max-width:850px;margin:28px auto;text-align:start}.published-faq details{padding:18px 20px;border:1px solid color-mix(in srgb,currentColor 15%,transparent);border-radius:12px;margin:10px 0;background:color-mix(in srgb,currentColor 3%,transparent)}.published-faq summary{font-weight:700;cursor:pointer;line-height:1.8}.published-faq details p{margin:12px 0 0;max-width:none}
 .published-pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;max-width:1050px;margin:30px auto;text-align:start}.published-pricing article{padding:26px;border:1px solid color-mix(in srgb,currentColor 16%,transparent);border-radius:16px;background:color-mix(in srgb,currentColor 4%,transparent)}.published-pricing h2{font-size:20px;margin:0 0 14px}.published-pricing strong{display:block;font-size:clamp(24px,3vw,34px);color:var(--builder-accent,currentColor);margin-bottom:12px}.published-pricing p{margin:0;font-size:15px}
+
+
+.published-header nav{display:flex;align-items:center;justify-content:flex-end;gap:clamp(10px,2vw,24px);flex-wrap:wrap}
+.published-header nav a[aria-current="page"]{color:var(--builder-accent,currentColor);font-weight:700;text-decoration:underline;text-underline-offset:5px}
+@media(max-width:600px){.published-header{align-items:flex-start;gap:14px;flex-direction:column}.published-header nav{justify-content:flex-start;width:100%;gap:10px 16px}.published-header nav a{font-size:13px}}
