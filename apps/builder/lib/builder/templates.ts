@@ -40,16 +40,16 @@ export const builderTemplates:BuilderTemplate[]=[
   {id:"2",type:"features",props:{title:"لماذا تختارنا؟",body:"نتائج واضحة • تنفيذ سريع • دعم موثوق"}},
   {id:"3",type:"text",props:{title:"كيف نعمل؟",body:"1. أخبرنا باحتياجك  2. نجهز الحل  3. تبدأ بتحقيق النتائج"}},
   {id:"4",type:"testimonial",props:{title:"تجربة عميل",body:"أضف هنا تجربة حقيقية لعميل استفاد من الخدمة."}},
-  {id:"5",type:"faq",props:{title:"أسئلة قد تهمك",body:"كم يستغرق التنفيذ؟|نحدد المدة بعد مراجعة تفاصيل احتياجك.\\nكيف أبدأ؟|أرسل طلبك من نموذج التواصل وسنتواصل معك."}},
-  {id:"6",type:"pricing",props:{title:"باقات تناسب احتياجك",body:"الأساسية|25,000 د.ع|للبداية والخدمات الأساسية.\\nالمتقدمة|50,000 د.ع|مزايا إضافية ودعم أسرع."}},
+  {id:"5",type:"faq",props:{title:"أسئلة قد تهمك",body:"كم يستغرق التنفيذ؟|نحدد المدة بعد مراجعة تفاصيل احتياجك.\nكيف أبدأ؟|أرسل طلبك من نموذج التواصل وسنتواصل معك."}},
+  {id:"6",type:"pricing",props:{title:"باقات تناسب احتياجك",body:"الأساسية|25,000 د.ع|للبداية والخدمات الأساسية.\nالمتقدمة|50,000 د.ع|مزايا إضافية ودعم أسرع."}},
   {id:"7",type:"form",props:{title:"ابدأ الآن",body:"اترك بياناتك وسنتواصل معك قريباً.",formKind:"contact"}}
  ]:[
   {id:"1",type:"hero",props:{title:"Your next step starts here",body:"Discover how our service can save time and deliver better results.",buttonText:"Get started",buttonUrl:"#contact"}},
   {id:"2",type:"features",props:{title:"Why choose us?",body:"Clear outcomes • Fast delivery • Reliable support"}},
   {id:"3",type:"text",props:{title:"How it works",body:"1. Tell us what you need  2. We prepare your solution  3. Start seeing results"}},
   {id:"4",type:"testimonial",props:{title:"Customer story",body:"Add a genuine customer experience showing the value of your service."}},
-  {id:"5",type:"faq",props:{title:"Frequently asked questions",body:"How long does it take?|We confirm timing after reviewing your needs.\\nHow do I get started?|Send your request using the contact form."}},
-  {id:"6",type:"pricing",props:{title:"Choose your plan",body:"Starter|$25|Core services to get started.\\nProfessional|$50|More features and faster support."}},
+  {id:"5",type:"faq",props:{title:"Frequently asked questions",body:"How long does it take?|We confirm timing after reviewing your needs.\nHow do I get started?|Send your request using the contact form."}},
+  {id:"6",type:"pricing",props:{title:"Choose your plan",body:"Starter|$25|Core services to get started.\nProfessional|$50|More features and faster support."}},
   {id:"7",type:"form",props:{title:"Get started",body:"Leave your details and our team will contact you.",formKind:"contact"}}
  ]}
 ];
