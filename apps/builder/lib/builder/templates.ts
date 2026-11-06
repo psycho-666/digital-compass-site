@@ -1,5 +1,5 @@
 import type {BuilderBlock,BuilderLocale,BuilderTheme} from "./schema";
-export type BuilderTemplateId="business"|"portfolio"|"restaurant";
+export type BuilderTemplateId="business"|"portfolio"|"restaurant"|"landing";
 export type BuilderTemplate={id:BuilderTemplateId;name:{ar:string;en:string};description:{ar:string;en:string};theme:BuilderTheme;blocks:(locale:BuilderLocale)=>BuilderBlock[]};
 export const builderTemplates:BuilderTemplate[]=[
  {id:"business",name:{ar:"شركة وخدمات",en:"Business & services"},description:{ar:"موقع احترافي للتعريف بشركتك وخدماتك.",en:"A professional company and services website."},theme:{accentColor:"#6f4acb",backgroundColor:"#ffffff",textColor:"#202433",fontFamily:"sans"},blocks:(locale)=>locale==="ar"?[
@@ -22,7 +22,7 @@ export const builderTemplates:BuilderTemplate[]=[
   {id:"1",type:"hero",props:{title:"Work worth showing",body:"Explore a selection of projects we're proud to have delivered."}},
   {id:"2",type:"features",props:{title:"Selected work",body:"Brand identity • Digital experience • Creative campaign"}},
   {id:"3",type:"text",props:{title:"Let's work together",body:"Have a new idea? We'd love to hear about it."}},
-  {id:"4",type:"testimonial",props:{title:"A client's words",body:"Add a real client testimonial about their experience working with you."}}
+  {id:"4",type:"testimonial",props:{title:"A client's words",body:"Add a real client testimonial about their experience with your service."}}
  ]},
  {id:"restaurant",name:{ar:"مطعم ومقهى",en:"Restaurant & café"},description:{ar:"واجهة شهية لعرض القائمة واستقبال الحجوزات.",en:"A welcoming place to present your menu and bookings."},theme:{accentColor:"#b85c32",backgroundColor:"#fff8f0",textColor:"#3d2b22",fontFamily:"serif"},blocks:(locale)=>locale==="ar"?[
   {id:"1",type:"hero",props:{title:"نكهة تجمعنا",body:"أطباق طازجة، أجواء مميزة، وتجربة تستحق الزيارة."}},
@@ -34,5 +34,18 @@ export const builderTemplates:BuilderTemplate[]=[
   {id:"2",type:"features",props:{title:"Our menu",body:"Starters • Main courses • Drinks"}},
   {id:"3",type:"text",props:{title:"Visit us",body:"We're here every day. Get in touch for questions or reservations."}},
   {id:"4",type:"testimonial",props:{title:"Guest feedback",body:"Add a genuine guest review about the restaurant or café experience."}}
+ ]},
+ {id:"landing",name:{ar:"صفحة تسويقية",en:"Landing page"},description:{ar:"صفحة مركزة على عرض خدمة وتحويل الزوار إلى عملاء.",en:"A focused page to promote an offer and convert visitors."},theme:{accentColor:"#5b45d6",backgroundColor:"#ffffff",textColor:"#202033",fontFamily:"sans"},blocks:(locale)=>locale==="ar"?[
+  {id:"1",type:"hero",props:{title:"حلّك يبدأ بخطوة واحدة",body:"اكتشف كيف يمكن لخدمتنا أن تختصر وقتك وتحقق نتائج أفضل.",buttonText:"اطلب الخدمة الآن",buttonUrl:"#contact"}},
+  {id:"2",type:"features",props:{title:"لماذا تختارنا؟",body:"نتائج واضحة • تنفيذ سريع • دعم موثوق"}},
+  {id:"3",type:"text",props:{title:"كيف نعمل؟",body:"1. أخبرنا باحتياجك  2. نجهز الحل  3. تبدأ بتحقيق النتائج"}},
+  {id:"4",type:"testimonial",props:{title:"تجربة عميل",body:"أضف هنا تجربة حقيقية لعميل استفاد من الخدمة."}},
+  {id:"5",type:"form",props:{title:"ابدأ الآن",body:"اترك بياناتك وسنتواصل معك قريباً.",formKind:"contact"}}
+ ]:[
+  {id:"1",type:"hero",props:{title:"Your next step starts here",body:"Discover how our service can save time and deliver better results.",buttonText:"Get started",buttonUrl:"#contact"}},
+  {id:"2",type:"features",props:{title:"Why choose us?",body:"Clear outcomes • Fast delivery • Reliable support"}},
+  {id:"3",type:"text",props:{title:"How it works",body:"1. Tell us what you need  2. We prepare your solution  3. Start seeing results"}},
+  {id:"4",type:"testimonial",props:{title:"Customer story",body:"Add a genuine customer experience showing the value of your service."}},
+  {id:"5",type:"form",props:{title:"Get started",body:"Leave your details and our team will contact you.",formKind:"contact"}}
  ]}
 ];
