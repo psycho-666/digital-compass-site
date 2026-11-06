@@ -1,0 +1,33 @@
+name: Builder CI
+# Build verification for the standalone website-builder application.
+on:
+  push:
+    branches: [feature/website-builder-foundation]
+    paths:
+      - "apps/builder/**"
+      - ".github/workflows/builder-ci.yml"
+  pull_request:
+    paths:
+      - "apps/builder/**"
+      - ".github/workflows/builder-ci.yml"
+concurrency:
+  group: builder-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/builder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder

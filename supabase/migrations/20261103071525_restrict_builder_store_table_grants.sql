@@ -1,0 +1,12 @@
+revoke all on public.builder_store_settings,public.builder_product_categories,public.builder_products,public.builder_product_variants,
+ public.builder_inventory_movements,public.builder_coupons,public.builder_shipping_zones,public.builder_shipping_rates,
+ public.builder_tax_rates,public.builder_orders,public.builder_order_items from anon,authenticated;
+grant select on public.builder_store_settings,public.builder_product_categories,public.builder_products,public.builder_product_variants to anon;
+grant select,insert,update,delete on public.builder_store_settings,public.builder_product_categories,public.builder_products,
+ public.builder_product_variants,public.builder_coupons,public.builder_shipping_zones,public.builder_shipping_rates,public.builder_tax_rates to authenticated;
+grant select,insert on public.builder_inventory_movements to authenticated;
+grant select,update on public.builder_orders to authenticated;
+grant select on public.builder_order_items to authenticated;
+grant all on public.builder_store_settings,public.builder_product_categories,public.builder_products,public.builder_product_variants,
+ public.builder_inventory_movements,public.builder_coupons,public.builder_shipping_zones,public.builder_shipping_rates,
+ public.builder_tax_rates,public.builder_orders,public.builder_order_items to service_role;
