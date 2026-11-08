@@ -19,7 +19,7 @@ export async function POST(request:NextRequest){
       return NextResponse.json({error:"Please check the form fields and try again."},{status:400});
     }
     const forwarded=request.headers.get("x-forwarded-for");
-    const ip=request.headers.get("cf-connecting-ip")??request.headers.get("x-real-ip")??forwarded?.split(",").at(-1)?.trim()??"";
+    const ip=request.headers.get("cf-connecting-ip")??request.headers.get("x-real-ip")??forwarded?.split(",")[0]?.trim()??"";
     if(!ip||isIP(ip)===0)return NextResponse.json({error:"Form submission is temporarily unavailable."},{status:503});
     const supabaseUrl=process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
