@@ -81,3 +81,16 @@ The builder CI runs `npm run build` on pushes to `feature/website-builder-founda
 
 ## Safety and deployment
 The builder is developed on `feature/website-builder-foundation`. Do not deploy it through the root GitHub Pages workflow or merge it into `main` until the separate app deployment and end-to-end checks are complete. Keep all Supabase secrets server-side.
+
+## Preview deployment (Vercel)
+
+1. Import this GitHub repository into Vercel and set the **Root Directory** to `apps/builder` (enable including files outside the root directory if prompted; the builder imports shared code from the repository-level `packages` folder only if configured).
+2. Framework: Next.js. Build command: `npm run build`; install command: `npm install`.
+3. Add these environment variables in Vercel (Production and Preview as needed):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (server-only; never prefix with NEXT_PUBLIC)
+4. Apply only the builder-specific SQL migrations in `supabase/migrations` to the dedicated website-builder Supabase project before testing. Do not apply them to the social-media project.
+5. Test signup/login, create a site/page, save draft, upload image, publish, submit a public form, and verify the private inbox before sharing the preview URL.
+
+Deployment is intentionally not configured or triggered from this repository; it requires an owner-controlled Vercel account and environment secrets.
