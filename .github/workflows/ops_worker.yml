@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   operations:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
       - name: Checkout
@@ -215,20 +215,41 @@ jobs:
           SOCIAL_AUDIT_TASK_FILE: social-audit-tasks.json
         run: node ops/social-audit.mjs
 
+      - name: Request OIDC token for social audit finalization
+        id: oidc_audit_finalize
+        if: always() && steps.claim_audit.outputs.command_id != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
       - name: Finalize social audit batch
         if: always() && steps.claim_audit.outputs.command_id != ''
         env:
-          OIDC_TOKEN: ${{ steps.oidc_audit_run.outputs.token }}
+          OIDC_TOKEN: ${{ steps.oidc_audit_finalize.outputs.token }}
           COMMAND_ID: ${{ steps.claim_audit.outputs.command_id }}
           RUN_ID: ${{ steps.claim_audit.outputs.run_id }}
           PROCESSED: ${{ steps.run_audit.outputs.processed }}
-          FAILURES: ${{ steps.run_audit.outputs.failures }}
+          FAILURES: ${{ steps.run_audit.outcome == 'success' && steps.run_audit.outputs.failures || steps.claim_audit.outputs.count }}
           COMPLETED: ${{ steps.run_audit.outputs.completed }}
           NEEDS_REVIEW: ${{ steps.run_audit.outputs.needs_review }}
         run: |
+          CLAIMED_AUDIT_IDS="$(python - <<'PY'
+          import json
+          try:
+            d=json.load(open('social-audit-tasks.json'))
+            print(json.dumps([int(t['audit']['id']) for t in d.get('tasks',[]) if t.get('audit') and t['audit'].get('id') is not None]))
+          except Exception:
+            print('[]')
+          PY
+          )"
+          export CLAIMED_AUDIT_IDS
           BODY="$(python - <<'PY'
           import json,os
-          print(json.dumps({'action':'finish_social_batch','command_type':'SOCIAL_AUDIT','command_id':int(os.environ['COMMAND_ID']),'run_id':int(os.environ.get('RUN_ID') or 0),'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'completed':int(os.environ.get('COMPLETED') or 0),'needs_review':int(os.environ.get('NEEDS_REVIEW') or 0)}))
+          print(json.dumps({'action':'finish_social_batch','command_type':'SOCIAL_AUDIT','command_id':int(os.environ['COMMAND_ID']),'run_id':int(os.environ.get('RUN_ID') or 0),'processed':int(os.environ.get('PROCESSED') or 0),'failures':int(os.environ.get('FAILURES') or 0),'completed':int(os.environ.get('COMPLETED') or 0),'needs_review':int(os.environ.get('NEEDS_REVIEW') or 0),'claimed_audit_ids':json.loads(os.environ.get('CLAIMED_AUDIT_IDS') or '[]')}))
           PY
           )"
           curl --fail-with-body --silent --show-error -X POST -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" --data "$BODY" "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-worker-bridge"
