@@ -15,11 +15,15 @@ export async function POST(request:NextRequest){
     const preferredDate=text(body.preferredDate,10),preferredTime=text(body.preferredTime,5);
     const partySize=Number.isInteger(body.partySize)?body.partySize:null;
     const website=text(body.website,200),elapsedMs=Number.isFinite(body.elapsedMs)?Math.max(0,Math.min(600_000,Math.floor(body.elapsedMs))):0;
-    if(!siteSlug||!pageSlug||!(locale==="ar"||locale==="en")||!(formKind==="contact"||formKind==="reservation")||!name||!message||(!email&&!phone)|| (email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) || (formKind==="reservation"&&(!preferredDate||!preferredTime||!partySize||partySize<1||partySize>30))){
+    if(!siteSlug||!pageSlug||!(locale==="ar"||locale==="en")||!(formKind==="contact"||formKind==="reservation")||!name||!message||(!email&&!phone)|| (email&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) || (formKind==="reservation"&&(!preferredDate||!preferredTime||!partySize||partySize<1||partySize>30))){
       return NextResponse.json({error:"Please check the form fields and try again."},{status:400});
     }
-    const forwarded=request.headers.get("x-forwarded-for");
-    const ip=request.headers.get("cf-connecting-ip")??request.headers.get("x-real-ip")??forwarded?.split(",")[0]?.trim()??"";
+    // Prefer headers set by the hosting/proxy layer. Do not trust arbitrary
+    // X-Forwarded-For values supplied by a visitor for rate-limit identity.
+    const ip=request.headers.get("cf-connecting-ip")
+      ??request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim()
+      ??request.headers.get("x-real-ip")
+      ??"";
     if(!ip||isIP(ip)===0)return NextResponse.json({error:"Form submission is temporarily unavailable."},{status:503});
     const supabaseUrl=process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
