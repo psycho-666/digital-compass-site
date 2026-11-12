@@ -1,0 +1,9 @@
+create index builder_blog_comments_parent_idx on public.builder_blog_comments(parent_id) where parent_id is not null;
+create index builder_blog_comments_post_site_idx on public.builder_blog_comments(post_id,site_id);
+create index builder_blog_comments_site_idx on public.builder_blog_comments(site_id);
+create index builder_booking_services_site_idx on public.builder_booking_services(site_id);
+create index builder_booking_availability_service_site_idx on public.builder_booking_availability(service_id,site_id);
+create index builder_booking_availability_site_idx on public.builder_booking_availability(site_id);
+create index builder_bookings_service_site_idx on public.builder_bookings(service_id,site_id);
+create index builder_event_registrations_event_site_idx on public.builder_event_registrations(event_id,site_id);
+create index builder_event_registrations_site_idx on public.builder_event_registrations(site_id);

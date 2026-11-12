@@ -1,0 +1,14 @@
+drop index if exists public.builder_products_category_idx;
+drop index if exists public.builder_products_category_fk_idx;
+create index builder_categories_parent_site_idx on public.builder_product_categories(parent_id,site_id) where parent_id is not null;
+create index builder_products_category_site_idx on public.builder_products(category_id,site_id) where category_id is not null;
+create index builder_variants_product_site_idx on public.builder_product_variants(product_id,site_id);
+create index builder_inventory_product_site_idx on public.builder_inventory_movements(product_id,site_id);
+create index builder_inventory_variant_site_idx on public.builder_inventory_movements(variant_id,site_id) where variant_id is not null;
+create index builder_inventory_created_by_idx on public.builder_inventory_movements(created_by) where created_by is not null;
+create index builder_shipping_rates_zone_site_idx on public.builder_shipping_rates(zone_id,site_id);
+create index builder_shipping_rates_site_idx on public.builder_shipping_rates(site_id);
+create index builder_shipping_zones_site_idx on public.builder_shipping_zones(site_id);
+create index builder_tax_rates_site_idx on public.builder_tax_rates(site_id);
+create index builder_order_items_product_site_idx on public.builder_order_items(product_id,site_id) where product_id is not null;
+create index builder_order_items_variant_site_idx on public.builder_order_items(variant_id,site_id) where variant_id is not null;
