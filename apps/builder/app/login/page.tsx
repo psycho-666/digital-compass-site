@@ -31,11 +31,9 @@ export default function LoginPage(){
     const {error}=await supabase.auth.verifyOtp({phone:phone.trim(),token:otp.trim(),type:"sms"});
     if(error)throw error;
    }else if(mode==="admin"){
-    const response=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:username.trim(),password})});
-    const result=await response.json();
-    if(!response.ok)throw new Error(result.error||t("تعذر تسجيل دخول المدير.","Administrator sign-in failed."));
-    const {error}=await supabase.auth.signInWithPassword({email:result.email||ADMIN_EMAIL,password});
-    if(error)throw error;
+    if(username.trim().toLowerCase()!=="admin")throw new Error(t("اسم المدير هو admin.","Administrator username must be admin."));
+    const {error}=await supabase.auth.signInWithPassword({email:ADMIN_EMAIL,password});
+    if(error)throw new Error(t("حساب المدير يحتاج إلى إنشائه مرة واحدة في Supabase Auth قبل أول دخول.","The administrator account must be created once in Supabase Auth before the first sign-in."));
    }else if(mode==="signup"){
     const {data,error}=await supabase.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:window.location.origin+"/auth/callback?next=/editor"}});
     if(error)throw error;
