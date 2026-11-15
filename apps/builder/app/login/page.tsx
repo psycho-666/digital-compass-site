@@ -45,7 +45,7 @@ export default function LoginPage(){
  async function resetPassword(){
   if(!email.trim()){setMessage(t("أدخل بريدك الإلكتروني أولاً.","Enter your email address first."));return;}
   setBusy(true);setMessage("");
-  try{const supabase=createClient();const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:window.location.origin+"/auth/callback?next=/login"});if(error)throw error;setSuccess(true);setMessage(t("إذا كان البريد مسجلاً، سيصلك رابط إعادة تعيين كلمة المرور.","If the email is registered, a password-reset link will arrive shortly."));}
+  try{const supabase=createClient();const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:window.location.origin+"/auth/callback?next=/auth/update-password"});if(error)throw error;setSuccess(true);setMessage(t("إذا كان البريد مسجلاً، سيصلك رابط إعادة تعيين كلمة المرور.","If the email is registered, a password-reset link will arrive shortly."));}
   catch(err){setMessage(err instanceof Error?err.message:t("تعذر إرسال الرابط.","Could not send the link."));}
   finally{setBusy(false);}
  }
@@ -64,6 +64,6 @@ export default function LoginPage(){
   {mode==="signup"&&<button type="button" className="text-action centered" onClick={()=>{setMode("login");setMessage("");}}>{t("لديك حساب؟ سجّل الدخول","Already have an account? Sign in")}</button>}
   {mode!=="admin"&&<><div className="auth-divider"><span>{t("أو تابع باستخدام","OR CONTINUE WITH")}</span></div><button type="button" className="google-button" onClick={google} disabled={busy}><span className="google-mark">G</span>{t("المتابعة باستخدام Google","Continue with Google")}</button></>}
   {message&&<p className={success?"auth-message success":"auth-message"} role="status">{message}</p>}
-  <p className="auth-foot">{t("دخول المدير يستخدم حساباً منفصلاً داخل Supabase. إذا لم يتم تهيئة حساب المدير بعد، لن يعمل الدخول حتى إتمام تهيئته.","Admin sign-in uses a separate Supabase account. It will work once that account has been provisioned.")}</p>
+  <p className="auth-foot">{t("دخول المدير يستخدم حساباً منفصلاً داخل Supabase. إذا لم يتم تهيئة حساب المدير بعد، لن يعمل الدخول حتى إتمام تهيئته.","Admin username "admin" is mapped to the dedicated Supabase account admin@digitalcompass.local. Provision that account once in Supabase Auth before first sign-in.")}</p>
  </form></main>;
 }
