@@ -33,7 +33,12 @@ export default function LoginPage(){
    }else if(mode==="admin"){
     if(username.trim().toLowerCase()!=="admin")throw new Error(t("اسم المدير هو admin.","Administrator username must be admin."));
     const {error}=await supabase.auth.signInWithPassword({email:ADMIN_EMAIL,password});
-    if(error)throw new Error(t("حساب المدير يحتاج إلى إنشائه مرة واحدة في Supabase Auth قبل أول دخول.","The administrator account must be created once in Supabase Auth before the first sign-in."));
+    if(error)throw new Error(t("بيانات دخول المدير غير صحيحة أو الحساب غير مهيأ.","Administrator credentials are incorrect or the account is not configured."));
+    const {data:{user},error:userError}=await supabase.auth.getUser();
+    if(userError||user?.app_metadata?.role!=="admin"){
+     await supabase.auth.signOut();
+     throw new Error(t("هذا الحساب غير مخوّل كمدير. يجب تعيين role=admin للحساب من إعدادات Supabase Auth.","This account is not authorized as an administrator. Set role=admin in Supabase Auth app metadata."));
+    }
    }else if(mode==="signup"){
     const {data,error}=await supabase.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:window.location.origin+"/auth/callback?next=/editor"}});
     if(error)throw error;
@@ -74,6 +79,6 @@ export default function LoginPage(){
   {mode==="signup"&&<button type="button" className="text-action centered" onClick={()=>changeMode("login")}>{t("لديك حساب؟ سجّل الدخول","Already have an account? Sign in")}</button>}
   {mode!=="admin"&&<><div className="auth-divider"><span>{t("أو تابع باستخدام","OR CONTINUE WITH")}</span></div><button type="button" className="google-button" onClick={google} disabled={busy}><span className="google-mark">G</span>{t("المتابعة باستخدام Google","Continue with Google")}</button></>}
   {message&&<p className={success?"auth-message success":"auth-message"} role="status">{message}</p>}
-  {mode==="admin"&&<p className="auth-foot">{t("دخول المدير يتم عبر تحقق خادمي، ولا تُرسل مفاتيح الإدارة إلى المتصفح.","Administrator access is validated on the server; privileged keys are never exposed to the browser.")}</p>}
+  {mode==="admin"&&<p className="auth-foot">{t("يتطلب حساب المدير صلاحية role=admin في بيانات الحساب داخل Supabase Auth.","The administrator account must have role=admin in Supabase Auth app metadata.")}</p>}
  </form></main>;
 }
