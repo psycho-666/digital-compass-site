@@ -31,9 +31,11 @@ export default function LoginPage(){
     const {error}=await supabase.auth.verifyOtp({phone:phone.trim(),token:otp.trim(),type:"sms"});
     if(error)throw error;
    }else if(mode==="admin"){
-    if(username.trim().toLowerCase()!=="admin")throw new Error(t("اسم المدير هو admin.","Administrator username must be admin."));
-    const {error}=await supabase.auth.signInWithPassword({email:ADMIN_EMAIL,password});
-    if(error)throw new Error(t("حساب المدير يحتاج إلى تهيئة آمنة مرة واحدة في Supabase Auth قبل أول دخول.","The administrator account must be securely provisioned in Supabase Auth before the first sign-in."));
+    const response=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:username.trim(),password})});
+    const result=await response.json();
+    if(!response.ok)throw new Error(result.error||t("تعذر تسجيل دخول المدير.","Administrator sign-in failed."));
+    const {error}=await supabase.auth.signInWithPassword({email:result.email||ADMIN_EMAIL,password});
+    if(error)throw error;
    }else if(mode==="signup"){
     const {data,error}=await supabase.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:window.location.origin+"/auth/callback?next=/editor"}});
     if(error)throw error;
@@ -74,6 +76,6 @@ export default function LoginPage(){
   {mode==="signup"&&<button type="button" className="text-action centered" onClick={()=>changeMode("login")}>{t("لديك حساب؟ سجّل الدخول","Already have an account? Sign in")}</button>}
   {mode!=="admin"&&<><div className="auth-divider"><span>{t("أو تابع باستخدام","OR CONTINUE WITH")}</span></div><button type="button" className="google-button" onClick={google} disabled={busy}><span className="google-mark">G</span>{t("المتابعة باستخدام Google","Continue with Google")}</button></>}
   {message&&<p className={success?"auth-message success":"auth-message"} role="status">{message}</p>}
-  {mode==="admin"&&<p className="auth-foot">{t("حساب المدير منفصل عن حسابات المستخدمين، ويجب تهيئته مرة واحدة من إعدادات المصادقة الآمنة قبل استخدامه.","The administrator account is separate from regular users and must be provisioned once in secure authentication settings before use.")}</p>}
+  {mode==="admin"&&<p className="auth-foot">{t("دخول المدير يتم عبر تحقق خادمي، ولا تُرسل مفاتيح الإدارة إلى المتصفح.","Administrator access is validated on the server; privileged keys are never exposed to the browser.")}</p>}
  </form></main>;
 }
