@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Activity, Bell, CalendarDays, ChevronDown, ChevronLeft, CircleHelp, Command, Globe2, Inbox, Instagram, LayoutDashboard, LogOut, MessageCircle, MessageSquareText, Plus, Send, Settings, ShieldCheck, Sparkles, Users, WandSparkles, Facebook, Menu, X } from 'lucide-react'
+import { Activity, Bell, CalendarDays, ChevronDown, ChevronLeft, CircleHelp, Command, Globe2, Home, Inbox, Instagram, LayoutDashboard, LogOut, MessageCircle, MessageSquareText, Plus, Send, Settings, ShieldCheck, Sparkles, Users, WandSparkles, Facebook, Menu, X } from 'lucide-react'
 import type { Session } from '@supabase/supabase-js'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 
