@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const GRAPH = "v24.0";
-const FRONTEND_ORIGIN = "https://digital-compass-social.vercel.app";
+const FRONTEND_ORIGIN = "https://digital-compass-social.pages.dev";
 const corsHeaders = {
   "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
