@@ -57,16 +57,29 @@ OAuth redirect URI:
 Webhook callback:
 `https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/social-meta-webhook`
 
-## Local development
+## Local-only setup (Windows)
 
-```bash
+This application runs privately on your own computer. Vercel is not required and no public frontend deployment is part of this setup.
+
+1. Install Node.js LTS (https://nodejs.org/) and Git (https://git-scm.com/downloads/win).
+2. Open PowerShell and run:
+
+```powershell
+git clone --branch social-edition-rebuild https://github.com/psycho-666/digital-compass-site.git
+cd digital-compass-site
+Copy-Item .env.example .env.local
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
-Production build:
-```bash
+3. Open http://127.0.0.1:5173 in your browser. The development server binds to localhost only.
+4. Keep `.env.local` private; it is excluded from Git.
+
+The Supabase publishable key in `.env.example` is designed for browser use. Never put the service-role key or Meta App Secret in frontend files.
+
+## Local build check
+
+```powershell
 npm run build
 npm audit
 ```
