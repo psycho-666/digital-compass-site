@@ -1,3 +1,74 @@
-# Social Edition reset
+# Digital Compass — Social Edition
 
-This branch has been cleared for a clean rebuild.
+A bilingual Arabic/English social-media workspace for managing Facebook Pages and connected Instagram accounts.
+
+## Current foundation
+
+- React 19 + TypeScript + Vite 7
+- Supabase Auth with password and email-link sign-in
+- Owner-scoped PostgreSQL schema with Row Level Security
+- Private schema for page access tokens; browser roles cannot read credentials
+- Meta OAuth flow with signed, expiring state
+- Meta webhook receiver with HMAC signature validation
+- Inbox, comment replies, content drafts/scheduling records, and keyword automation screens
+- Arabic RTL and English LTR layouts
+
+## Social modules
+
+- **Overview:** workspace activity and account status
+- **Connected accounts:** Meta OAuth and Facebook/Instagram page discovery
+- **Inbox:** conversations and replies through the Meta messaging API
+- **Comments:** receive comments and reply from the workspace
+- **Content planner:** save drafts and scheduled-post records
+- **Automation:** keyword rules; enabled rules can auto-reply to new matching comments
+- **AI assistant:** UI placeholder until an AI provider key is configured
+
+## Supabase
+
+Project ref: `xnoalyxxrjyovivdeojo`
+
+Core tables: `profiles`, `connected_pages`, `conversations`, `messages`, `comments`, `scheduled_posts`, `automation_rules`, `activity_logs`.
+
+Page tokens are stored only in `private.page_credentials`. All exposed public tables have RLS enabled and owner-scoped policies. Composite foreign keys prevent cross-user page/conversation references.
+
+Edge Functions:
+- `social-oauth`
+- `social-meta-webhook`
+- `social-management-api`
+
+Old prototype endpoints remain retired and return HTTP 410.
+
+## Environment
+
+Frontend:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+Supabase Edge Function secrets required for Meta activation:
+- `META_APP_SECRET` — Meta App Secret (never commit or expose it)
+- `META_WEBHOOK_VERIFY_TOKEN` — private verification string shared with Meta Webhooks
+- `FRONTEND_URL` — final Social Edition origin for OAuth redirects and CORS
+
+Meta App ID currently configured in the OAuth function: `1460593969264285`.
+
+OAuth redirect URI:
+`https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/social-oauth?action=callback`
+
+Webhook callback:
+`https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/social-meta-webhook`
+
+## Local development
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Production build:
+```bash
+npm run build
+npm audit
+```
+
+This branch is isolated from the Website Edition on `main`.
