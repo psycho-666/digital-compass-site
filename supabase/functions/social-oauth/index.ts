@@ -16,8 +16,9 @@ const SCOPES = [
   "instagram_content_publish"
 ].join(",");
 
+const FRONTEND_ORIGIN = (Deno.env.get("FRONTEND_URL") ?? "https://digital-compass-social-zainiq007-3227.vercel.app").replace(/\\/+$/, "");
 const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("FRONTEND_URL") ?? "*",
+  "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
 };
@@ -75,7 +76,7 @@ Deno.serve(async (req: Request) => {
   const appSecret = Deno.env.get("META_APP_SECRET");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const frontendUrl = Deno.env.get("FRONTEND_URL") ?? "https://digital-compass-social.vercel.app";
+  const frontendUrl = FRONTEND_ORIGIN;
   if (!appSecret || !supabaseUrl || !serviceKey) return json({ error: "Missing server configuration: META_APP_SECRET or Supabase service credentials." }, 500);
 
   const redirectUri = supabaseUrl + "/functions/v1/social-oauth?action=callback";
