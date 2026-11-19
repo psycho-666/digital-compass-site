@@ -1,1 +1,0 @@
-Deno.serve(() => new Response(JSON.stringify({error:'feature_disabled',feature:'website_prototypes',message:'Website prototype generation has been retired. Digital Compass is now focused exclusively on social media discovery, audit, management, content, ads, inbox and reporting.'}),{status:410,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}}));
