@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import { ArrowUpLeft, MessageCircle, Users, UserRoundSearch, CalendarCheck, CircleAlert } from "lucide-react";
+import { ArrowUpLeft, MessageCircle, Users, UserRoundSearch, CalendarCheck, CircleAlert, ClipboardList } from "lucide-react";
 
 async function countRows(supabase: Awaited<ReturnType<typeof createClient>>, table: string) {
   const { count, error } = await supabase.from(table).select("id", { count: "exact", head: true });
