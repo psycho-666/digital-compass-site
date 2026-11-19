@@ -1,0 +1,15 @@
+create table if not exists public.user_roles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  role text not null check (role in ('admin','member')),
+  created_at timestamptz not null default now()
+);
+alter table public.user_roles enable row level security;
+drop policy if exists "Users can read their own role" on public.user_roles;
+create policy "Users can read their own role" on public.user_roles
+for select to authenticated using ((select auth.uid()) = user_id);
+revoke all on table public.user_roles from public, anon, authenticated;
+grant select on table public.user_roles to authenticated;
+grant select, insert, update, delete on table public.user_roles to service_role;
+insert into public.user_roles(user_id,role)
+select id,'admin' from auth.users where email='admin@digitalcompass.local'
+on conflict (user_id) do update set role='admin';
