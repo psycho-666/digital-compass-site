@@ -24,10 +24,18 @@ Deno.serve(async (req: Request) => {
       const { data: credential, error: credentialError } = await admin.schema("private").from("page_credentials").select("access_token").eq("page_id", page.id).eq("user_id", post.user_id).maybeSingle();
       if (credentialError) throw credentialError;
       if (!credential?.access_token) throw new Error("Page token missing; reconnect Meta");
-      const media = (post.media_urls ?? [])[0];
-      const endpoint = media ? page.external_page_id + "/photos" : page.external_page_id + "/feed";
+      let media = (post.media_urls ?? [])[0] as string | undefined;
+      if ((post.media_urls ?? []).length > 1) throw new Error("Multiple-media publishing is not supported yet");
+      if (media?.startsWith("storage://")) {
+        const objectPath = media.slice("storage://".length);
+        const { data: signed, error: signedError } = await admin.storage.from("social-media").createSignedUrl(objectPath, 1800);
+        if (signedError || !signed?.signedUrl) throw new Error(signedError?.message ?? "Could not create media download URL");
+        media = signed.signedUrl;
+      }
+      const isVideo = Boolean(media && /\\.(mp4|mov)$/i.test(media.split("?")[0]));
+      const endpoint = !media ? page.external_page_id + "/feed" : isVideo ? page.external_page_id + "/videos" : page.external_page_id + "/photos";
       const form = new URLSearchParams({ access_token: credential.access_token });
-      if (media) { form.set("url", media); form.set("caption", post.caption ?? ""); }
+      if (media) { form.set(isVideo ? "file_url" : "url", media); form.set(isVideo ? "description" : "caption", post.caption ?? ""); }
       else { if (!post.caption) throw new Error("Post caption is empty"); form.set("message", post.caption); }
       const response = await fetch("https://graph.facebook.com/v24.0/" + endpoint, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: form });
       const result = await response.json();
