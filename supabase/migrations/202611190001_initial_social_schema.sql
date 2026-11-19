@@ -48,3 +48,8 @@ alter table public.messages add constraint messages_conversation_owner_fk foreig
 alter table public.comments add constraint comments_page_owner_fk foreign key (page_id,user_id) references public.connected_pages(id,user_id) on delete cascade;
 alter table public.scheduled_posts add constraint scheduled_posts_page_owner_fk foreign key (page_id,user_id) references public.connected_pages(id,user_id) on delete cascade;
 alter table public.automation_rules add constraint automation_rules_page_owner_fk foreign key (page_id,user_id) references public.connected_pages(id,user_id) on delete cascade;
+
+-- Edge Functions use the service role; browser roles cannot access token storage.
+grant usage on schema private to service_role;
+grant select, insert, update, delete on all tables in schema private to service_role;
+alter default privileges in schema private grant select, insert, update, delete on tables to service_role;
