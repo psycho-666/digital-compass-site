@@ -1,0 +1,65 @@
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
+import { Activity, Bell, CalendarDays, ChevronDown, ChevronLeft, CircleHelp, Command, Globe2, Home, Inbox, Instagram, LayoutDashboard, LogOut, MessageCircle, MessageSquareText, Plus, Send, Settings, ShieldCheck, Sparkles, Users, WandSparkles, Facebook, Menu, X } from 'lucide-react'
+import type { Session } from '@supabase/supabase-js'
+import { isSupabaseConfigured, supabase } from './lib/supabase'
+
+type Locale = 'ar' | 'en'
+type Section = 'overview' | 'inbox' | 'comments' | 'planner' | 'automation' | 'pages' | 'assistant' | 'settings'
+const copy = {
+  ar: { brand: 'البوصلة الرقمية', subtitle: 'مساحة إدارة التواصل', overview: 'نظرة عامة', inbox: 'الرسائل', comments: 'التعليقات', planner: 'تقويم المحتوى', automation: 'الأتمتة', pages: 'الحسابات المرتبطة', assistant: 'المساعد الذكي', settings: 'الإعدادات', workspace: 'مساحة العمل', connected: 'الحسابات المتصلة', messages: 'محادثات تحتاج متابعة', commentsOpen: 'تعليقات بلا رد', scheduled: 'منشورات مجدولة', activity: 'آخر النشاطات', quick: 'إجراءات سريعة', create: 'إنشاء منشور', connect: 'ربط حساب', review: 'مراجعة الرسائل', welcome: 'أهلاً بعودتك', welcomeSub: 'هذه لمحة سريعة عن أداء مساحة التواصل لديك.', today: 'اليوم', noData: 'ستظهر بياناتك هنا بعد ربط صفحاتك وبدء استقبال التفاعلات.', setup: 'اربط صفحات Facebook وInstagram لتبدأ إدارة الرسائل والتعليقات والمنشورات من مكان واحد.', signIn: 'تسجيل الدخول', signUp: 'إنشاء حساب', email: 'البريد الإلكتروني', password: 'كلمة المرور', name: 'الاسم', forgot: 'إرسال رابط دخول إلى البريد', signOut: 'تسجيل الخروج', language: 'English', secure: 'دخول آمن عبر Supabase', configure: 'إعداد الاتصال', configText: 'أضف رابط Supabase ومفتاح Publishable في متغيرات البيئة لتفعيل تسجيل الدخول والبيانات.', all: 'كل النشاطات', open: 'مفتوحة', search: 'بحث', soon: 'هذه الوحدة قيد البناء', menu: 'القائمة', online: 'النظام جاهز' },
+  en: { brand: 'Digital Compass', subtitle: 'Social workspace', overview: 'Overview', inbox: 'Inbox', comments: 'Comments', planner: 'Content planner', automation: 'Automation', pages: 'Connected accounts', assistant: 'AI assistant', settings: 'Settings', workspace: 'Workspace', connected: 'Connected accounts', messages: 'Conversations to follow up', commentsOpen: 'Unanswered comments', scheduled: 'Scheduled posts', activity: 'Recent activity', quick: 'Quick actions', create: 'Create post', connect: 'Connect account', review: 'Review inbox', welcome: 'Welcome back', welcomeSub: 'Here is a quick view of your social workspace.', today: 'Today', noData: 'Your data will appear here after connecting pages and receiving activity.', setup: 'Connect Facebook and Instagram pages to manage messages, comments and posts in one place.', signIn: 'Sign in', signUp: 'Create account', email: 'Email address', password: 'Password', name: 'Name', forgot: 'Send a sign-in link', signOut: 'Sign out', language: 'العربية', secure: 'Secure sign-in with Supabase', configure: 'Configure connection', configText: 'Add your Supabase URL and publishable key to environment variables to enable authentication and data.', all: 'All activity', open: 'Open', search: 'Search', soon: 'This module is being built', menu: 'Menu', online: 'System ready' }
+}
+const nav: {id: Section; icon: typeof Home}[] = [
+  {id:'overview',icon:LayoutDashboard},{id:'inbox',icon:Inbox},{id:'comments',icon:MessageSquareText},{id:'planner',icon:CalendarDays},{id:'automation',icon:WandSparkles},{id:'pages',icon:Globe2},{id:'assistant',icon:Sparkles}
+]
+function App() {
+  const [locale,setLocale] = useState<Locale>('ar')
+  const [section,setSection] = useState<Section>('overview')
+  const [session,setSession] = useState<Session|null>(null)
+  const [loading,setLoading] = useState(true)
+  const [authMode,setAuthMode] = useState<'in'|'up'>('in')
+  const [email,setEmail] = useState('')
+  const [password,setPassword] = useState('')
+  const [fullName,setFullName] = useState('')
+  const [authMessage,setAuthMessage] = useState('')
+  const [busy,setBusy] = useState(false)
+  const [mobileOpen,setMobileOpen] = useState(false)
+  const t = copy[locale]
+  const rtl = locale === 'ar'
+  useEffect(() => {
+    if (!supabase) { setLoading(false); return }
+    supabase.auth.getSession().then(({data}) => { setSession(data.session); setLoading(false) })
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,next) => setSession(next))
+    return () => subscription.unsubscribe()
+  }, [])
+  const pageTitle = useMemo(() => t[section], [section,t])
+  async function submitAuth(e: FormEvent) {
+    e.preventDefault()
+    if (!supabase) return
+    setBusy(true); setAuthMessage('')
+    const result = authMode === 'in'
+      ? await supabase.auth.signInWithPassword({email,password})
+      : await supabase.auth.signUp({email,password,options:{data:{full_name:fullName}}})
+    setBusy(false)
+    setAuthMessage(result.error ? result.error.message : (authMode === 'up' ? (rtl?'تحقق من بريدك لإكمال إنشاء الحساب.':'Check your email to confirm your account.') : ''))
+  }
+  async function sendMagicLink() {
+    if (!supabase || !email) { setAuthMessage(rtl?'أدخل البريد الإلكتروني أولاً':'Enter your email first'); return }
+    setBusy(true); const {error} = await supabase.auth.signInWithOtp({email}); setBusy(false)
+    setAuthMessage(error ? error.message : (rtl?'تم إرسال رابط الدخول إلى بريدك.':'Sign-in link sent to your email.'))
+  }
+  async function signOut() { await supabase?.auth.signOut(); setSession(null) }
+  if (loading) return <div className="loading-screen"><div className="brand-mark">ب</div><span>{t.brand}</span></div>
+  if (!isSupabaseConfigured) return <div className="setup-screen" dir={rtl?'rtl':'ltr'}><div className="setup-card"><div className="brand-mark">ب</div><h1>{t.configure}</h1><p>{t.configText}</p><code>VITE_SUPABASE_URL</code><code>VITE_SUPABASE_PUBLISHABLE_KEY</code><button className="lang-button" onClick={()=>setLocale(rtl?'en':'ar')}>{t.language}</button></div></div>
+  if (!session) return <div className="auth-screen" dir={rtl?'rtl':'ltr'}><div className="auth-side"><div className="auth-brand"><div className="brand-mark">ب</div><span>{t.brand}</span></div><div className="auth-promo"><span className="eyebrow">DIGITAL COMPASS · SOCIAL</span><h1>{rtl?'كل تواصلك الاجتماعي،\nفي مكان واحد':'Your social presence,\none clear direction.'}</h1><p>{t.setup}</p><div className="platform-pills"><span><Facebook size={16}/> Facebook</span><span><Instagram size={16}/> Instagram</span><span><MessageCircle size={16}/> Messenger</span></div></div><div className="auth-footer">© 2026 Digital Compass</div></div><div className="auth-main"><button className="lang-button auth-lang" onClick={()=>setLocale(rtl?'en':'ar')}>{t.language}</button><form className="auth-form" onSubmit={submitAuth}><span className="eyebrow">{t.secure}</span><h2>{authMode==='in'?t.signIn:t.signUp}</h2><p>{t.setup}</p>{authMode==='up'&&<label>{t.name}<input value={fullName} onChange={e=>setFullName(e.target.value)} required autoComplete="name"/></label>}<label>{t.email}<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="name@example.com"/></label><label>{t.password}<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8} autoComplete={authMode==='in'?'current-password':'new-password'}/></label><button className="primary-button full" disabled={busy}>{busy?'…':authMode==='in'?t.signIn:t.signUp}</button><button type="button" className="text-button" onClick={sendMagicLink}>{t.forgot}</button>{authMessage&&<div className="auth-message">{authMessage}</div>}<div className="auth-switch">{authMode==='in'?(rtl?'ليس لديك حساب؟':'New here?'):(rtl?'لديك حساب بالفعل؟':'Already have an account?')} <button type="button" onClick={()=>{setAuthMode(authMode==='in'?'up':'in');setAuthMessage('')}}>{authMode==='in'?t.signUp:t.signIn}</button></div></form></div></div>
+  return <div className={`app-shell ${rtl?'rtl':'ltr'}`} dir={rtl?'rtl':'ltr'}>
+    {mobileOpen&&<button className="mobile-scrim" onClick={()=>setMobileOpen(false)} aria-label="Close menu"/>}
+    <aside className={`sidebar ${mobileOpen?'mobile-open':''}`}><div className="sidebar-brand"><div className="brand-mark">ب</div><div><strong>{t.brand}</strong><small>{t.subtitle}</small></div><button className="close-mobile" onClick={()=>setMobileOpen(false)}><X size={18}/></button></div><div className="workspace-switch"><div className="workspace-avatar">DC</div><div><small>{t.workspace}</small><strong>Digital Compass</strong></div><ChevronDown size={15}/></div><div className="nav-label">{t.menu}</div><nav>{nav.map(item=>{const Icon=item.icon;return <button key={item.id} className={section===item.id?'nav-item active':'nav-item'} onClick={()=>{setSection(item.id);setMobileOpen(false)}}><Icon size={18}/><span>{t[item.id]}</span>{item.id==='inbox'&&<i className="nav-dot"/>}</button>})}</nav><div className="sidebar-bottom"><button className={section==='settings'?'nav-item active':'nav-item'} onClick={()=>setSection('settings')}><Settings size={18}/><span>{t.settings}</span></button><div className="user-card"><div className="user-avatar">{(session.user.email||'D')[0].toUpperCase()}</div><div className="user-meta"><strong>{session.user.user_metadata?.full_name||session.user.email}</strong><small>{session.user.email}</small></div><button onClick={signOut} title={t.signOut}><LogOut size={17}/></button></div></div></aside>
+    <main className="main-area"><header className="topbar"><div className="topbar-left"><button className="mobile-menu" onClick={()=>setMobileOpen(true)}><Menu size={20}/></button><div className="breadcrumb"><span>{t.brand}</span><ChevronLeft size={14}/><strong>{pageTitle}</strong></div></div><div className="topbar-actions"><span className="system-status"><i/>{t.online}</span><button className="icon-button" title={t.activity}><Bell size={18}/></button><button className="lang-button" onClick={()=>setLocale(rtl?'en':'ar')}>{t.language}</button></div></header>
+      <div className="content"><div className="page-heading"><div><span className="eyebrow">{t.today} · {new Intl.DateTimeFormat(locale==='ar'?'ar-IQ':'en-US',{weekday:'long',day:'numeric',month:'long'}).format(new Date())}</span><h1>{section==='overview'?t.welcome:pageTitle}</h1><p>{section==='overview'?t.welcomeSub:t.setup}</p></div>{section==='overview'&&<button className="primary-button" onClick={()=>setSection('planner')}><Plus size={17}/>{t.create}</button>}</div>
+      {section==='overview'?<><div className="stats-grid">{[{label:t.connected,value:'0',icon:Users,tone:'violet'},{label:t.messages,value:'0',icon:Inbox,tone:'blue'},{label:t.commentsOpen,value:'0',icon:MessageSquareText,tone:'amber'},{label:t.scheduled,value:'0',icon:CalendarDays,tone:'green'}].map((s,i)=>{const Icon=s.icon;return <div className="stat-card" key={i}><div className={`stat-icon ${s.tone}`}><Icon size={19}/></div><div className="stat-label">{s.label}</div><div className="stat-value">{s.value}</div><div className="stat-foot">{t.noData}</div></div>})}</div><div className="dashboard-grid"><section className="panel activity-panel"><div className="panel-head"><div><h3>{t.activity}</h3><p>{t.all}</p></div><button className="subtle-button">{t.today}</button></div><div className="empty-state"><div className="empty-icon"><Activity size={24}/></div><strong>{t.noData}</strong><p>{t.setup}</p><button className="outline-button" onClick={()=>setSection('pages')}><Plus size={16}/>{t.connect}</button></div></section><section className="panel quick-panel"><div className="panel-head"><div><h3>{t.quick}</h3><p>{t.workspace}</p></div><Command size={18}/></div><button className="quick-action" onClick={()=>setSection('pages')}><span className="quick-icon violet"><Globe2 size={18}/></span><span><strong>{t.connect}</strong><small>Facebook · Instagram</small></span><ChevronLeft size={16}/></button><button className="quick-action" onClick={()=>setSection('inbox')}><span className="quick-icon blue"><Send size={18}/></span><span><strong>{t.review}</strong><small>Messenger · Instagram DM</small></span><ChevronLeft size={16}/></button><button className="quick-action" onClick={()=>setSection('assistant')}><span className="quick-icon amber"><Sparkles size={18}/></span><span><strong>{t.assistant}</strong><small>AI content & replies</small></span><ChevronLeft size={16}/></button><div className="tip-card"><ShieldCheck size={18}/><span>{rtl?'بيانات كل حساب معزولة وآمنة وفق صلاحيات المستخدم.':'Each workspace is isolated with user-scoped access controls.'}</span></div></section></div></>:<section className="panel module-panel"><div className="module-icon"><Sparkles size={23}/></div><h2>{pageTitle}</h2><p>{t.soon}</p><button className="outline-button" onClick={()=>setSection('overview')}><Home size={16}/>{t.overview}</button></section>}
+      <footer className="app-footer"><span>Digital Compass Social Edition · 0.1.0</span><span><CircleHelp size={14}/> {rtl?'مركز المساعدة':'Help center'}</span></footer></div></main>
+  </div>
+}
+export default App
