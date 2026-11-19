@@ -77,7 +77,8 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const frontendUrl = FRONTEND_ORIGIN;
-  if (!appSecret || !supabaseUrl || !serviceKey) return json({ error: "Missing server configuration: META_APP_SECRET or Supabase service credentials." }, 500);
+  const missingConfig = [["META_APP_SECRET", appSecret], ["SUPABASE_URL", supabaseUrl], ["SUPABASE_SERVICE_ROLE_KEY", serviceKey]].filter((item) => !item[1]).map((item) => item[0]);
+  if (missingConfig.length) return json({ error: "Missing server configuration", missing: missingConfig }, 500);
 
   const redirectUri = supabaseUrl + "/functions/v1/social-oauth?action=callback";
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
