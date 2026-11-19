@@ -124,7 +124,14 @@ create table public.activity_logs (
 create or replace function private.is_social_staff() returns boolean language sql stable security definer set search_path=public
 as $$ select exists(select 1 from public.profiles p where p.id=auth.uid() and p.is_active=true); $$;
 create or replace function private.is_social_owner() returns boolean language sql stable security definer set search_path=public
-as $$ select exists(select 1 from public.profiles p where p.id=auth.uid() and p.is_active=true and p.role in ('owner','admin')); $$;
+as $ select exists(select 1 from public.profiles p where p.id=auth.uid() and p.is_active=true and p.role in ('owner','admin')); $;
+revoke all on schema private from anon;
+grant usage on schema private to authenticated, service_role;
+revoke all on function private.is_social_staff() from public, anon;
+revoke all on function private.is_social_owner() from public, anon;
+grant execute on function private.is_social_staff() to authenticated, service_role;
+grant execute on function private.is_social_owner() to authenticated, service_role;
+
 create or replace function public.handle_social_user_created() returns trigger language plpgsql security definer set search_path=public
 as $$ begin
  insert into public.profiles(id,email,display_name,role) values(new.id,new.email,coalesce(new.raw_user_meta_data->>'full_name',new.raw_user_meta_data->>'name'),'staff')
