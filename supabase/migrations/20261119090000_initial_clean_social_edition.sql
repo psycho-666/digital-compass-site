@@ -146,7 +146,7 @@ on conflict(id) do update set email=excluded.email,display_name=excluded.display
 
 alter table public.profiles enable row level security;
 create policy profiles_read_self_or_admin on public.profiles for select using(id=auth.uid() or public.is_social_owner());
-create policy profiles_update_self_or_admin on public.profiles for update using(id=auth.uid() or public.is_social_owner());
+create policy profiles_update_admin_only on public.profiles for update using(public.is_social_owner()) with check(public.is_social_owner());
 do $$
 declare t text;
 begin
