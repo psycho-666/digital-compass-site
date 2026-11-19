@@ -2,8 +2,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const GRAPH = "v24.0";
+const FRONTEND_ORIGIN = Deno.env.get("FRONTEND_URL") ?? "https://digital-compass-social-zainiq007-3227.vercel.app";
 const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("FRONTEND_URL") ?? "*",
+  "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
