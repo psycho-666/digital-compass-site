@@ -40,3 +40,11 @@ end;
 $$;
 revoke all on function public.handle_new_user() from public, anon, authenticated;
 create trigger on_auth_user_created after insert on auth.users for each row execute procedure public.handle_new_user();
+-- Composite ownership constraints prevent cross-user foreign-key references.
+alter table public.connected_pages add constraint connected_pages_id_user_unique unique (id,user_id);
+alter table public.conversations add constraint conversations_id_user_unique unique (id,user_id);
+alter table public.conversations add constraint conversations_page_owner_fk foreign key (page_id,user_id) references public.connected_pages(id,user_id) on delete cascade;
+alter table public.messages add constraint messages_conversation_owner_fk foreign key (conversation_id,user_id) references public.conversations(id,user_id) on delete cascade;
+alter table public.comments add constraint comments_page_owner_fk foreign key (page_id,user_id) references public.connected_pages(id,user_id) on delete cascade;
+alter table public.scheduled_posts add constraint scheduled_posts_page_owner_fk foreign key (page_id,user_id) references public.connected_pages(id,user_id) on delete cascade;
+alter table public.automation_rules add constraint automation_rules_page_owner_fk foreign key (page_id,user_id) references public.connected_pages(id,user_id) on delete cascade;
