@@ -40,12 +40,12 @@ Deno.serve(async (req: Request) => {
       const response = await fetch("https://graph.facebook.com/v24.0/" + endpoint, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: form });
       const result = await response.json();
       if (!response.ok || result.error) throw new Error(result.error?.message ?? "Meta publishing failed");
-      const { error: updateError } = await admin.from("scheduled_posts").update({ status: "published", published_at: new Date().toISOString(), platform_post_id: String(result.id ?? result.post_id ?? "") }).eq("id", post.id).eq("status", "publishing");
+      const { error: updateError } = await admin.from("scheduled_posts").update({ status: "published", published_at: new Date().toISOString(), platform_post_id: String(result.id ?? result.post_id ?? ""), publishing_started_at: null, last_error: null }).eq("id", post.id).eq("status", "publishing");
       if (updateError) throw updateError;
       results.push({ id: post.id, status: "published" });
     } catch (e) {
       const reason = e instanceof Error ? e.message : "Publishing failed";
-      await admin.from("scheduled_posts").update({ status: "failed" }).eq("id", post.id).eq("status", "publishing");
+      await admin.from("scheduled_posts").update({ status: "failed", publishing_started_at: null, last_error: reason }).eq("id", post.id).eq("status", "publishing");
       results.push({ id: post.id, status: "failed", reason });
     }
   }
