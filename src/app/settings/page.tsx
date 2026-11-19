@@ -1,0 +1,9 @@
+import { AppShell } from "@/components/app-shell";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+export default async function SettingsPage() {
+ if (!isSupabaseConfigured()) return <AppShell title="الإعدادات"><p className="muted-copy">أكمل إعداد اتصال قاعدة البيانات أولاً.</p></AppShell>;
+ const supabase = await createClient();
+ const {data:integrations} = await supabase.from("platform_integrations").select("platform,app_id,api_version,status,webhook_fields").order("platform");
+ const {data:accounts} = await supabase.from("social_accounts").select("platform,account_name,external_account_id,connection_status,profile_url").order("account_name");
+ return <AppShell title="الإعدادات"><div className="module-title"><div><h2>التكاملات والحسابات</h2><p>حالة الربط والإعدادات غير السرية.</p></div></div><div className="panel"><h3>تكاملات المنصات</h3>{(integrations||[]).map(x=><div className="integration-row" key={x.platform}><div><b>{x.platform.toUpperCase()}</b><small>API {x.api_version||"—"} · App ID {x.app_id||"غير محدد"}</small></div><span className="tag">{x.status}</span></div>)}{!integrations?.length&&<p className="muted-copy">لم تتم إضافة تكاملات.</p>}</div><div className="panel" style={{marginTop:16}}><h3>الحسابات الاجتماعية</h3>{(accounts||[]).map(x=><div className="integration-row" key={x.external_account_id}><div><b>{x.account_name}</b><small>{x.platform} · {x.external_account_id}</small></div><span className="tag">{x.connection_status}</span></div>)}{!accounts?.length&&<p className="muted-copy">لا توجد حسابات.</p>}</div><p className="muted-copy" style={{marginTop:15}}>لا تحفظ مفاتيح الوصول أو أسرار Meta داخل واجهة المتصفح. تتم إدارتها من الخادم فقط.</p></AppShell>;
+}
