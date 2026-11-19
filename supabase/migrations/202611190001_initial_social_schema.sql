@@ -53,3 +53,5 @@ alter table public.automation_rules add constraint automation_rules_page_owner_f
 grant usage on schema private to service_role;
 grant select, insert, update, delete on all tables in schema private to service_role;
 alter default privileges in schema private grant select, insert, update, delete on tables to service_role;
+
+alter table public.messages add constraint messages_external_message_id_unique unique (external_message_id);
