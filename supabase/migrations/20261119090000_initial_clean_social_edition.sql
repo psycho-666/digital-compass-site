@@ -1,6 +1,7 @@
 -- Digital Compass Social Edition: clean baseline
 -- Applied to Supabase project xnoalyxxrjyovivdeojo on 2026-11-19.
 create extension if not exists pgcrypto;
+create schema if not exists private;
 
 create table public.profiles (
  id uuid primary key references auth.users(id) on delete cascade,
@@ -120,9 +121,9 @@ create table public.activity_logs (
  action text not null, entity_type text, entity_id uuid, details jsonb not null default '{}', created_at timestamptz not null default now()
 );
 
-create or replace function public.is_social_staff() returns boolean language sql stable security definer set search_path=public
+create or replace function private.is_social_staff() returns boolean language sql stable security definer set search_path=public
 as $$ select exists(select 1 from public.profiles p where p.id=auth.uid() and p.is_active=true); $$;
-create or replace function public.is_social_owner() returns boolean language sql stable security definer set search_path=public
+create or replace function private.is_social_owner() returns boolean language sql stable security definer set search_path=public
 as $$ select exists(select 1 from public.profiles p where p.id=auth.uid() and p.is_active=true and p.role in ('owner','admin')); $$;
 create or replace function public.handle_social_user_created() returns trigger language plpgsql security definer set search_path=public
 as $$ begin
@@ -145,14 +146,14 @@ on conflict(id) do update set email=excluded.email,display_name=excluded.display
  role=case when excluded.role in ('owner','admin') then excluded.role else public.profiles.role end,is_active=excluded.is_active;
 
 alter table public.profiles enable row level security;
-create policy profiles_read_self_or_admin on public.profiles for select using(id=auth.uid() or public.is_social_owner());
-create policy profiles_update_admin_only on public.profiles for update using(public.is_social_owner()) with check(public.is_social_owner());
+create policy profiles_read_self_or_admin on public.profiles for select using(id=auth.uid() or private.is_social_owner());
+create policy profiles_update_admin_only on public.profiles for update using(private.is_social_owner()) with check(private.is_social_owner());
 do $$
 declare t text;
 begin
  foreach t in array array['clients','leads','social_accounts','inbox_threads','inbox_items','content_posts','services','client_services','payments','tasks','client_knowledge','client_faqs','platform_integrations','webhook_events','automation_rules','automation_runs','activity_logs'] loop
   execute format('alter table public.%I enable row level security',t);
-  execute format('create policy social_staff_access on public.%I for all using (public.is_social_staff()) with check (public.is_social_staff())',t);
+  execute format('create policy social_staff_access on public.%I for all using (private.is_social_staff()) with check (private.is_social_staff())',t);
  end loop;
 end $$;
 
