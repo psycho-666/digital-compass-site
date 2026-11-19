@@ -60,14 +60,49 @@ Deno.serve(async (req: Request) => {
           const externalCommentId = String(value.comment_id ?? value.id ?? "");
           const body = String(value.message ?? value.text ?? "");
           if (!externalCommentId || !body) continue;
-          const { error } = await admin.from("comments").upsert({
+          const { data: insertedComment, error } = await admin.from("comments").upsert({
             user_id: page.user_id, page_id: page.id, external_comment_id: externalCommentId,
             post_external_id: value.post_id ? String(value.post_id) : null,
             author_name: value.from?.name ?? value.username ?? "Social user",
             body, commented_at: value.created_time ? new Date(Number(value.created_time) * 1000).toISOString() : new Date().toISOString(),
             status: "unanswered"
-          }, { onConflict: "page_id,external_comment_id", ignoreDuplicates: true });
+          }, { onConflict: "page_id,external_comment_id", ignoreDuplicates: true }).select("id").maybeSingle();
           if (error) throw error;
+          if (insertedComment?.id) {
+            const { data: rules, error: rulesError } = await admin.from("automation_rules")
+              .select("trigger_value,reply_text")
+              .eq("user_id", page.user_id)
+              .eq("is_enabled", true)
+              .eq("trigger_type", "comment_keyword")
+              .or("page_id.is.null,page_id.eq." + page.id);
+            if (rulesError) throw rulesError;
+            const matchedRule = (rules ?? []).find((rule: any) =>
+              rule.trigger_value && body.toLowerCase().includes(String(rule.trigger_value).toLowerCase())
+            );
+            if (matchedRule) {
+              const { data: credential } = await admin.schema("private").from("page_credentials")
+                .select("access_token").eq("page_id", page.id).eq("user_id", page.user_id).maybeSingle();
+              if (credential?.access_token) {
+                try {
+                  const replyResponse = await fetch("https://graph.facebook.com/v24.0/" + externalCommentId + "/comments", {
+                    method: "POST",
+                    headers: { "content-type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({ message: matchedRule.reply_text, access_token: credential.access_token })
+                  });
+                  const replyData = await replyResponse.json();
+                  if (replyResponse.ok && !replyData.error) {
+                    await admin.from("comments").update({
+                      reply_text: matchedRule.reply_text, replied_at: new Date().toISOString(), status: "replied"
+                    }).eq("id", insertedComment.id);
+                  } else {
+                    console.error("Comment auto-reply failed", replyData.error?.message ?? "Meta API error");
+                  }
+                } catch (replyError) {
+                  console.error("Comment auto-reply failed", replyError);
+                }
+              }
+            }
+          }
         }
 
         for (const event of entry.messaging ?? []) {
