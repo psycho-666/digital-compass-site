@@ -16,7 +16,7 @@ const SCOPES = [
   "instagram_content_publish"
 ].join(",");
 
-const FRONTEND_ORIGIN = (Deno.env.get("FRONTEND_URL") ?? "http://127.0.0.1:5173").replace(/\/+$/, "");
+const FRONTEND_ORIGIN = "https://digital-compass-social.vercel.app";
 const corsHeaders = {
   "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
