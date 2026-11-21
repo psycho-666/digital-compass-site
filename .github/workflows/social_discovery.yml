@@ -1,0 +1,65 @@
+name: Digital Compass Social Prospect Discovery
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 5 * * *"
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: digital-compass-social-prospect-discovery
+  cancel-in-progress: false
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout Social Edition branch
+        uses: actions/checkout@v4
+        with:
+          ref: social-edition-rebuild
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Request OIDC token to claim discovery
+        id: oidc_claim
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+      - name: Claim discovery run
+        id: claim
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_claim.outputs.token }}
+        run: |
+          curl --fail-with-body --silent --show-error -X POST \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" -H "Content-Type: application/json" \
+            --data '{"action":"claim_social_discovery"}' \
+            "https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/github-social-discovery-bridge" -o social-discovery-task.json
+          HAS_TASK="$(python -c 'import json; print("true" if json.load(open("social-discovery-task.json")).get("task") else "false")')"
+          echo "has_tasks=$HAS_TASK" >> "$GITHUB_OUTPUT"
+      - name: Request fresh OIDC token for discovery worker
+        id: oidc_worker
+        if: steps.claim.outputs.has_tasks == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail --silent --show-error -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=digital-compass-public-runner")"
+          TOKEN="$(python -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<< "$RESPONSE")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+      - name: Search Iraq active Meta advertisers
+        id: worker
+        if: steps.claim.outputs.has_tasks == 'true'
+        env:
+          OIDC_TOKEN: ${{ steps.oidc_worker.outputs.token }}
+          SOCIAL_DISCOVERY_TASK_FILE: social-discovery-task.json
+        run: node ops/social-discovery.mjs
