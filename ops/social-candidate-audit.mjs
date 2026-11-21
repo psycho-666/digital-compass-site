@@ -33,8 +33,8 @@ async function audit(page,candidate){
  const allLinks=uniq([...snap.links,...landingSnap.links,landing,candidate.whatsapp].filter(Boolean));
  const c=contacts(text,allLinks);
  if(candidate.phone)c.phones=uniq([String(candidate.phone),...c.phones]).slice(0,4);
- if(candidate.whatsapp)c.wa=uniq([String(candidate.whatsapp),...c.wa]).slice(0,3);
- if(candidate.landing_url)c.web=uniq([String(candidate.landing_url),...c.web]).slice(0,5);
+ if(candidate.whatsapp&&isWhatsAppLink(candidate.whatsapp))c.wa=uniq([String(candidate.whatsapp),...c.wa]).slice(0,3);
+ if(candidate.landing_url&&!isWhatsAppLink(candidate.landing_url))c.web=uniq([String(candidate.landing_url),...c.web]).slice(0,5);
  const rawName=String(candidate.page_name||snap.title.replace(/\s*[|·-]\s*(Facebook|Instagram).*$/i,"").trim());
  const name=/^(facebook|instagram|log in|login|home)$/i.test(rawName)?"":rawName.slice(0,300);
  const followerMatch=digits(text).match(/([\d,.]+\s*[kKmM]?)\s*(?:followers|متابعون|متابع|متابعين)/i);
