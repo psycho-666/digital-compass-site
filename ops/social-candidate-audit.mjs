@@ -21,7 +21,7 @@ function scoreEngagement(ps,followers){const vals=ps.map(p=>p.engagement).filter
 async function refreshToken(){try{const payload=JSON.parse(Buffer.from(TOKEN.split(".")[1],"base64url").toString("utf8"));if(payload.exp*1000>Date.now()+60000)return}catch{}const u=process.env.ACTIONS_ID_TOKEN_REQUEST_URL,k=process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;if(!u||!k)throw Error("Cannot refresh GitHub OIDC token for long audit batch");const r=await fetch(u+"&audience=digital-compass-public-runner",{headers:{authorization:"Bearer "+k}});if(!r.ok)throw Error("OIDC token refresh failed: "+r.status);const j=await r.json();TOKEN=j.value}
 async function bridge(body){await refreshToken();const r=await fetch(BRIDGE,{method:"POST",headers:{authorization:`Bearer ${TOKEN}`,"content-type":"application/json"},body:JSON.stringify(body)});const t=await r.text();if(!r.ok)throw Error(`bridge_${r.status}_${t.slice(0,500)}`);return JSON.parse(t)}
 async function audit(page,candidate){
- const url=candidate.profile_url||\`https://www.facebook.com/\${candidate.page_id_external}\`;
+ const url=candidate.profile_url||`https://www.facebook.com/${candidate.page_id_external}`;
  const snap=await snapshot(page,url);
  const adRows=Array.isArray(candidate.ads)?candidate.ads:[];
  const adText=adRows.map(a=>[a.creative_text,a.call_to_action].filter(Boolean).join(" ")).filter(Boolean);
