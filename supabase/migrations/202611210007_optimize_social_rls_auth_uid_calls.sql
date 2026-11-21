@@ -1,0 +1,16 @@
+drop policy if exists profiles_owner_access on public.profiles;
+create policy profiles_owner_access on public.profiles for all to authenticated using ((select auth.uid())=id) with check ((select auth.uid())=id);
+drop policy if exists connected_pages_owner_access on public.connected_pages;
+create policy connected_pages_owner_access on public.connected_pages for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
+drop policy if exists conversations_owner_access on public.conversations;
+create policy conversations_owner_access on public.conversations for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
+drop policy if exists messages_owner_access on public.messages;
+create policy messages_owner_access on public.messages for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
+drop policy if exists comments_owner_access on public.comments;
+create policy comments_owner_access on public.comments for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
+drop policy if exists scheduled_posts_owner_access on public.scheduled_posts;
+create policy scheduled_posts_owner_access on public.scheduled_posts for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
+drop policy if exists automation_rules_owner_access on public.automation_rules;
+create policy automation_rules_owner_access on public.automation_rules for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
+drop policy if exists activity_logs_owner_access on public.activity_logs;
+create policy activity_logs_owner_access on public.activity_logs for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
