@@ -1,6 +1,11 @@
 name: Digital Compass Social Prospect Discovery
 on:
   workflow_dispatch:
+  push:
+    branches: [social-edition-rebuild]
+    paths:
+      - '.github/workflows/social_discovery.yml'
+      - 'ops/social-discovery.mjs'
   schedule:
     - cron: "30 5 * * *"
 permissions:
