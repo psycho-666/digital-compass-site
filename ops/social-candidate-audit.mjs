@@ -8,6 +8,7 @@ const n100=v=>Math.max(0,Math.min(100,Math.round(v)));
 const uniq=a=>[...new Set(a.filter(Boolean))];
 function digits(s){return String(s||"").replace(/[٠-٩۰-۹]/g,c=>"٠١٢٣٤٥٦٧٨٩".indexOf(c)>=0?String("٠١٢٣٤٥٦٧٨٩".indexOf(c)):"0123456789".indexOf(c)>=0?c:c)}
 function parseCount(s){let x=digits(String(s||"").replace(/,/g,"")).trim().toLowerCase(),m=1;if(/[kك]/.test(x)){m=1000;x=x.replace(/[kك]/g,"")}else if(/[mم]/.test(x)){m=1000000;x=x.replace(/[mم]/g,"")}const v=Number(x.replace(/[^d.]/g,""));return Number.isFinite(v)?Math.round(v*m):null}
+function isWhatsAppLink(value){try{const u=new URL(String(value));const h=u.hostname.toLowerCase();if(h==="wa.me"||h==="www.wa.me")return /^\\/\\d{8,}/.test(u.pathname);if(h==="api.whatsapp.com"||h==="www.whatsapp.com"||h==="whatsapp.com")return /\\d{8,}/.test(u.searchParams.get("phone")||"");return false}catch{return false}}
 function parseEngagement(text){let total=0,found=0;const patterns=[/([\d,.]+\s*[kKmM]?)\s*(?:comments?|reactions?|likes?|shares?)/gi,/([\d,.]+\s*[kKmM]?)\s*(?:تعليق|تعليقات|تفاعل|تفاعلات|إعجاب|إعجابات|مشاركة|مشاركات)/gi];for(const re of patterns)for(const m of String(text||"").matchAll(re)){const n=parseCount(m[1]);if(n!==null){total+=n;found++}}return found?total:null}
 function median(a){if(!a.length)return null;const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)]}
 async function meta(page,key){for(const sel of [`meta[property="${key}"]`,`meta[name="${key}"]`]){try{const v=await page.locator(sel).first().getAttribute("content",{timeout:700});if(v)return v}catch{}}return""}
