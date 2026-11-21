@@ -1,0 +1,13 @@
+drop index if exists public.social_discovery_candidates_audit_idx;
+create index if not exists page_credentials_user_id_idx on private.page_credentials(user_id);
+create index if not exists automation_rules_user_id_idx on public.automation_rules(user_id);
+create index if not exists automation_rules_page_id_idx on public.automation_rules(page_id);
+create index if not exists automation_rules_page_owner_idx on public.automation_rules(page_id,user_id);
+create index if not exists comments_page_owner_idx on public.comments(page_id,user_id);
+create index if not exists conversations_page_owner_idx on public.conversations(page_id,user_id);
+create index if not exists messages_conversation_owner_idx on public.messages(conversation_id,user_id);
+create index if not exists messages_user_id_idx on public.messages(user_id);
+create index if not exists prospect_activities_prospect_id_idx on public.prospect_activities(prospect_id);
+create index if not exists scheduled_posts_page_id_idx on public.scheduled_posts(page_id);
+create index if not exists scheduled_posts_page_owner_idx on public.scheduled_posts(page_id,user_id);
+create index if not exists social_audits_prospect_id_idx on public.social_audits(prospect_id);
