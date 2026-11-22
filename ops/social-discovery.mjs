@@ -28,7 +28,7 @@ function latinDigits(value) {
 function normalizeIraqMobile(value) {
   let digits = latinDigits(value).replace(/\D/g, "");
   if (digits.startsWith("00964")) digits = digits.slice(2);
-  if (digits.length === 14 && digits.startsWith("9640") && /^96407\d{8}$/.test(digits)) {
+  if (digits.length === 14 && digits.startsWith("9640") && /^96407\d{9}$/.test(digits)) {
     digits = "964" + digits.slice(4);
   }
   if (digits.length === 11 && /^07\d{9}$/.test(digits)) return `+964${digits.slice(1)}`;
