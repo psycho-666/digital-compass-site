@@ -28,18 +28,18 @@ function latinDigits(value) {
 function normalizeIraqMobile(value) {
   let digits = latinDigits(value).replace(/\D/g, "");
   if (digits.startsWith("00964")) digits = digits.slice(2);
-  if (digits.length === 11 && (digits.startsWith("077") || digits.startsWith("078"))) {
-    return `+964${digits.slice(1)}`;
+  if (digits.length === 14 && digits.startsWith("9640") && /^96407\d{8}$/.test(digits)) {
+    digits = "964" + digits.slice(4);
   }
-  if (digits.length === 13 && (digits.startsWith("96477") || digits.startsWith("96478"))) {
-    return `+${digits}`;
-  }
+  if (digits.length === 11 && /^07\d{9}$/.test(digits)) return `+964${digits.slice(1)}`;
+  if (digits.length === 10 && /^7\d{9}$/.test(digits)) return `+964${digits}`;
+  if (digits.length === 13 && /^9647\d{8}$/.test(digits)) return `+${digits}`;
   return null;
 }
 
 function extractIraqPhone(value) {
   const clean = latinDigits(value);
-  const pattern = /(?<!\d)(?:(?:\+?964|00964)[\s\-().]*)?(?:77|78)(?:[\s\-().]*\d){8,9}(?!\d)|(?<!\d)0(?:77|78)(?:[\s\-().]*\d){8}(?!\d)/g;
+  const pattern = /(?<!\d)(?:(?:\+?964|00964)[\s\-().]*)?0?7[0-9](?:[\s\-().]*\d){8}(?!\d)/g;
   for (const match of clean.matchAll(pattern)) {
     const normalized = normalizeIraqMobile(match[0]);
     if (normalized) return normalized;
