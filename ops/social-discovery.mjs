@@ -19,6 +19,7 @@ const BLOCKED_LANDING_HOSTS = new Set([
   "facebook.com", "www.facebook.com", "m.facebook.com", "l.facebook.com", "lm.facebook.com",
   "instagram.com", "www.instagram.com", "fb.com", "messenger.com", "www.messenger.com",
   "fbcdn.net", "scontent.xx.fbcdn.net",
+  "whatsapp.com", "www.whatsapp.com", "api.whatsapp.com", "wa.me", "www.wa.me",
 ]);
 
 function latinDigits(value) {
@@ -125,14 +126,22 @@ function extractLanding(text) {
 function extractWhatsApp(text) {
   const clean = String(text || "").replaceAll("\\/", "/");
   for (const pattern of [
-    /https?:\/\/wa\.me\/(?:message\/)?[A-Za-z0-9+._/?=&%-]+/i,
-    /https?:\/\/(?:api\.)?whatsapp\.com\/[A-Za-z0-9+._/?=&%-]+/i,
+    /https?:\/\/wa\.me\/[0-9+().-]{8,}/i,
+    /https?:\/\/(?:api\.)?whatsapp\.com\/send\?[^\s"<>]*/i,
   ]) {
     const match = clean.match(pattern);
-    if (match) return match[0].slice(0, 1800);
+    if (!match) continue;
+    try {
+      const url = new URL(match[0]);
+      const host = url.hostname.toLowerCase();
+      const phone = host.endsWith("wa.me")
+        ? url.pathname.replace(/\D/g, "")
+        : (url.searchParams.get("phone") || "").replace(/\D/g, "");
+      if (phone.length >= 8) return url.toString().slice(0, 1800);
+    } catch {}
   }
   const phone = extractIraqPhone(clean);
-  return phone ? `https://wa.me/${phone.slice(1)}` : null;
+  return phone ? \`https://wa.me/\${phone.slice(1)}\` : null;
 }
 
 function extractAdDetails(text) {
