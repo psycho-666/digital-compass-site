@@ -33,7 +33,7 @@ function normalizeIraqMobile(value) {
   }
   if (digits.length === 11 && /^07\d{9}$/.test(digits)) return `+964${digits.slice(1)}`;
   if (digits.length === 10 && /^7\d{9}$/.test(digits)) return `+964${digits}`;
-  if (digits.length === 13 && /^9647\d{8}$/.test(digits)) return `+${digits}`;
+  if (digits.length === 13 && /^9647\d{9}$/.test(digits)) return `+${digits}`;
   return null;
 }
 
