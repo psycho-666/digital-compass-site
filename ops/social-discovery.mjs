@@ -141,7 +141,7 @@ function extractWhatsApp(text) {
     } catch {}
   }
   const phone = extractIraqPhone(clean);
-  return phone ? \`https://wa.me/\${phone.slice(1)}\` : null;
+  return phone ? `https://wa.me/${phone.slice(1)}` : null;
 }
 
 function extractAdDetails(text) {
