@@ -8,7 +8,8 @@ const n100=v=>Math.max(0,Math.min(100,Math.round(v)));
 const uniq=a=>[...new Set(a.filter(Boolean))];
 function digits(s){return String(s||"").replace(/[٠-٩۰-۹]/g,c=>"٠١٢٣٤٥٦٧٨٩".indexOf(c)>=0?String("٠١٢٣٤٥٦٧٨٩".indexOf(c)):"0123456789".indexOf(c)>=0?c:c)}
 function parseCount(s){let x=digits(String(s||"").replace(/,/g,"")).trim().toLowerCase(),m=1;if(/[kك]/.test(x)){m=1000;x=x.replace(/[kك]/g,"")}else if(/[mم]/.test(x)){m=1000000;x=x.replace(/[mم]/g,"")}const v=Number(x.replace(/[^0-9.]/g,""));return Number.isFinite(v)?Math.round(v*m):null}
-function isWhatsAppLink(value){try{const u=new URL(String(value));const h=u.hostname.toLowerCase();if(h==="wa.me"||h==="www.wa.me")return u.pathname.split("/").join("").split("-").join("").split("+").join("").length>=8;if(h==="api.whatsapp.com"||h==="www.whatsapp.com"||h==="whatsapp.com")return (u.searchParams.get("phone")||"").split("+").join("").split("-").join("").length>=8;return false}catch{return false}}
+function isWhatsAppHost(value){try{return ["wa.me","www.wa.me","api.whatsapp.com","www.whatsapp.com","whatsapp.com"].includes(new URL(String(value)).hostname.toLowerCase())}catch{return false}}
+function isWhatsAppLink(value){try{const u=new URL(String(value));const h=u.hostname.toLowerCase();if(h==="wa.me"||h==="www.wa.me")return u.pathname.replace(/\\D/g,"").length>=8;if(h==="api.whatsapp.com"||h==="www.whatsapp.com"||h==="whatsapp.com")return (u.searchParams.get("phone")||"").replace(/\\D/g,"").length>=8;return false}catch{return false}}
 function parseEngagement(text){let total=0,found=0;const patterns=[/([\d,.]+\s*[kKmM]?)\s*(?:comments?|reactions?|likes?|shares?)/gi,/([\d,.]+\s*[kKmM]?)\s*(?:تعليق|تعليقات|تفاعل|تفاعلات|إعجاب|إعجابات|مشاركة|مشاركات)/gi];for(const re of patterns)for(const m of String(text||"").matchAll(re)){const n=parseCount(m[1]);if(n!==null){total+=n;found++}}return found?total:null}
 function median(a){if(!a.length)return null;const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)]}
 async function meta(page,key){for(const sel of [`meta[property="${key}"]`,`meta[name="${key}"]`]){try{const v=await page.locator(sel).first().getAttribute("content",{timeout:700});if(v)return v}catch{}}return""}
@@ -27,14 +28,15 @@ async function audit(page,candidate){
  const adRows=Array.isArray(candidate.ads)?candidate.ads:[];
  const adText=adRows.map(a=>[a.creative_text,a.call_to_action].filter(Boolean).join(" ")).filter(Boolean);
  let landingSnap={title:"",description:"",body:"",links:[],posts:[],blocked:false,error:null};
- const landing=String(candidate.landing_url||"");
+ const landingRaw=String(candidate.landing_url||"");
+ const landing=isWhatsAppHost(landingRaw)?"":landingRaw;
  if(/^https?:\/\//i.test(landing)&&!/(facebook\.com|instagram\.com|fbcdn\.net|messenger\.com|whatsapp\.com|wa\.me)/i.test(landing))landingSnap=await snapshot(page,landing);
  const text=[snap.title,snap.description,snap.body,landingSnap.title,landingSnap.description,landingSnap.body,...adText].join(" ");
  const allLinks=uniq([...snap.links,...landingSnap.links,landing,candidate.whatsapp].filter(Boolean));
  const c=contacts(text,allLinks);
  if(candidate.phone)c.phones=uniq([String(candidate.phone),...c.phones]).slice(0,4);
  if(candidate.whatsapp&&isWhatsAppLink(candidate.whatsapp))c.wa=uniq([String(candidate.whatsapp),...c.wa]).slice(0,3);
- if(candidate.landing_url&&!isWhatsAppLink(candidate.landing_url))c.web=uniq([String(candidate.landing_url),...c.web]).slice(0,5);
+ if(candidate.landing_url&&!isWhatsAppHost(candidate.landing_url))c.web=uniq([String(candidate.landing_url),...c.web]).slice(0,5);
  const rawName=String(candidate.page_name||snap.title.replace(/\s*[|·-]\s*(Facebook|Instagram).*$/i,"").trim());
  const name=/^(facebook|instagram|log in|login|home)$/i.test(rawName)?"":rawName.slice(0,300);
  const followerMatch=digits(text).match(/([\d,.]+\s*[kKmM]?)\s*(?:followers|متابعون|متابع|متابعين)/i);
