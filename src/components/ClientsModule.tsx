@@ -1,21 +1,32 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { BriefcaseBusiness, Plus, RefreshCw, Save, ExternalLink } from 'lucide-react'
+import { BriefcaseBusiness, Plus, RefreshCw, Save, ExternalLink, Link2, Unlink } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 type Client = Record<string, any>
+type Page = { id:string; page_name:string; platform:string; external_page_id:string }
 export default function ClientsModule({userId,locale}:{userId:string;locale:'ar'|'en'}) {
  const ar=locale==='ar'
  const [rows,setRows]=useState<Client[]>([])
+ const [pages,setPages]=useState<Page[]>([])
+ const [links,setLinks]=useState<Record<string,Page[]>>({})
+ const [selected,setSelected]=useState<Record<string,string>>({})
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[notice,setNotice]=useState('')
  const [form,setForm]=useState({business_name:'',industry:'',location:'',platform:'facebook',account_url:'',contact_info:'',notes:''})
- const t=ar?{title:'إدارة العملاء',add:'إضافة عميل',name:'اسم العميل / النشاط',industry:'النشاط',location:'الموقع',platform:'المنصة',url:'رابط الحساب',contact:'معلومات التواصل',notes:'ملاحظات',next:'الخطوة القادمة',save:'حفظ التغييرات',empty:'لا يوجد عملاء بعد. يمكنك تحويل عميل محتمل إلى عميل من وحدة الاكتشاف.',refresh:'تحديث',status:'الحالة',open:'فتح الحساب',saved:'تم حفظ بيانات العميل'}:{title:'Client management',add:'Add client',name:'Client / business name',industry:'Industry',location:'Location',platform:'Platform',url:'Account URL',contact:'Contact details',notes:'Notes',next:'Next action',save:'Save changes',empty:'No clients yet. Promote a prospect to client from Prospect Discovery.',refresh:'Refresh',status:'Status',open:'Open account',saved:'Client details saved'}
- async function load(){if(!supabase){setLoading(false);return}setLoading(true);const {data,error}=await supabase.from('prospects').select('id,business_name,industry,location,platform,account_url,contact_info,notes,next_action,status,qualification_score,updated_at').eq('user_id',userId).eq('status','client').order('updated_at',{ascending:false});if(error)setNotice(error.message);setRows(data||[]);setLoading(false)}
+ const t=ar?{title:'إدارة العملاء',add:'إضافة عميل',name:'اسم العميل / النشاط',industry:'النشاط',location:'الموقع',platform:'المنصة',url:'رابط الحساب',contact:'معلومات التواصل',notes:'ملاحظات',next:'الخطوة القادمة',save:'حفظ التغييرات',empty:'لا يوجد عملاء بعد. يمكنك تحويل عميل محتمل إلى عميل من وحدة الاكتشاف.',refresh:'تحديث',status:'الحالة',open:'فتح الحساب',saved:'تم حفظ بيانات العميل',accounts:'الحسابات الاجتماعية المرتبطة',choose:'اختر صفحة لربطها',link:'ربط الحساب',unlink:'إلغاء الربط',noPages:'لا توجد صفحات مربوطة بحسابك بعد. اربط صفحات Meta أولاً.'}:{title:'Client management',add:'Add client',name:'Client / business name',industry:'Industry',location:'Location',platform:'Platform',url:'Account URL',contact:'Contact details',notes:'Notes',next:'Next action',save:'Save changes',empty:'No clients yet. Promote a prospect to client from Prospect Discovery.',refresh:'Refresh',status:'Status',open:'Open account',saved:'Client details saved',accounts:'Linked social accounts',choose:'Choose a page to link',link:'Link account',unlink:'Unlink',noPages:'No connected pages yet. Connect Meta Pages first.'}
+ async function load(){if(!supabase){setLoading(false);return}setLoading(true);const [clientsResult,pagesResult,linksResult]=await Promise.all([
+  supabase.from('prospects').select('id,business_name,industry,location,platform,account_url,contact_info,notes,next_action,status,qualification_score,updated_at').eq('user_id',userId).eq('status','client').order('updated_at',{ascending:false}),
+  supabase.from('connected_pages').select('id,page_name,platform,external_page_id').eq('user_id',userId).eq('is_active',true).order('created_at',{ascending:false}),
+  supabase.from('client_social_accounts').select('id,client_id,connected_page_id,connected_pages(id,page_name,platform,external_page_id)').eq('user_id',userId)
+ ]);if(clientsResult.error)setNotice(clientsResult.error.message);if(pagesResult.error)setNotice(pagesResult.error.message);if(linksResult.error)setNotice(linksResult.error.message)
+  setRows(clientsResult.data||[]);setPages(pagesResult.data||[]);const map:Record<string,Page[]>={};for(const link of linksResult.data||[]){const page=(link as any).connected_pages;if(page){map[link.client_id]??=[];map[link.client_id].push(page)}}setLinks(map);setLoading(false)}
  useEffect(()=>{void load()},[userId])
  function patch(id:string,key:string,value:string){setRows(v=>v.map(r=>r.id===id?{...r,[key]:value}:r))}
  async function add(e:FormEvent){e.preventDefault();if(!supabase||!form.business_name.trim())return;setBusy(true);const {error}=await supabase.from('prospects').insert({...form,user_id:userId,status:'client',source:'manual_client'});setBusy(false);if(error){setNotice(error.message);return}setForm({business_name:'',industry:'',location:'',platform:'facebook',account_url:'',contact_info:'',notes:''});setNotice(t.saved);await load()}
  async function save(row:Client){if(!supabase)return;setBusy(true);const {error}=await supabase.from('prospects').update({contact_info:row.contact_info,notes:row.notes,next_action:row.next_action,updated_at:new Date().toISOString()}).eq('id',row.id).eq('user_id',userId);setBusy(false);setNotice(error?error.message:t.saved);if(!error)await load()}
  async function changeStatus(row:Client,status:string){if(!supabase)return;const {error}=await supabase.from('prospects').update({status,updated_at:new Date().toISOString()}).eq('id',row.id).eq('user_id',userId);if(error)setNotice(error.message);else await load()}
+ async function linkPage(clientId:string){if(!supabase||!selected[clientId])return;setBusy(true);const {error}=await supabase.from('client_social_accounts').insert({user_id:userId,client_id:clientId,connected_page_id:selected[clientId]});setBusy(false);setNotice(error?error.message:(ar?'تم ربط الصفحة بالعميل':'Page linked to client'));if(!error)await load()}
+ async function unlinkPage(clientId:string,pageId:string){if(!supabase)return;setBusy(true);const {error}=await supabase.from('client_social_accounts').delete().eq('user_id',userId).eq('client_id',clientId).eq('connected_page_id',pageId);setBusy(false);setNotice(error?error.message:(ar?'تم إلغاء ربط الصفحة':'Page unlinked'));if(!error)await load()}
  return <div className="social-module-wrap" dir={ar?'rtl':'ltr'}>
   <div className="module-toolbar"><span>{t.title}</span><button className="subtle-button" onClick={()=>void load()}><RefreshCw size={15}/>{t.refresh}</button></div>
   {notice&&<div className="notice">{notice}<button onClick={()=>setNotice('')}>×</button></div>}
@@ -37,6 +48,7 @@ export default function ClientsModule({userId,locale}:{userId:string;locale:'ar'
      <label>{t.notes}<textarea rows={2} value={row.notes||''} onChange={e=>patch(row.id,'notes',e.target.value)}/></label>
      <label>{t.next}<input value={row.next_action||''} onChange={e=>patch(row.id,'next_action',e.target.value)}/></label>
      <div className="reply-row"><button className="primary-button" disabled={busy} onClick={()=>void save(row)}><Save size={14}/>{t.save}</button><select value={row.status} onChange={e=>void changeStatus(row,e.target.value)} aria-label={t.status}><option value="client">client</option><option value="contacted">contacted</option><option value="archived">archived</option></select>{row.account_url&&<a className="outline-button" href={row.account_url} target="_blank" rel="noreferrer"><ExternalLink size={14}/>{t.open}</a>}</div>
+     <div className="tip-card" style={{display:'block'}}><strong><Link2 size={14}/> {t.accounts}</strong>{(links[row.id]||[]).map(page=><div className="reply-row" key={page.id}><span>{page.page_name} · {page.platform}</span><button className="outline-button" disabled={busy} onClick={()=>void unlinkPage(row.id,page.id)}><Unlink size={13}/>{t.unlink}</button></div>)}{pages.length===0?<small>{t.noPages}</small>:<div className="reply-row"><select value={selected[row.id]||''} onChange={e=>setSelected(v=>({...v,[row.id]:e.target.value}))}><option value="">{t.choose}</option>{pages.filter(page=>!(links[row.id]||[]).some(link=>link.id===page.id)).map(page=><option value={page.id} key={page.id}>{page.page_name} · {page.platform}</option>)}</select><button className="outline-button" disabled={busy||!selected[row.id]} onClick={()=>void linkPage(row.id)}><Plus size={14}/>{t.link}</button></div>}</div>
     </article>)}</div>}
    </section>
   </div>
