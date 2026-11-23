@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { BriefcaseBusiness, Plus, RefreshCw, Save, ExternalLink } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -12,7 +13,7 @@ export default function ClientsModule({userId,locale}:{userId:string;locale:'ar'
  async function load(){if(!supabase){setLoading(false);return}setLoading(true);const {data,error}=await supabase.from('prospects').select('id,business_name,industry,location,platform,account_url,contact_info,notes,next_action,status,qualification_score,updated_at').eq('user_id',userId).eq('status','client').order('updated_at',{ascending:false});if(error)setNotice(error.message);setRows(data||[]);setLoading(false)}
  useEffect(()=>{void load()},[userId])
  function patch(id:string,key:string,value:string){setRows(v=>v.map(r=>r.id===id?{...r,[key]:value}:r))}
- async function add(e:React.FormEvent){e.preventDefault();if(!supabase||!form.business_name.trim())return;setBusy(true);const {error}=await supabase.from('prospects').insert({...form,user_id:userId,status:'client',source:'manual_client'});setBusy(false);if(error){setNotice(error.message);return}setForm({business_name:'',industry:'',location:'',platform:'facebook',account_url:'',contact_info:'',notes:''});setNotice(t.saved);await load()}
+ async function add(e:FormEvent){e.preventDefault();if(!supabase||!form.business_name.trim())return;setBusy(true);const {error}=await supabase.from('prospects').insert({...form,user_id:userId,status:'client',source:'manual_client'});setBusy(false);if(error){setNotice(error.message);return}setForm({business_name:'',industry:'',location:'',platform:'facebook',account_url:'',contact_info:'',notes:''});setNotice(t.saved);await load()}
  async function save(row:Client){if(!supabase)return;setBusy(true);const {error}=await supabase.from('prospects').update({contact_info:row.contact_info,notes:row.notes,next_action:row.next_action,updated_at:new Date().toISOString()}).eq('id',row.id).eq('user_id',userId);setBusy(false);setNotice(error?error.message:t.saved);if(!error)await load()}
  async function changeStatus(row:Client,status:string){if(!supabase)return;const {error}=await supabase.from('prospects').update({status,updated_at:new Date().toISOString()}).eq('id',row.id).eq('user_id',userId);if(error)setNotice(error.message);else await load()}
  return <div className="social-module-wrap" dir={ar?'rtl':'ltr'}>
