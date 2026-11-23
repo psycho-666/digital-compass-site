@@ -16,12 +16,14 @@ A bilingual Arabic/English social-media workspace for managing Facebook Pages an
 ## Social modules
 
 - **Overview:** workspace activity and account status
+- **Prospect discovery:** Iraq-focused Meta Ad Library discovery, public-profile audits, lead qualification, and a review queue for records without enough public evidence
 - **Connected accounts:** Meta OAuth and Facebook/Instagram page discovery
 - **Inbox:** conversations and replies through the Meta messaging API
 - **Comments:** receive comments and reply from the workspace
-- **Content planner:** save drafts and scheduled-post records
+- **Content planner:** save drafts, upload media, and schedule posts
+- **AI post design:** generate three distinct post-design options from a written brief, audience, tone, and brand colors; select a design and save it with a post
 - **Automation:** keyword rules; enabled rules can auto-reply to new matching comments
-- **AI assistant:** UI placeholder until an AI provider key is configured
+- **AI assistant:** interface placeholder until the assistant provider and workflow are enabled
 
 ## Supabase
 
@@ -57,9 +59,19 @@ OAuth redirect URI:
 Webhook callback:
 `https://xnoalyxxrjyovivdeojo.supabase.co/functions/v1/social-meta-webhook`
 
-## Local-only setup (Windows)
+## Hosted application
 
-This application runs privately on your own computer. Vercel is not required and no public frontend deployment is part of this setup.
+The Social Edition is deployed as a web app on Cloudflare Pages and is available from supported browsers on desktop and mobile:
+
+- **Live app:** https://digital-compass-social.pages.dev
+- **Hosting:** Cloudflare Pages, connected to the `social-edition-rebuild` GitHub branch
+- **Backend:** Supabase Auth, PostgreSQL, Storage, and Edge Functions
+
+Changes pushed to `social-edition-rebuild` trigger a production deployment. The Website Edition on `main` is separate and is not part of this deployment.
+
+## Optional local development (Windows)
+
+Local development is optional; it is not required to use the hosted app.
 
 1. Install Node.js LTS (https://nodejs.org/) and Git (https://git-scm.com/downloads/win).
 2. Open PowerShell and run:
@@ -76,6 +88,10 @@ npm run dev
 4. Keep `.env.local` private; it is excluded from Git.
 
 The Supabase publishable key in `.env.example` is designed for browser use. Never put the service-role key or Meta App Secret in frontend files.
+
+## Upload limits
+
+The private `social-media` Storage bucket accepts supported image/video formats up to 500 MB per file. Access is restricted by user-scoped storage policies.
 
 ## Local build check
 
