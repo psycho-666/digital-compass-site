@@ -10,6 +10,16 @@ const words = {
  ar: { inbox:'الرسائل',comments:'التعليقات',planner:'تقويم المحتوى',automation:'الأتمتة',assistant:'المساعد الذكي',settings:'الإعدادات',loading:'جارٍ التحميل...',refresh:'تحديث',none:'لا توجد بيانات بعد. اربط صفحات Meta لاستقبال التفاعلات.',connect:'اذهب إلى الحسابات المرتبطة لربط Meta.',conversation:'اختر محادثة لعرض الرسائل',message:'اكتب رسالتك...',send:'إرسال',comment:'التعليق',author:'صاحب التعليق',reply:'اكتب الرد على التعليق...',replied:'تم الرد',pending:'بانتظار الرد',newPost:'إنشاء منشور',page:'الصفحة',caption:'نص المنشور',designTitle:'صمّم المنشور بالذكاء الاصطناعي',designBrief:'اشرح محتوى المنشور المطلوب',audience:'الجمهور المستهدف',tone:'أسلوب التصميم',colors:'ألوان العلامة التجارية',generate:'إنشاء 3 نماذج تصميم',chooseDesign:'اعتماد هذا التصميم',chosen:'التصميم المختار',media:'صورة أو فيديو (حتى 500MB)',schedule:'موعد النشر',draft:'حفظ كمسودة',scheduleBtn:'جدولة المنشور',rule:'قاعدة جديدة',ruleName:'اسم القاعدة',keyword:'الكلمة أو العبارة المحفزة',replyText:'نص الرد التلقائي',triggerType:'نوع التفاعل',commentTrigger:'تعليق يحتوي كلمة',messageTrigger:'رسالة واردة تحتوي كلمة',allPages:'كل الصفحات',add:'إضافة القاعدة',enabled:'مفعلة',disabled:'متوقفة',noPages:'لا توجد صفحات مرتبطة',assistantHint:'اسأل المساعد عن المحتوى والتفاعل وإدارة صفحاتك وخطط النشر.',assistantPlaceholder:'اكتب سؤالك أو طلبك...',assistantSend:'إرسال',assistantThinking:'يفكر الآن...',assistantWelcome:'أنا مساعدك لإدارة التسويق عبر منصات التواصل. كيف أساعدك؟',settingsHint:'إعدادات مساحة العمل والحساب.',error:'تعذر إكمال العملية',saved:'تم الحفظ',draftStatus:'مسودة',scheduledStatus:'مجدول',status:'الحالة',empty:'لا توجد عناصر لعرضها',cancel:'إلغاء',choosePage:'اختر صفحة'},
  en: { inbox:'Inbox',comments:'Comments',planner:'Content planner',automation:'Automation',assistant:'AI assistant',settings:'Settings',loading:'Loading...',refresh:'Refresh',none:'No data yet. Connect Meta pages to receive activity.',connect:'Open connected accounts to connect Meta.',conversation:'Select a conversation to view messages',message:'Write a message...',send:'Send',comment:'Comment',author:'Author',reply:'Write a comment reply...',replied:'Replied',pending:'Awaiting reply',newPost:'Create post',page:'Page',caption:'Post caption',designTitle:'Design with AI',designBrief:'Describe the post you want',audience:'Target audience',tone:'Design tone',colors:'Brand colors',generate:'Generate 3 design options',chooseDesign:'Use this design',chosen:'Selected design',media:'Image or video (up to 500MB)',schedule:'Publish time',draft:'Save draft',scheduleBtn:'Schedule post',rule:'New automation rule',ruleName:'Rule name',keyword:'Trigger keyword or phrase',replyText:'Automatic reply text',triggerType:'Trigger type',commentTrigger:'Comment contains keyword',messageTrigger:'Incoming message contains keyword',allPages:'All pages',add:'Add rule',enabled:'Enabled',disabled:'Disabled',noPages:'No connected pages',assistantHint:'Ask about content, engagement, page management and publishing plans.',assistantPlaceholder:'Type your question or request...',assistantSend:'Send',assistantThinking:'Thinking...',assistantWelcome:'I am your social media marketing assistant. How can I help?',settingsHint:'Workspace and account settings.',error:'The action could not be completed',saved:'Saved',draftStatus:'Draft',scheduledStatus:'Scheduled',status:'Status',empty:'Nothing to show',cancel:'Cancel',choosePage:'Choose a page'}
 }
+async function functionErrorMessage(error: any, fallback: string) {
+ try {
+  const response = error?.context
+  if (response && typeof response.clone === 'function') {
+   const body = await response.clone().json()
+   if (typeof body?.error === 'string' && body.error.trim()) return body.error
+  }
+ } catch {}
+ return error?.message || fallback
+}
 export default function SocialModules({section,locale,userId}:Props) {
  const t=words[locale], rtl=locale==='ar'
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[notice,setNotice]=useState('')
@@ -60,7 +70,7 @@ export default function SocialModules({section,locale,userId}:Props) {
   setBusy(true);setNotice('')
   const {data,error}=await supabase.functions.invoke('ai-post-design',{body:{brief:designBrief,audience:designAudience,tone:designTone,brandColors:designColors,platform:'Instagram / Facebook'}})
   setBusy(false)
-  if(error||data?.error){setNotice(data?.error||error?.message||t.error);return}
+  if(error||data?.error){setNotice(data?.error||await functionErrorMessage(error,t.error));return}
   setGeneratedDesigns(data.designs||[]);setChosenDesign(null)
  }
  async function savePost(e:FormEvent) {
@@ -88,7 +98,7 @@ export default function SocialModules({section,locale,userId}:Props) {
   e.preventDefault();const prompt=assistantInput.trim();if(!supabase||!prompt||assistantBusy)return
   const next=[...assistantMessages,{role:'user',content:prompt}];setAssistantMessages(next);setAssistantInput('');setAssistantBusy(true);setNotice('')
   const {data,error}=await supabase.functions.invoke('assistant-api',{body:{message:prompt,history:assistantMessages.slice(-10).map(m=>({role:m.role,content:m.content}))}})
-  setAssistantBusy(false);if(error||data?.error){setNotice(data?.error||error?.message||t.error);return}
+  setAssistantBusy(false);if(error||data?.error){setNotice(data?.error||await functionErrorMessage(error,t.error));return}
   setAssistantMessages(v=>[...v,{role:'assistant',content:String(data.reply||'')}])
  }
  async function toggleRule(rule:Row) {
