@@ -10,6 +10,8 @@ export default function ClientsModule({userId,locale}:{userId:string;locale:'ar'
  const [rows,setRows]=useState<Client[]>([])
  const [pages,setPages]=useState<Page[]>([])
  const [links,setLinks]=useState<Record<string,Page[]>>({})
+ const [posts,setPosts]=useState<any[]>([])
+ const [comments,setComments]=useState<any[]>([])
  const [selected,setSelected]=useState<Record<string,string>>({})
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[notice,setNotice]=useState('')
  const [form,setForm]=useState({business_name:'',industry:'',location:'',platform:'facebook',account_url:'',contact_info:'',notes:''})
@@ -19,7 +21,14 @@ export default function ClientsModule({userId,locale}:{userId:string;locale:'ar'
   supabase.from('connected_pages').select('id,page_name,platform,external_page_id').eq('user_id',userId).eq('is_active',true).order('created_at',{ascending:false}),
   supabase.from('client_social_accounts').select('id,client_id,connected_page_id,connected_pages(id,page_name,platform,external_page_id)').eq('user_id',userId)
  ]);if(clientsResult.error)setNotice(clientsResult.error.message);if(pagesResult.error)setNotice(pagesResult.error.message);if(linksResult.error)setNotice(linksResult.error.message)
-  setRows(clientsResult.data||[]);setPages(pagesResult.data||[]);const map:Record<string,Page[]>={};for(const link of linksResult.data||[]){const page=(link as any).connected_pages;if(page){map[link.client_id]??=[];map[link.client_id].push(page)}}setLinks(map);setLoading(false)}
+  setRows(clientsResult.data||[]);setPages(pagesResult.data||[]);const map:Record<string,Page[]>={};for(const link of linksResult.data||[]){const page=(link as any).connected_pages;if(page){map[link.client_id]??=[];map[link.client_id].push(page)}}setLinks(map);
+  const pageIds=(linksResult.data||[]).map((x:any)=>x.connected_page_id);
+  if(pageIds.length){const [postResult,commentResult]=await Promise.all([
+   supabase.from('scheduled_posts').select('id,page_id,caption,scheduled_for,published_at,status,last_error,created_at').eq('user_id',userId).in('page_id',pageIds).order('created_at',{ascending:false}).limit(30),
+   supabase.from('comments').select('id,page_id,author_name,body,commented_at,reply_text,replied_at,status').eq('user_id',userId).in('page_id',pageIds).order('commented_at',{ascending:false}).limit(30)
+  ]);if(postResult.error)setNotice(postResult.error.message);if(commentResult.error)setNotice(commentResult.error.message);setPosts(postResult.data||[]);setComments(commentResult.data||[])
+  }else{setPosts([]);setComments([])}
+  setLoading(false)}
  useEffect(()=>{void load()},[userId])
  function patch(id:string,key:string,value:string){setRows(v=>v.map(r=>r.id===id?{...r,[key]:value}:r))}
  async function add(e:FormEvent){e.preventDefault();if(!supabase||!form.business_name.trim())return;setBusy(true);const {error}=await supabase.from('prospects').insert({...form,user_id:userId,status:'client',source:'manual_client'});setBusy(false);if(error){setNotice(error.message);return}setForm({business_name:'',industry:'',location:'',platform:'facebook',account_url:'',contact_info:'',notes:''});setNotice(t.saved);await load()}
@@ -50,6 +59,14 @@ export default function ClientsModule({userId,locale}:{userId:string;locale:'ar'
      <div className="reply-row"><button className="primary-button" disabled={busy} onClick={()=>void save(row)}><Save size={14}/>{t.save}</button><select value={row.status} onChange={e=>void changeStatus(row,e.target.value)} aria-label={t.status}><option value="client">client</option><option value="contacted">contacted</option><option value="archived">archived</option></select>{row.account_url&&<a className="outline-button" href={row.account_url} target="_blank" rel="noreferrer"><ExternalLink size={14}/>{t.open}</a>}</div>
      <div className="tip-card" style={{display:'block'}}><strong><Link2 size={14}/> {t.accounts}</strong>{(links[row.id]||[]).map(page=><div className="reply-row" key={page.id}><span>{page.page_name} · {page.platform}</span><button className="outline-button" disabled={busy} onClick={()=>void unlinkPage(row.id,page.id)}><Unlink size={13}/>{t.unlink}</button></div>)}{pages.length===0?<small>{t.noPages}</small>:<div className="reply-row"><select value={selected[row.id]||''} onChange={e=>setSelected(v=>({...v,[row.id]:e.target.value}))}><option value="">{t.choose}</option>{pages.filter(page=>!(links[row.id]||[]).some(link=>link.id===page.id)).map(page=><option value={page.id} key={page.id}>{page.page_name} · {page.platform}</option>)}</select><button className="outline-button" disabled={busy||!selected[row.id]} onClick={()=>void linkPage(row.id)}><Plus size={14}/>{t.link}</button></div>}</div>
     </article>)}</div>}
+   </section>
+  </div>
+  <div className="planner-grid" style={{marginTop:16}}>
+   <section className="panel"><div className="panel-head"><h3>{ar?'محتوى العملاء':'Client content'}</h3><span className="status-pill">{posts.length}</span></div>
+    {posts.length===0?<div className="small-empty">{ar?'لا توجد منشورات مجدولة للحسابات المرتبطة حالياً.':'No scheduled posts for linked client accounts yet.'}</div>:<div className="data-list">{posts.map(p=><article className="comment-card" key={p.id}><div className="comment-top"><strong>{(p.caption||'').slice(0,90)|| (ar?'منشور بدون نص':'Post without caption')}</strong><span className="status-pill">{p.status}</span></div><small>{p.scheduled_for?new Date(p.scheduled_for).toLocaleString(ar?'ar-IQ':'en-US'):p.published_at?new Date(p.published_at).toLocaleString(ar?'ar-IQ':'en-US'):''}</small>{p.last_error&&<small>{ar?'سبب التعذر: ':'Error: '}{p.last_error}</small>}</article>)}</div>}
+   </section>
+   <section className="panel"><div className="panel-head"><h3>{ar?'متابعة التعليقات':'Comment follow-up'}</h3><span className="status-pill">{comments.length}</span></div>
+    {comments.length===0?<div className="small-empty">{ar?'لا توجد تعليقات واردة للحسابات المرتبطة حالياً.':'No incoming comments for linked client accounts yet.'}</div>:<div className="data-list">{comments.map(x=><article className="comment-card" key={x.id}><div className="comment-top"><strong>{x.author_name|| (ar?'مستخدم':'User')}</strong><span className="status-pill">{x.status}</span></div><p>{x.body}</p><small>{x.commented_at?new Date(x.commented_at).toLocaleString(ar?'ar-IQ':'en-US'):''}</small>{x.reply_text&&<small>{ar?'الرد: ':'Reply: '}{x.reply_text}</small>}</article>)}</div>}
    </section>
   </div>
  </div>
