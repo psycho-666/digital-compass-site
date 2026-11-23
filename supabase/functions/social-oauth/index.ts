@@ -17,11 +17,17 @@ const SCOPES = [
 ].join(",");
 
 const FRONTEND_ORIGIN = "https://digital-compass-social.pages.dev";
-const corsHeaders = {
-  "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
-};
+function corsHeaders(req: Request) {
+  const origin = req.headers.get("origin") ?? "";
+  const allowed = origin === FRONTEND_ORIGIN ||
+    /^https:\/\/[a-z0-9-]+\.digital-compass-social\.pages\.dev$/.test(origin);
+  return {
+    "Access-Control-Allow-Origin": allowed ? origin : FRONTEND_ORIGIN,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Vary": "Origin"
+  };
+}
 
 function b64url(input: Uint8Array): string {
   let binary = "";
@@ -51,8 +57,8 @@ async function verifyState(state: string, secret: string): Promise<{ user_id: st
     return data;
   } catch { return null; }
 }
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "content-type": "application/json" } });
+function json(req: Request, data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders(req), "content-type": "application/json" } });
 }
 async function graphGet(path: string, params: Record<string, string>) {
   const url = new URL("https://graph.facebook.com/" + GRAPH + "/" + path.replace(/^\/+/, ""));
@@ -72,13 +78,13 @@ async function graphPost(path: string, params: Record<string, string>) {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
   const appSecret = Deno.env.get("META_APP_SECRET");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const frontendUrl = FRONTEND_ORIGIN;
   const missingConfig = [["META_APP_SECRET", appSecret], ["SUPABASE_URL", supabaseUrl], ["SUPABASE_SERVICE_ROLE_KEY", serviceKey]].filter((item) => !item[1]).map((item) => item[0]);
-  if (missingConfig.length) return json({ error: "Missing server configuration", missing: missingConfig }, 500);
+  if (missingConfig.length) return json(req, { error: "Missing server configuration", missing: missingConfig }, 500);
 
   const redirectUri = supabaseUrl + "/functions/v1/social-oauth?action=callback";
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -147,17 +153,17 @@ Deno.serve(async (req: Request) => {
       return Response.redirect(resultUrl.toString(), 302);
     }
 
-    if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+    if (req.method !== "POST") return json(req, { error: "Method not allowed" }, 405);
     const authHeader = req.headers.get("Authorization") ?? "";
-    if (!authHeader.startsWith("Bearer ")) return json({ error: "Authentication required" }, 401);
+    if (!authHeader.startsWith("Bearer ")) return json(req, { error: "Authentication required" }, 401);
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
       global: { headers: { Authorization: authHeader } }, auth: { persistSession: false, autoRefreshToken: false }
     });
     const { data: userData, error: userError } = await userClient.auth.getUser();
-    if (userError || !userData.user) return json({ error: "Invalid session" }, 401);
+    if (userError || !userData.user) return json(req, { error: "Invalid session" }, 401);
 
     const body = await req.json().catch(() => ({}));
-    if (body.action !== "start") return json({ error: "Unsupported action" }, 400);
+    if (body.action !== "start") return json(req, { error: "Unsupported action" }, 400);
     const statePayload = b64url(new TextEncoder().encode(JSON.stringify({
       user_id: userData.user.id, exp: Math.floor(Date.now() / 1000) + 600, nonce: crypto.randomUUID()
     })));
@@ -168,9 +174,9 @@ Deno.serve(async (req: Request) => {
     oauthUrl.searchParams.set("state", state);
     oauthUrl.searchParams.set("response_type", "code");
     oauthUrl.searchParams.set("scope", SCOPES);
-    return json({ url: oauthUrl.toString() });
+    return json(req, { url: oauthUrl.toString() });
   } catch (error) {
     console.error("social-oauth error", error);
-    return json({ error: error instanceof Error ? error.message : "OAuth failed" }, 500);
+    return json(req, { error: error instanceof Error ? error.message : "OAuth failed" }, 500);
   }
 });
