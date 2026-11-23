@@ -86,8 +86,17 @@ export default function SocialModules({section,locale,userId}:Props) {
  useEffect(()=>{void load()},[section,userId])
  async function openConversation(row:Row) {
   setSelected(row);if(!supabase)return
-  const {data,error}=await supabase.from('messages').select('*').eq('conversation_id',row.id).eq('user_id',userId).order('sent_at')
-  if(error)setNotice(error.message);setMessages(data||[])
+  const [messageResult,readResult]=await Promise.all([
+   supabase.from('messages').select('*').eq('conversation_id',row.id).eq('user_id',userId).order('sent_at'),
+   supabase.functions.invoke('social-management-api',{body:{action:'mark_read',conversation_id:row.id}})
+  ])
+  if(messageResult.error)setNotice(messageResult.error.message)
+  else setMessages(messageResult.data||[])
+  if(readResult.error){setNotice(await functionErrorMessage(readResult.error,t.error))}
+  else {
+   setConversations(current=>current.map(item=>item.id===row.id?{...item,unread_count:0}:item))
+   setSelected(current=>current?.id===row.id?{...current,unread_count:0}:current)
+  }
  }
  async function sendMessage(e:FormEvent) {
   e.preventDefault();if(!supabase||!selected||!message.trim())return
