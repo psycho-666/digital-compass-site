@@ -39,6 +39,34 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const meta = params.get('meta')
+    if (!meta) return
+    setSection('pages')
+    if (meta === 'connected') {
+      const pageCount = Number(params.get('pages') || 0)
+      const webhookFailures = Number(params.get('webhook_failures') || 0)
+      if (pageCount === 0) {
+        setNotice(locale === 'ar'
+          ? 'اكتمل التفويض، لكن Meta لم تُرجع أي صفحة متاحة. تحقق من صلاحيات الصفحات ثم أعد الربط.'
+          : 'Authorization completed, but Meta returned no accessible Pages. Check Page permissions and reconnect.')
+      } else if (webhookFailures > 0) {
+        setNotice(locale === 'ar'
+          ? `تم ربط ${pageCount} حساب، لكن فشل الاشتراك بالتحديثات لعدد ${webhookFailures} صفحة. راجع إعداد Webhooks في Meta.`
+          : `${pageCount} account(s) connected; webhook subscription failed for ${webhookFailures} Page(s). Check Meta Webhooks.`)
+      } else {
+        setNotice(locale === 'ar'
+          ? `تم ربط ${pageCount} حساب بنجاح وتفعيل اشتراك التحديثات.`
+          : `${pageCount} account(s) connected and webhook subscriptions confirmed.`)
+      }
+    } else {
+      setNotice(locale === 'ar'
+        ? 'لم يكتمل ربط Meta. أعد المحاولة بعد التأكد من صلاحيات التطبيق.'
+        : 'Meta connection did not complete. Check app permissions and try again.')
+    }
+    window.history.replaceState({}, document.title, window.location.pathname)
+  }, [])
+  useEffect(() => {
     if (!supabase || !session) return
     let active = true
     Promise.all([
