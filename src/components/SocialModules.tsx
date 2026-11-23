@@ -18,7 +18,7 @@ async function makeLocalDesign(brief:string, audience:string, tone:string, color
  const a=palette[0],b=palette[1]||'#342046',accent=palette[2]||'#d8b66a';
  const headline=brief.trim().split(/[.!؟\n]/)[0].slice(0,90)||brief.slice(0,90);
  const sub=(audience?((rtl?'مخصص لـ ':'For ')+audience):'').slice(0,100);
- const drawWrapped=(text:string,x:number,y:number,max:number,line:number,align:'left'|'right'='right')=>{
+ const drawWrapped=(text:string,x:number,y:number,max:number,line:number)=>{
   ctx.textAlign=rtl?'right':'left';ctx.direction=rtl?'rtl':'ltr';ctx.font='700 64px Arial, sans-serif';
   const words=text.split(/\s+/);let row='',yy=y;
   for(const word of words){const test=row?row+' '+word:word;if(ctx.measureText(test).width>max&&row){ctx.fillText(row,x,yy);row=word;yy+=line;}else row=test;}
