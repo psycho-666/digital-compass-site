@@ -105,6 +105,7 @@ Deno.serve(async (req: Request) => {
       });
       const pages = Array.isArray(accountData.data) ? accountData.data : [];
       let saved = 0;
+      let webhookFailures = 0;
       for (const page of pages) {
         const pageToken = page.access_token;
         if (!page.id || !pageToken) continue;
@@ -121,6 +122,7 @@ Deno.serve(async (req: Request) => {
         try {
           await graphPost(page.id + "/subscribed_apps", { subscribed_fields: "feed,messages,messaging_postbacks", access_token: pageToken });
         } catch (error) {
+          webhookFailures++;
           console.error("Page webhook subscription failed for", page.id, error);
         }
         saved++;
@@ -138,7 +140,11 @@ Deno.serve(async (req: Request) => {
           saved++;
         }
       }
-      return Response.redirect(frontendUrl + "/?meta=connected&pages=" + saved, 302);
+      const resultUrl = new URL(frontendUrl + "/");
+      resultUrl.searchParams.set("meta", "connected");
+      resultUrl.searchParams.set("pages", String(saved));
+      resultUrl.searchParams.set("webhook_failures", String(webhookFailures));
+      return Response.redirect(resultUrl.toString(), 302);
     }
 
     if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
