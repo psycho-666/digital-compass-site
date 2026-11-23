@@ -47,7 +47,8 @@ async function makeLocalDesign(brief:string, audience:string, tone:string, color
  }
  return await new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Could not export design image')),'image/png'));
 }
-\nasync function functionErrorMessage(error: any, fallback: string) {
+
+async function functionErrorMessage(error: any, fallback: string) {
  try {
   const response = error?.context
   if (response && typeof response.clone === 'function') {
