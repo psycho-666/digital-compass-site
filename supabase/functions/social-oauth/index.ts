@@ -83,19 +83,27 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const frontendUrl = FRONTEND_ORIGIN;
-  const missingConfig = [["META_APP_SECRET", appSecret], ["SUPABASE_URL", supabaseUrl], ["SUPABASE_SERVICE_ROLE_KEY", serviceKey]].filter((item) => !item[1]).map((item) => item[0]);
+  const url = new URL(req.url);
+  const isCallback = req.method === "GET" && url.searchParams.get("action") === "callback";
+  const missingConfig = [
+    ["META_APP_SECRET", appSecret],
+    ["SUPABASE_URL", supabaseUrl],
+    ...(isCallback ? [["SUPABASE_SERVICE_ROLE_KEY", serviceKey]] : [])
+  ].filter((item) => !item[1]).map((item) => item[0]);
   if (missingConfig.length) return json(req, { error: "Missing server configuration", missing: missingConfig }, 500);
 
   const redirectUri = supabaseUrl + "/functions/v1/social-oauth?action=callback";
-  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
   try {
-    const url = new URL(req.url);
-    if (req.method === "GET" && url.searchParams.get("action") === "callback") {
+    if (isCallback) {
       const code = url.searchParams.get("code");
       const state = url.searchParams.get("state") ?? "";
       const stateData = await verifyState(state, appSecret);
       if (!code || !stateData) return Response.redirect(frontendUrl + "/?meta=error&reason=invalid_state", 302);
+
+      // The service-role client is only needed after Meta returns the OAuth callback.
+      // Do not initialize it during the initial browser request.
+      const admin = createClient(supabaseUrl, serviceKey!, { auth: { persistSession: false, autoRefreshToken: false } });
 
       const shortToken = await graphGet("oauth/access_token", {
         client_id: APP_ID, client_secret: appSecret, redirect_uri: redirectUri, code
